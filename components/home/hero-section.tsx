@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from 'react'
 import Link from 'next/link'
 import { HeroPlaceholder } from '@/components/ui/image-placeholder'
+import { AdaptiveHeadline } from '@/components/typography/adaptive-headline'
 
 export function HeroSection() {
   const [scrollY, setScrollY] = useState(0)
@@ -67,31 +68,20 @@ export function HeroSection() {
                 </p>
               </div>
               
-              {/* Headline */}
-              <h1 className="font-serif text-cream text-5xl md:text-6xl lg:text-7xl xl:text-8xl leading-[0.95] tracking-tight">
-                <span className="block overflow-hidden">
-                  <span 
-                    className="block transition-all duration-1000 ease-out"
-                    style={{
-                      transform: loaded ? 'translateY(0)' : 'translateY(100%)',
-                      transitionDelay: '150ms',
-                    }}
-                  >
-                    We author
-                  </span>
-                </span>
-                <span className="block overflow-hidden">
-                  <span 
-                    className="block italic transition-all duration-1000 ease-out"
-                    style={{
-                      transform: loaded ? 'translateY(0)' : 'translateY(100%)',
-                      transitionDelay: '250ms',
-                    }}
-                  >
-                    environments
-                  </span>
-                </span>
-              </h1>
+              {/* Adaptive Headline - sizes automatically to container */}
+              <div className="text-cream">
+                <AdaptiveHeadline
+                  as="h1"
+                  minSize={40}
+                  maxSize={120}
+                  lineHeightRatio={0.95}
+                  animateIn
+                  animationDelay={150}
+                  className="text-cream"
+                >
+                  We author environments
+                </AdaptiveHeadline>
+              </div>
             </div>
             
             {/* Subtext */}

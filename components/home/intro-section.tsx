@@ -1,11 +1,35 @@
 'use client'
 
+import { useEffect, useState, useRef } from 'react'
 import Link from 'next/link'
-import { TextReveal, HighlightText, FadeUp } from '@/components/animations/text-reveal'
+import { PretextReveal, PretextHighlight } from '@/components/typography/pretext-reveal'
+import { ShrinkwrapQuote } from '@/components/typography/shrinkwrap-quote'
+import { FadeUp } from '@/components/animations/text-reveal'
 
 export function IntroSection() {
+  const sectionRef = useRef<HTMLElement>(null)
+  const [isInView, setIsInView] = useState(false)
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsInView(true)
+          observer.disconnect()
+        }
+      },
+      { threshold: 0.2 }
+    )
+
+    if (sectionRef.current) {
+      observer.observe(sectionRef.current)
+    }
+
+    return () => observer.disconnect()
+  }, [])
+
   return (
-    <section className="bg-background py-28 lg:py-44">
+    <section ref={sectionRef} className="bg-background py-28 lg:py-44">
       <div className="px-6 lg:px-12 max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16">
           {/* Label */}
@@ -19,40 +43,57 @@ export function IntroSection() {
           
           {/* Main Content */}
           <div className="lg:col-span-9">
-            <TextReveal 
-              as="h2" 
-              className="font-serif text-3xl md:text-4xl lg:text-5xl leading-[1.15] tracking-tight"
-              splitBy="word"
-              stagger={0.03}
-              duration={0.9}
+            {/* Main statement with Pretext line-by-line reveal */}
+            <PretextReveal
+              as="h2"
+              fontSize={32}
+              lineHeight={44}
+              fontFamily="serif"
+              className="text-foreground tracking-tight"
+              trigger={isInView}
+              initialDelay={200}
+              staggerDelay={80}
             >
               Eclectic Hive is a design and fabrication studio that creates authored environments—spaces that feel constructed, intentional, and irreplaceable.
-            </TextReveal>
+            </PretextReveal>
             
             <div className="mt-14 lg:mt-20 grid grid-cols-1 md:grid-cols-2 gap-10 lg:gap-16">
-              <FadeUp delay={0.2} distance={30}>
+              <FadeUp delay={0.3} distance={30}>
                 <p className="text-muted-foreground leading-relaxed text-base lg:text-lg">
                   We are not a rental company. We are{' '}
-                  <HighlightText highlightClassName="bg-terracotta/15">
+                  <PretextHighlight trigger={isInView} delay={800}>
                     environment architects
-                  </HighlightText>
+                  </PretextHighlight>
                   —shaping spaces through design intelligence, proprietary inventory, 
                   custom fabrication, and production expertise that transforms vision into physical form.
                 </p>
               </FadeUp>
-              <FadeUp delay={0.35} distance={30}>
+              <FadeUp delay={0.45} distance={30}>
                 <p className="text-muted-foreground leading-relaxed text-base lg:text-lg">
                   Every material is considered. Every construction is intentional. Every 
                   environment we create carries the{' '}
-                  <HighlightText highlightClassName="bg-terracotta/15">
+                  <PretextHighlight trigger={isInView} delay={1000}>
                     signature of our process
-                  </HighlightText>
+                  </PretextHighlight>
                   —from concept through completion.
                 </p>
               </FadeUp>
             </div>
             
-            <FadeUp delay={0.5} distance={20}>
+            {/* Shrinkwrap Pull Quote */}
+            <div className="mt-20 lg:mt-28">
+              <ShrinkwrapQuote
+                maxWidth={500}
+                fontSize={22}
+                lineHeight={34}
+                attribution="Our Philosophy"
+                align="left"
+              >
+                Design is not decoration—it is the deliberate orchestration of space, material, and intention.
+              </ShrinkwrapQuote>
+            </div>
+            
+            <FadeUp delay={0.6} distance={20}>
               <div className="mt-14 flex flex-wrap gap-10">
                 <Link 
                   href="/services"
