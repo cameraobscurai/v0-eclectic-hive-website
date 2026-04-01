@@ -1,33 +1,42 @@
+'use client'
+
 import { Metadata } from 'next'
 import { Navigation } from '@/components/navigation'
 import { Footer } from '@/components/footer'
-import { ImagePlaceholder } from '@/components/ui/image-placeholder'
-
-export const metadata: Metadata = {
-  title: 'The Hive | Eclectic Hive',
-  description: 'Meet the people behind Eclectic Hive. Designers, fabricators, and producers who author extraordinary environments.',
-}
+import Image from 'next/image'
+import { useState, useRef, useEffect } from 'react'
+import { cn } from '@/lib/utils'
 
 const team = [
   {
-    name: 'Alexandra Vance',
-    role: 'Founder & Creative Director',
-    bio: 'Alexandra founded Eclectic Hive after fifteen years leading design for luxury hospitality and private events. Her vision guides every environment we create—balancing aesthetic ambition with practical intelligence.',
+    name: 'Jill Livingston',
+    role: 'Owner | Creative Director',
+    image: 'https://images.squarespace-cdn.com/content/v1/5ed7e5a6b0e8f77099d3fd2d/1712258096193-CJT28MWOXRK51XNWXYGH/Jill+BW.jpg',
   },
   {
-    name: 'Marcus Chen',
-    role: 'Head of Fabrication',
-    bio: 'Marcus brings twenty years of architectural fabrication experience to our atelier. His expertise in materials, construction methods, and finish work ensures that every piece we create meets our exacting standards.',
+    name: 'Nicholas Patterson',
+    role: 'General Manager',
+    image: 'https://images.squarespace-cdn.com/content/v1/5ed7e5a6b0e8f77099d3fd2d/1712258101227-SLM6TDBQGQSJ8DS5LK7B/NP+BW.jpg',
   },
   {
-    name: 'Sophia Reed',
+    name: 'Kurt Van Raden',
+    role: 'Executive Producer',
+    image: 'https://images.squarespace-cdn.com/content/v1/5ed7e5a6b0e8f77099d3fd2d/1712258109040-9UP5P3D3X4GZUMMPIVMJ/Kurt+BW.jpg',
+  },
+  {
+    name: 'Brittany Farrow',
     role: 'Senior Designer',
-    bio: 'Sophia leads concept development and material direction for our projects. Her background in interior architecture and textile design brings depth to every palette and spatial decision.',
+    image: 'https://images.squarespace-cdn.com/content/v1/5ed7e5a6b0e8f77099d3fd2d/1712258115970-WP2DP7G6EG3P49U7GHZS/Britt+BW.jpg',
   },
   {
-    name: 'David Okafor',
-    role: 'Production Director',
-    bio: 'David manages the complex logistics that transform design vision into lived reality. His fifteen years in event production ensure that every installation is executed with precision.',
+    name: 'Adrienne Moon',
+    role: 'Resource Manager',
+    image: 'https://images.squarespace-cdn.com/content/v1/5ed7e5a6b0e8f77099d3fd2d/1712258123182-BKZJX1O5QSJJ8H5EQKZB/Adrienne+BW.jpg',
+  },
+  {
+    name: 'Patrick Batten',
+    role: 'Inventory + Warehouse Manager',
+    image: 'https://images.squarespace-cdn.com/content/v1/5ed7e5a6b0e8f77099d3fd2d/1712258131017-MJEPZ2IW04CKPX6WZJ8O/Patrick+BW.jpg',
   },
 ]
 
@@ -50,6 +59,58 @@ const values = [
   },
 ]
 
+function TeamMember({ member, index }: { member: typeof team[0]; index: number }) {
+  const [isInView, setIsInView] = useState(false)
+  const [imageLoaded, setImageLoaded] = useState(false)
+  const ref = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    const element = ref.current
+    if (!element) return
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsInView(true)
+          observer.unobserve(element)
+        }
+      },
+      { threshold: 0.2 }
+    )
+
+    observer.observe(element)
+    return () => observer.disconnect()
+  }, [])
+
+  return (
+    <div 
+      ref={ref}
+      className={cn(
+        'group transition-all duration-700',
+        isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
+      )}
+      style={{ transitionDelay: `${index * 100}ms` }}
+    >
+      <div className="relative aspect-[3/4] mb-8 overflow-hidden bg-muted">
+        <Image
+          src={member.image}
+          alt={member.name}
+          fill
+          className={cn(
+            'object-cover transition-all duration-700',
+            imageLoaded ? 'opacity-100 scale-100' : 'opacity-0 scale-105',
+            'group-hover:scale-105'
+          )}
+          onLoad={() => setImageLoaded(true)}
+          sizes="(max-width: 768px) 100vw, 50vw"
+        />
+      </div>
+      <h3 className="font-serif text-2xl lg:text-3xl tracking-tight">{member.name}</h3>
+      <p className="mt-2 text-sm text-muted-foreground">{member.role}</p>
+    </div>
+  )
+}
+
 export default function TeamPage() {
   return (
     <main>
@@ -64,9 +125,9 @@ export default function TeamPage() {
                 The Hive
               </p>
               <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl xl:text-7xl leading-[0.95] tracking-tight">
-                The people who
+                A team that
                 <br />
-                <span className="italic">author environments</span>
+                <span className="italic">does it all</span>
               </h1>
             </div>
             <div className="lg:col-span-4 flex items-end">
@@ -82,19 +143,9 @@ export default function TeamPage() {
       {/* Team Grid */}
       <section className="bg-background py-24 lg:py-40">
         <div className="px-6 lg:px-12 max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-16">
-            {team.map((member) => (
-              <div key={member.name} className="group">
-                <div className="mb-8">
-                  <ImagePlaceholder 
-                    aspectRatio="portrait"
-                    label={member.name.split(' ')[0]}
-                  />
-                </div>
-                <h3 className="font-serif text-2xl lg:text-3xl tracking-tight">{member.name}</h3>
-                <p className="mt-2 text-sm text-muted-foreground">{member.role}</p>
-                <p className="mt-4 text-muted-foreground leading-relaxed">{member.bio}</p>
-              </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12 lg:gap-16">
+            {team.map((member, index) => (
+              <TeamMember key={member.name} member={member} index={index} />
             ))}
           </div>
         </div>
@@ -154,10 +205,15 @@ export default function TeamPage() {
               </div>
             </div>
             <div className="lg:col-span-6 lg:col-start-7">
-              <ImagePlaceholder 
-                aspectRatio="landscape"
-                label="Studio"
-              />
+              <div className="relative aspect-[4/3] overflow-hidden bg-muted">
+                <Image
+                  src="https://images.squarespace-cdn.com/content/v1/5ed7e5a6b0e8f77099d3fd2d/1591825920358-4LJJNRX3XZZWKL8JHM9V/Eclectic+Hive+Warehouse.jpg"
+                  alt="Eclectic Hive Studio"
+                  fill
+                  className="object-cover"
+                  sizes="(max-width: 1024px) 100vw, 50vw"
+                />
+              </div>
             </div>
           </div>
         </div>

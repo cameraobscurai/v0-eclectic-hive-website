@@ -2,12 +2,13 @@
 
 import { useEffect, useState, useRef } from 'react'
 import Link from 'next/link'
-import { HeroPlaceholder } from '@/components/ui/image-placeholder'
+import Image from 'next/image'
 import { AdaptiveHeadline } from '@/components/typography/adaptive-headline'
 
 export function HeroSection() {
   const [scrollY, setScrollY] = useState(0)
   const [loaded, setLoaded] = useState(false)
+  const [imageLoaded, setImageLoaded] = useState(false)
   const heroRef = useRef<HTMLElement>(null)
   
   useEffect(() => {
@@ -43,7 +44,16 @@ export function HeroSection() {
           transform: `translateY(${parallaxOffset}px) scale(${1 + scrollY * 0.0002})`,
         }}
       >
-        <HeroPlaceholder />
+        <Image
+          src="https://images.squarespace-cdn.com/content/v1/5ed7e5a6b0e8f77099d3fd2d/1712173556231-U5Z6HJ7N0B9I9FJ5F8GN/Eclectic+Hive+Event+Design.jpg"
+          alt="Eclectic Hive Event Design"
+          fill
+          priority
+          className={`object-cover transition-opacity duration-1000 ${imageLoaded ? 'opacity-100' : 'opacity-0'}`}
+          onLoad={() => setImageLoaded(true)}
+          sizes="100vw"
+        />
+        <div className="absolute inset-0 bg-charcoal/60" />
       </div>
       
       {/* Content */}
@@ -68,7 +78,7 @@ export function HeroSection() {
                 </p>
               </div>
               
-              {/* Adaptive Headline - sizes automatically to container */}
+              {/* Adaptive Headline */}
               <div className="text-cream">
                 <AdaptiveHeadline
                   as="h1"

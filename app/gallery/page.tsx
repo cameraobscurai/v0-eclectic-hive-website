@@ -2,74 +2,80 @@
 
 import { Navigation } from '@/components/navigation'
 import { Footer } from '@/components/footer'
-import { ImagePlaceholder } from '@/components/ui/image-placeholder'
 import { LineReveal, HighlightReveal } from '@/components/pretext/line-reveal'
 import { ShrinkwrapBubble } from '@/components/pretext/shrinkwrap-bubble'
 import Link from 'next/link'
+import Image from 'next/image'
 import { useState, useRef, useEffect } from 'react'
 import { cn } from '@/lib/utils'
 
 const projects = [
   {
-    id: 'aspen-summit',
-    title: 'Aspen Summit',
-    type: 'Corporate Retreat',
+    id: 'easton-brush-creek',
+    title: 'Brush Creek Ranch',
+    planner: 'Easton Events',
+    type: 'Private Celebration',
     scope: 'Full Environment Design',
     year: '2024',
-    description: 'A three-day executive retreat transformed into an immersive alpine environment. Custom fabricated installations, material-driven design, and production management for 200 guests.',
-    highlights: ['Custom timber installations', 'Bespoke furniture collection', 'Full production management'],
+    description: 'An immersive ranch celebration blending rustic elegance with refined design. Custom fabricated installations and material-driven environments for an unforgettable mountain experience.',
+    image: 'https://images.squarespace-cdn.com/content/v1/5ed7e5a6b0e8f77099d3fd2d/1712173556231-U5Z6HJ7N0B9I9FJ5F8GN/Eclectic+Hive+Event+Design.jpg',
     featured: true,
     quote: 'Beyond what we imagined possible.',
   },
   {
-    id: 'gallery-nocturne',
-    title: 'Gallery Nocturne',
-    type: 'Private Celebration',
+    id: 'diwan-brush-creek',
+    title: 'Brush Creek Ranch',
+    planner: 'Diwan by Design',
+    type: 'Wedding',
     scope: 'Design & Fabrication',
     year: '2024',
-    description: 'An evening celebration within a private gallery space. Moody atmosphere, architectural lighting, and custom-fabricated sculptural elements.',
-    highlights: ['Sculptural centerpieces', 'Atmospheric lighting design', 'Material palette curation'],
+    description: 'A celebration of cultures through design. Bespoke lounge environments, custom lighting, and curated material palettes.',
+    image: 'https://images.squarespace-cdn.com/content/v1/5ed7e5a6b0e8f77099d3fd2d/1712173471821-HO5VQOMV0UZUBL9NFVXU/Diwan+by+Design+Wedding.jpg',
     featured: true,
     quote: 'Every detail was considered.',
   },
   {
-    id: 'terra-celebration',
-    title: 'Terra Celebration',
-    type: 'Wedding',
-    scope: 'Full Environment Design',
-    year: '2024',
-    description: 'An outdoor celebration grounded in earthy materiality. Terracotta, natural linens, and custom metalwork created an environment that felt both elevated and rooted.',
-    highlights: ['Custom arch fabrication', 'Proprietary colorway development', 'Botanical design direction'],
-    featured: false,
-  },
-  {
-    id: 'meridian-launch',
-    title: 'Meridian Launch',
-    type: 'Brand Activation',
-    scope: 'Design & Production',
-    year: '2023',
-    description: 'A product launch event that transformed a warehouse into an experiential brand environment. Modular installations, integrated technology, and spatial narrative.',
-    highlights: ['Modular display system', 'Integrated AV production', 'Brand environment design'],
-    featured: false,
-  },
-  {
-    id: 'vesper-gala',
-    title: 'Vesper Gala',
-    type: 'Benefit Gala',
-    scope: 'Design & Fabrication',
-    year: '2023',
-    description: 'An evening benefit transformed through warm metals, candlelight, and velvet textures. Intimate atmosphere within a grand ballroom setting.',
-    highlights: ['Custom table designs', 'Brass fixture fabrication', 'Lighting atmosphere design'],
-    featured: false,
-  },
-  {
-    id: 'founders-retreat',
-    title: 'Founders Retreat',
+    id: 'banks-leaf-denver',
+    title: 'Denver',
+    planner: 'Banks + Leaf',
     type: 'Corporate Event',
     scope: 'Full Environment Design',
+    year: '2024',
+    description: 'Urban sophistication meets mountain sensibility. A corporate gathering transformed through intentional design and material intelligence.',
+    image: 'https://images.squarespace-cdn.com/content/v1/5ed7e5a6b0e8f77099d3fd2d/1712173430989-DJBQ2XQRLRX3NXMQQL9M/Banks+%2B+Leaf+Denver.jpg',
+    featured: false,
+  },
+  {
+    id: 'love-this-day',
+    title: 'Brush Creek Ranch',
+    planner: 'Love This Day',
+    type: 'Wedding',
+    scope: 'Design & Production',
     year: '2023',
-    description: 'A leadership retreat designed to inspire strategic thinking. Natural materials, considered space planning, and an atmosphere of focused intention.',
-    highlights: ['Environment strategy', 'Custom workspace design', 'Full production coordination'],
+    description: 'Romance meets rugged beauty. A celebration designed around natural textures, warm metals, and organic florals.',
+    image: 'https://images.squarespace-cdn.com/content/v1/5ed7e5a6b0e8f77099d3fd2d/1712173499927-KBHSVKH4RQJLXHVIJXZH/Love+This+Day+Wedding.jpg',
+    featured: false,
+  },
+  {
+    id: 'birch-caribou',
+    title: 'Caribou Club',
+    planner: 'Birch Design Studio',
+    type: 'Private Event',
+    scope: 'Design & Fabrication',
+    year: '2023',
+    description: 'Intimate elegance in Aspen. Custom lounge installations and bespoke design elements for an exclusive mountain club setting.',
+    image: 'https://images.squarespace-cdn.com/content/v1/5ed7e5a6b0e8f77099d3fd2d/1712173395127-N1F3HRYQXQDJJ4ZQK5JT/Birch+Design+Studio.jpg',
+    featured: false,
+  },
+  {
+    id: 'gold-leaf-aspen',
+    title: 'Aspen',
+    planner: 'Gold Leaf Events',
+    type: 'Wedding',
+    scope: 'Full Environment Design',
+    year: '2023',
+    description: 'Mountain grandeur with refined detail. A celebration that honored the landscape while creating intimate spaces for connection.',
+    image: 'https://images.squarespace-cdn.com/content/v1/5ed7e5a6b0e8f77099d3fd2d/1712173521632-OVQXO4W0MWFNKQBZ8JXP/Gold+Leaf+Events+Aspen.jpg',
     featured: false,
   },
 ]
@@ -79,6 +85,7 @@ const archiveProjects = projects.filter(p => !p.featured)
 
 function FeaturedProject({ project, index }: { project: typeof projects[0]; index: number }) {
   const [isInView, setIsInView] = useState(false)
+  const [imageLoaded, setImageLoaded] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -119,10 +126,17 @@ function FeaturedProject({ project, index }: { project: typeof projects[0]; inde
               isInView ? 'scale-100 opacity-100' : 'scale-105 opacity-0'
             )}
           >
-            <div className="transition-transform duration-700 group-hover:scale-105">
-              <ImagePlaceholder 
-                aspectRatio="wide"
-                label={project.title}
+            <div className="relative aspect-[16/10] transition-transform duration-700 group-hover:scale-105">
+              <Image
+                src={project.image}
+                alt={project.title}
+                fill
+                className={cn(
+                  'object-cover transition-opacity duration-700',
+                  imageLoaded ? 'opacity-100' : 'opacity-0'
+                )}
+                onLoad={() => setImageLoaded(true)}
+                sizes="(max-width: 1024px) 100vw, 60vw"
               />
             </div>
           </div>
@@ -143,11 +157,12 @@ function FeaturedProject({ project, index }: { project: typeof projects[0]; inde
           )}
         >
           <div className="flex items-center gap-4 text-xs text-muted-foreground mb-4">
-            <span>{project.type}</span>
+            <span>{project.planner}</span>
             <span className="w-1 h-1 rounded-full bg-muted-foreground" />
             <span>{project.year}</span>
           </div>
           <h2 className="font-serif text-3xl lg:text-4xl tracking-tight">{project.title}</h2>
+          <p className="mt-1 text-sm text-muted-foreground">{project.type}</p>
           <p className="mt-4 text-muted-foreground leading-relaxed">{project.description}</p>
           
           {/* Shrinkwrap quote */}
@@ -161,16 +176,6 @@ function FeaturedProject({ project, index }: { project: typeof projects[0]; inde
             </div>
           )}
           
-          <div className="mt-8">
-            <p className="text-xs uppercase tracking-widest text-muted-foreground mb-3">Highlights</p>
-            <ul className="flex flex-wrap gap-2">
-              {project.highlights.map((h) => (
-                <li key={h} className="text-xs text-foreground bg-secondary px-3 py-1">
-                  {h}
-                </li>
-              ))}
-            </ul>
-          </div>
           <div className="mt-8">
             <Link
               href={`/gallery/${project.id}`}
@@ -187,6 +192,7 @@ function FeaturedProject({ project, index }: { project: typeof projects[0]; inde
 
 function ArchiveCard({ project, index }: { project: typeof projects[0]; index: number }) {
   const [isInView, setIsInView] = useState(false)
+  const [imageLoaded, setImageLoaded] = useState(false)
   const ref = useRef<HTMLAnchorElement>(null)
 
   useEffect(() => {
@@ -218,20 +224,27 @@ function ArchiveCard({ project, index }: { project: typeof projects[0]; index: n
       style={{ transitionDelay: `${index * 100}ms` }}
     >
       <div className="mb-6 overflow-hidden">
-        <div className="transition-transform duration-700 group-hover:scale-105">
-          <ImagePlaceholder 
-            aspectRatio="landscape"
-            label={project.title}
+        <div className="relative aspect-[4/3] transition-transform duration-700 group-hover:scale-105">
+          <Image
+            src={project.image}
+            alt={project.title}
+            fill
+            className={cn(
+              'object-cover transition-opacity duration-700',
+              imageLoaded ? 'opacity-100' : 'opacity-0'
+            )}
+            onLoad={() => setImageLoaded(true)}
+            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
           />
         </div>
       </div>
       <div className="flex items-center gap-4 text-xs text-muted-foreground mb-2">
-        <span>{project.type}</span>
+        <span>{project.planner}</span>
         <span className="w-1 h-1 rounded-full bg-muted-foreground" />
         <span>{project.year}</span>
       </div>
       <h3 className="font-serif text-xl lg:text-2xl tracking-tight">{project.title}</h3>
-      <p className="mt-2 text-sm text-muted-foreground">{project.scope}</p>
+      <p className="mt-2 text-sm text-muted-foreground">{project.type}</p>
     </Link>
   )
 }
@@ -247,7 +260,7 @@ export default function GalleryPage() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16">
             <div className="lg:col-span-8">
               <p className="text-cream/50 text-xs uppercase tracking-[0.3em] mb-6">
-                Selected Work
+                Design + Production
               </p>
               <LineReveal
                 text="Environments we have authored"
@@ -285,14 +298,14 @@ export default function GalleryPage() {
         </div>
       </section>
       
-      {/* Archive with staggered reveal */}
+      {/* Archive */}
       <section className="bg-secondary py-24 lg:py-40">
         <div className="px-6 lg:px-12 max-w-7xl mx-auto">
           <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground mb-16">
             Archive
           </p>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-10">
             {archiveProjects.map((project, index) => (
               <ArchiveCard key={project.id} project={project} index={index} />
             ))}

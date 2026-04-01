@@ -1,11 +1,17 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { TextReveal, FadeUp } from '@/components/animations/text-reveal'
 import { ImageReveal } from '@/components/animations/scroll-section'
-import { ImagePlaceholder } from '@/components/ui/image-placeholder'
+import { useState } from 'react'
+import { cn } from '@/lib/utils'
 
 export function AtelierPreview() {
+  const [img1Loaded, setImg1Loaded] = useState(false)
+  const [img2Loaded, setImg2Loaded] = useState(false)
+  const [img3Loaded, setImg3Loaded] = useState(false)
+
   return (
     <section className="bg-secondary py-28 lg:py-44">
       <div className="px-6 lg:px-12 max-w-7xl mx-auto">
@@ -35,26 +41,53 @@ export function AtelierPreview() {
           {/* Large Image */}
           <div className="md:col-span-7">
             <ImageReveal direction="up" delay={0}>
-              <ImagePlaceholder 
-                aspectRatio="portrait" 
-                label="Fabrication"
-              />
+              <div className="relative aspect-[3/4] overflow-hidden bg-muted">
+                <Image
+                  src="https://images.squarespace-cdn.com/content/v1/5ed7e5a6b0e8f77099d3fd2d/1712173556231-U5Z6HJ7N0B9I9FJ5F8GN/Eclectic+Hive+Event+Design.jpg"
+                  alt="Eclectic Hive Fabrication"
+                  fill
+                  className={cn(
+                    'object-cover transition-opacity duration-700',
+                    img1Loaded ? 'opacity-100' : 'opacity-0'
+                  )}
+                  onLoad={() => setImg1Loaded(true)}
+                  sizes="(max-width: 768px) 100vw, 60vw"
+                />
+              </div>
             </ImageReveal>
           </div>
           
           {/* Stacked Images */}
           <div className="md:col-span-5 flex flex-col gap-4 lg:gap-6">
             <ImageReveal direction="up" delay={0.15}>
-              <ImagePlaceholder 
-                aspectRatio="landscape" 
-                label="Materials"
-              />
+              <div className="relative aspect-[4/3] overflow-hidden bg-muted">
+                <Image
+                  src="https://images.squarespace-cdn.com/content/v1/5ed7e5a6b0e8f77099d3fd2d/1591825920358-4LJJNRX3XZZWKL8JHM9V/Eclectic+Hive+Warehouse.jpg"
+                  alt="Eclectic Hive Materials"
+                  fill
+                  className={cn(
+                    'object-cover transition-opacity duration-700',
+                    img2Loaded ? 'opacity-100' : 'opacity-0'
+                  )}
+                  onLoad={() => setImg2Loaded(true)}
+                  sizes="(max-width: 768px) 100vw, 40vw"
+                />
+              </div>
             </ImageReveal>
             <ImageReveal direction="up" delay={0.3}>
-              <ImagePlaceholder 
-                aspectRatio="landscape" 
-                label="Workshop"
-              />
+              <div className="relative aspect-[4/3] overflow-hidden bg-muted">
+                <Image
+                  src="https://images.squarespace-cdn.com/content/v1/5ed7e5a6b0e8f77099d3fd2d/1712173471821-HO5VQOMV0UZUBL9NFVXU/Diwan+by+Design+Wedding.jpg"
+                  alt="Eclectic Hive Workshop"
+                  fill
+                  className={cn(
+                    'object-cover transition-opacity duration-700',
+                    img3Loaded ? 'opacity-100' : 'opacity-0'
+                  )}
+                  onLoad={() => setImg3Loaded(true)}
+                  sizes="(max-width: 768px) 100vw, 40vw"
+                />
+              </div>
             </ImageReveal>
           </div>
         </div>
