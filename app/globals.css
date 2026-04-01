@@ -166,3 +166,50 @@
 .editorial-link:hover::after {
   @apply scale-x-100;
 }
+
+/* Scroll indicator animation */
+@keyframes scroll-down {
+  0% {
+    transform: translateY(-100%);
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  70% {
+    opacity: 1;
+  }
+  100% {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+}
+
+.animate-scroll-down {
+  animation: scroll-down 2s cubic-bezier(0.4, 0, 0.2, 1) infinite;
+}
+
+/* Smooth transitions for interactive elements */
+.transition-editorial {
+  transition: all 0.5s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Text balance for headlines */
+.text-balance {
+  text-wrap: balance;
+}
+
+/* Custom focus states */
+:focus-visible {
+  @apply outline-none ring-2 ring-terracotta/50 ring-offset-2 ring-offset-background;
+}
+
+/* Improved image loading */
+img {
+  @apply bg-muted;
+}
+
+/* Tabular numbers for consistent spacing */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}

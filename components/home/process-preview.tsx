@@ -1,5 +1,11 @@
+'use client'
+
+import { useRef, useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
+import { TextReveal, FadeUp } from '@/components/animations/text-reveal'
+import { ImageReveal } from '@/components/animations/scroll-section'
+import { cn } from '@/lib/utils'
 
 const processSteps = [
   { number: '01', title: 'Discovery', description: 'Understanding vision, context, and constraints' },
@@ -8,73 +14,146 @@ const processSteps = [
   { number: '04', title: 'Realization', description: 'Production, installation, and execution' },
 ]
 
-export function ProcessPreview() {
+function ProcessStep({ 
+  step, 
+  index,
+  isInView 
+}: { 
+  step: typeof processSteps[0]
+  index: number
+  isInView: boolean
+}) {
+  const [isHovered, setIsHovered] = useState(false)
+
   return (
-    <section className="bg-secondary py-24 lg:py-40">
+    <div 
+      className={cn(
+        'py-7 border-b border-border flex gap-6 lg:gap-8 cursor-pointer transition-all duration-700',
+        isInView ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-8'
+      )}
+      style={{ transitionDelay: `${300 + index * 100}ms` }}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+    >
+      <span className={cn(
+        'text-xs w-8 tabular-nums transition-colors duration-300',
+        isHovered ? 'text-terracotta' : 'text-muted-foreground'
+      )}>
+        {step.number}
+      </span>
+      <div>
+        <h3 className={cn(
+          'font-serif text-xl tracking-tight transition-colors duration-300',
+          isHovered ? 'text-terracotta' : 'text-foreground'
+        )}>
+          {step.title}
+        </h3>
+        <p className="mt-1 text-sm text-muted-foreground">{step.description}</p>
+      </div>
+    </div>
+  )
+}
+
+export function ProcessPreview() {
+  const ref = useRef<HTMLDivElement>(null)
+  const [isInView, setIsInView] = useState(false)
+
+  useEffect(() => {
+    const element = ref.current
+    if (!element) return
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsInView(true)
+          observer.unobserve(element)
+        }
+      },
+      { threshold: 0.1, rootMargin: '0px 0px -100px 0px' }
+    )
+
+    observer.observe(element)
+    return () => observer.disconnect()
+  }, [])
+
+  return (
+    <section className="bg-secondary py-28 lg:py-44">
       <div className="px-6 lg:px-12 max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16">
           {/* Left Column - Image */}
           <div className="lg:col-span-5">
-            <div className="aspect-[3/4] relative overflow-hidden editorial-image sticky top-24">
-              <Image
-                src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?q=80&w=1000&auto=format&fit=crop"
-                alt="Design process at work"
-                fill
-                className="object-cover"
-              />
+            <div className="sticky top-28">
+              <ImageReveal direction="left">
+                <div className="aspect-[3/4] relative overflow-hidden">
+                  <Image
+                    src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?q=80&w=1000&auto=format&fit=crop"
+                    alt="Design process at work"
+                    fill
+                    className="object-cover"
+                  />
+                </div>
+              </ImageReveal>
             </div>
           </div>
           
           {/* Right Column - Content */}
-          <div className="lg:col-span-6 lg:col-start-7">
-            <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground mb-8">
-              Working With The Hive
-            </p>
+          <div ref={ref} className="lg:col-span-6 lg:col-start-7">
+            <FadeUp>
+              <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground mb-8">
+                Working With The Hive
+              </p>
+            </FadeUp>
             
-            <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl leading-[1.1] tracking-tight">
-              From vision
-              <br />
-              <span className="italic">to realization</span>
-            </h2>
+            <TextReveal
+              as="h2"
+              className="font-serif text-3xl md:text-4xl lg:text-5xl leading-[1.1] tracking-tight"
+              splitBy="word"
+              stagger={0.04}
+            >
+              From vision to realization
+            </TextReveal>
             
-            <p className="mt-8 text-muted-foreground leading-relaxed max-w-lg">
-              Our process is designed to honor both creative ambition and practical 
-              reality. We guide clients through a structured journey that transforms 
-              initial vision into authored environment.
-            </p>
+            <FadeUp delay={0.2}>
+              <p className="mt-10 text-muted-foreground leading-relaxed max-w-lg text-base lg:text-lg">
+                Our process is designed to honor both creative ambition and practical 
+                reality. We guide clients through a structured journey that transforms 
+                initial vision into authored environment.
+              </p>
+            </FadeUp>
             
             {/* Process Steps */}
-            <div className="mt-12 lg:mt-16 border-t border-border">
-              {processSteps.map((step) => (
-                <div 
-                  key={step.number}
-                  className="py-6 border-b border-border flex gap-6 lg:gap-8"
-                >
-                  <span className="text-xs text-muted-foreground w-8">{step.number}</span>
-                  <div>
-                    <h3 className="font-serif text-xl tracking-tight">{step.title}</h3>
-                    <p className="mt-1 text-sm text-muted-foreground">{step.description}</p>
-                  </div>
-                </div>
+            <div className="mt-14 lg:mt-18 border-t border-border">
+              {processSteps.map((step, index) => (
+                <ProcessStep 
+                  key={step.number} 
+                  step={step} 
+                  index={index}
+                  isInView={isInView}
+                />
               ))}
             </div>
             
-            <div className="mt-12">
-              <Link 
-                href="/process"
-                className="inline-flex items-center gap-3 text-sm uppercase tracking-widest group"
-              >
-                <span className="editorial-link">Learn About Our Process</span>
-                <svg 
-                  className="w-4 h-4 transform group-hover:translate-x-1 transition-transform" 
-                  fill="none" 
-                  viewBox="0 0 24 24" 
-                  stroke="currentColor"
+            <FadeUp delay={0.6}>
+              <div className="mt-14">
+                <Link 
+                  href="/process"
+                  className="inline-flex items-center gap-4 text-sm uppercase tracking-[0.15em] group"
                 >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                </svg>
-              </Link>
-            </div>
+                  <span className="relative">
+                    Learn About Our Process
+                    <span className="absolute -bottom-1 left-0 w-full h-px bg-foreground/30 origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500" />
+                  </span>
+                  <svg 
+                    className="w-4 h-4 transform group-hover:translate-x-1 transition-transform duration-300" 
+                    fill="none" 
+                    viewBox="0 0 24 24" 
+                    stroke="currentColor"
+                  >
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                  </svg>
+                </Link>
+              </div>
+            </FadeUp>
           </div>
         </div>
       </div>
