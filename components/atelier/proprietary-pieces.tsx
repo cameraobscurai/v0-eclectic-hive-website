@@ -1,30 +1,26 @@
-import Image from 'next/image'
 import Link from 'next/link'
+import { ImagePlaceholder } from '@/components/ui/image-placeholder'
 
 const pieces = [
   {
     name: 'The Meridian Table',
     category: 'Furniture',
     material: 'White oak, blackened steel',
-    image: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?q=80&w=800&auto=format&fit=crop',
   },
   {
     name: 'Vesper Lounge',
     category: 'Seating',
-    material: 'Walnut frame, bouclé upholstery',
-    image: 'https://images.unsplash.com/photo-1506439773649-6e0eb8cfb237?q=80&w=800&auto=format&fit=crop',
+    material: 'Walnut frame, boucle upholstery',
   },
   {
     name: 'Terra Vessel Collection',
     category: 'Objects',
     material: 'Hand-thrown stoneware, matte glaze',
-    image: 'https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?q=80&w=800&auto=format&fit=crop',
   },
   {
     name: 'Atrium Screen',
     category: 'Architectural',
     material: 'Brass rod, perforated steel',
-    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=800&auto=format&fit=crop',
   },
 ]
 
@@ -68,13 +64,13 @@ export function ProprietaryPieces() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
           {pieces.map((piece, index) => (
             <div key={piece.name} className="group">
-              <div className="aspect-[4/3] relative overflow-hidden editorial-image mb-6">
-                <Image
-                  src={piece.image}
-                  alt={piece.name}
-                  fill
-                  className="object-cover transition-transform duration-700 group-hover:scale-105"
-                />
+              <div className="mb-6 overflow-hidden">
+                <div className="transition-transform duration-700 group-hover:scale-105">
+                  <ImagePlaceholder 
+                    aspectRatio="landscape"
+                    label={piece.name}
+                  />
+                </div>
               </div>
               <div className="flex justify-between items-start">
                 <div>

@@ -2,9 +2,9 @@
 
 import { useRef, useState, useEffect } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { TextReveal, FadeUp } from '@/components/animations/text-reveal'
 import { ImageReveal } from '@/components/animations/scroll-section'
+import { ImagePlaceholder } from '@/components/ui/image-placeholder'
 import { cn } from '@/lib/utils'
 
 const processSteps = [
@@ -84,14 +84,10 @@ export function ProcessPreview() {
           <div className="lg:col-span-5">
             <div className="sticky top-28">
               <ImageReveal direction="left">
-                <div className="aspect-[3/4] relative overflow-hidden">
-                  <Image
-                    src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?q=80&w=1000&auto=format&fit=crop"
-                    alt="Design process at work"
-                    fill
-                    className="object-cover"
-                  />
-                </div>
+                <ImagePlaceholder 
+                  aspectRatio="portrait"
+                  label="Process"
+                />
               </ImageReveal>
             </div>
           </div>

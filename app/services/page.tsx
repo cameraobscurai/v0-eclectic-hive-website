@@ -1,7 +1,7 @@
 import { Metadata } from 'next'
 import { Navigation } from '@/components/navigation'
 import { Footer } from '@/components/footer'
-import Image from 'next/image'
+import { ImagePlaceholder } from '@/components/ui/image-placeholder'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
@@ -25,7 +25,6 @@ const services = [
       'Rendering & visualization',
       'Vendor curation & specification',
     ],
-    image: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?q=80&w=1200&auto=format&fit=crop',
   },
   {
     id: 'fabrication',
@@ -42,7 +41,6 @@ const services = [
       'Wood construction & finishing',
       'Material prototyping & sampling',
     ],
-    image: 'https://images.unsplash.com/photo-1581783898377-1c85bf937427?q=80&w=1200&auto=format&fit=crop',
   },
   {
     id: 'production',
@@ -59,7 +57,6 @@ const services = [
       'Quality control & finishing',
       'Strike & post-event coordination',
     ],
-    image: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=1200&auto=format&fit=crop',
   },
 ]
 
@@ -147,14 +144,10 @@ export default function ServicesPage() {
               
               {/* Image */}
               <div className={`lg:col-span-6 ${index % 2 === 1 ? 'lg:order-1' : 'lg:col-start-7'}`}>
-                <div className="aspect-[3/4] relative overflow-hidden editorial-image">
-                  <Image
-                    src={service.image}
-                    alt={service.title}
-                    fill
-                    className="object-cover"
-                  />
-                </div>
+                <ImagePlaceholder 
+                  aspectRatio="portrait"
+                  label={service.title}
+                />
               </div>
             </div>
           </div>
@@ -195,7 +188,7 @@ export default function ServicesPage() {
         <div className="px-6 lg:px-12 max-w-7xl mx-auto">
           <div className="max-w-3xl mx-auto text-center">
             <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground mb-8">
-              Let's Work Together
+              Let&apos;s Work Together
             </p>
             <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl leading-[1.1] tracking-tight">
               Ready to author

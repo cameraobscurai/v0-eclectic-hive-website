@@ -2,8 +2,8 @@
 
 import { useRef, useState, useEffect } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { TextReveal, FadeUp } from '@/components/animations/text-reveal'
+import { ImagePlaceholder } from '@/components/ui/image-placeholder'
 import { cn } from '@/lib/utils'
 
 const caseStudies = [
@@ -12,14 +12,12 @@ const caseStudies = [
     title: 'Aspen Summit',
     type: 'Corporate Retreat',
     scope: 'Design, Fabrication, Production',
-    image: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=1200&auto=format&fit=crop',
   },
   {
     id: 'gallery-nocturne',
     title: 'Gallery Nocturne',
     type: 'Private Celebration',
     scope: 'Full Environment Design',
-    image: 'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?q=80&w=1200&auto=format&fit=crop',
   },
 ]
 
@@ -65,7 +63,7 @@ function CaseStudyCard({
       {/* Image */}
       <div 
         className={cn(
-          'aspect-[16/10] relative overflow-hidden transition-all duration-1000',
+          'relative overflow-hidden transition-all duration-1000',
           isEven ? 'lg:col-span-7' : 'lg:col-span-7 lg:col-start-6 lg:order-2',
           isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
         )}
@@ -80,19 +78,19 @@ function CaseStudyCard({
             transitionTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
           }}
         />
-        <Image
-          src={study.image}
-          alt={study.title}
-          fill
-          className={cn(
-            'object-cover transition-transform duration-700',
-            isHovered ? 'scale-105' : 'scale-100'
-          )}
-        />
+        <div className={cn(
+          'transition-transform duration-700',
+          isHovered ? 'scale-105' : 'scale-100'
+        )}>
+          <ImagePlaceholder 
+            aspectRatio="wide"
+            label={study.title}
+          />
+        </div>
         {/* Subtle overlay on hover */}
         <div 
           className={cn(
-            'absolute inset-0 bg-charcoal/0 transition-colors duration-500',
+            'absolute inset-0 bg-charcoal/0 transition-colors duration-500 z-20',
             isHovered && 'bg-charcoal/10'
           )}
         />

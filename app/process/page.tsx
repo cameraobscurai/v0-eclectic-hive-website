@@ -1,7 +1,7 @@
 import { Metadata } from 'next'
 import { Navigation } from '@/components/navigation'
 import { Footer } from '@/components/footer'
-import Image from 'next/image'
+import { ImagePlaceholder } from '@/components/ui/image-placeholder'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
@@ -147,22 +147,16 @@ export default function ProcessPage() {
       {/* Image Break */}
       <section className="bg-secondary">
         <div className="grid grid-cols-1 md:grid-cols-2">
-          <div className="aspect-[4/3] relative">
-            <Image
-              src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?q=80&w=1200&auto=format&fit=crop"
-              alt="Design process"
-              fill
-              className="object-cover"
-            />
-          </div>
-          <div className="aspect-[4/3] relative">
-            <Image
-              src="https://images.unsplash.com/photo-1581783898377-1c85bf937427?q=80&w=1200&auto=format&fit=crop"
-              alt="Fabrication"
-              fill
-              className="object-cover"
-            />
-          </div>
+          <ImagePlaceholder 
+            aspectRatio="landscape"
+            label="Design"
+            className="aspect-[4/3]"
+          />
+          <ImagePlaceholder 
+            aspectRatio="landscape"
+            label="Fabrication"
+            className="aspect-[4/3]"
+          />
         </div>
       </section>
       

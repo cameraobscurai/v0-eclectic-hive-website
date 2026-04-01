@@ -1,7 +1,7 @@
 import { Metadata } from 'next'
 import { Navigation } from '@/components/navigation'
 import { Footer } from '@/components/footer'
-import Image from 'next/image'
+import { ImagePlaceholder } from '@/components/ui/image-placeholder'
 
 export const metadata: Metadata = {
   title: 'The Hive | Eclectic Hive',
@@ -13,25 +13,21 @@ const team = [
     name: 'Alexandra Vance',
     role: 'Founder & Creative Director',
     bio: 'Alexandra founded Eclectic Hive after fifteen years leading design for luxury hospitality and private events. Her vision guides every environment we create—balancing aesthetic ambition with practical intelligence.',
-    image: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?q=80&w=600&auto=format&fit=crop',
   },
   {
     name: 'Marcus Chen',
     role: 'Head of Fabrication',
     bio: 'Marcus brings twenty years of architectural fabrication experience to our atelier. His expertise in materials, construction methods, and finish work ensures that every piece we create meets our exacting standards.',
-    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=600&auto=format&fit=crop',
   },
   {
     name: 'Sophia Reed',
     role: 'Senior Designer',
     bio: 'Sophia leads concept development and material direction for our projects. Her background in interior architecture and textile design brings depth to every palette and spatial decision.',
-    image: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=600&auto=format&fit=crop',
   },
   {
     name: 'David Okafor',
     role: 'Production Director',
     bio: 'David manages the complex logistics that transform design vision into lived reality. His fifteen years in event production ensure that every installation is executed with precision.',
-    image: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?q=80&w=600&auto=format&fit=crop',
   },
 ]
 
@@ -89,12 +85,10 @@ export default function TeamPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-12 lg:gap-16">
             {team.map((member) => (
               <div key={member.name} className="group">
-                <div className="aspect-[3/4] relative overflow-hidden editorial-image mb-8">
-                  <Image
-                    src={member.image}
-                    alt={member.name}
-                    fill
-                    className="object-cover grayscale group-hover:grayscale-0 transition-all duration-500"
+                <div className="mb-8">
+                  <ImagePlaceholder 
+                    aspectRatio="portrait"
+                    label={member.name.split(' ')[0]}
                   />
                 </div>
                 <h3 className="font-serif text-2xl lg:text-3xl tracking-tight">{member.name}</h3>
@@ -148,7 +142,7 @@ export default function TeamPage() {
               </h2>
               <div className="mt-8 flex flex-col gap-6 text-muted-foreground leading-relaxed">
                 <p>
-                  Our studio and fabrication workshop are located in Denver's RiNo 
+                  Our studio and fabrication workshop are located in Denver&apos;s RiNo 
                   district. The space serves as design studio, material library, 
                   sample room, and production workshop.
                 </p>
@@ -160,14 +154,10 @@ export default function TeamPage() {
               </div>
             </div>
             <div className="lg:col-span-6 lg:col-start-7">
-              <div className="aspect-[4/3] relative overflow-hidden editorial-image">
-                <Image
-                  src="https://images.unsplash.com/photo-1497366216548-37526070297c?q=80&w=1200&auto=format&fit=crop"
-                  alt="Eclectic Hive Studio"
-                  fill
-                  className="object-cover"
-                />
-              </div>
+              <ImagePlaceholder 
+                aspectRatio="landscape"
+                label="Studio"
+              />
             </div>
           </div>
         </div>

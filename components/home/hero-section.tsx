@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useRef } from 'react'
 import Link from 'next/link'
+import { HeroPlaceholder } from '@/components/ui/image-placeholder'
 
 export function HeroSection() {
   const [scrollY, setScrollY] = useState(0)
@@ -9,7 +10,6 @@ export function HeroSection() {
   const heroRef = useRef<HTMLElement>(null)
   
   useEffect(() => {
-    // Trigger entrance animations after mount
     const timer = setTimeout(() => setLoaded(true), 100)
     return () => clearTimeout(timer)
   }, [])
@@ -18,7 +18,6 @@ export function HeroSection() {
     const handleScroll = () => {
       if (heroRef.current) {
         const rect = heroRef.current.getBoundingClientRect()
-        // Only update parallax when hero is visible
         if (rect.bottom > 0) {
           setScrollY(window.scrollY)
         }
@@ -28,7 +27,6 @@ export function HeroSection() {
     return () => window.removeEventListener('scroll', handleScroll)
   }, [])
 
-  // Calculate fade and parallax based on scroll
   const opacity = Math.max(0, 1 - scrollY / 600)
   const parallaxOffset = scrollY * 0.4
 
@@ -37,21 +35,14 @@ export function HeroSection() {
       ref={heroRef}
       className="relative min-h-screen bg-charcoal overflow-hidden"
     >
-      {/* Background Image with Parallax */}
+      {/* Background with Parallax */}
       <div 
         className="absolute inset-0 will-change-transform"
         style={{ 
           transform: `translateY(${parallaxOffset}px) scale(${1 + scrollY * 0.0002})`,
         }}
       >
-        <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat scale-105"
-          style={{
-            backgroundImage: 'url(https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?q=80&w=2400&auto=format&fit=crop)',
-          }}
-        />
-        <div className="absolute inset-0 bg-charcoal/60" />
-        <div className="absolute inset-0 bg-gradient-to-t from-charcoal via-transparent to-charcoal/20" />
+        <HeroPlaceholder />
       </div>
       
       {/* Content */}
@@ -76,7 +67,7 @@ export function HeroSection() {
                 </p>
               </div>
               
-              {/* Headline - Word by word reveal */}
+              {/* Headline */}
               <h1 className="font-serif text-cream text-5xl md:text-6xl lg:text-7xl xl:text-8xl leading-[0.95] tracking-tight">
                 <span className="block overflow-hidden">
                   <span 

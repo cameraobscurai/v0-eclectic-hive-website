@@ -1,7 +1,7 @@
 import { Metadata } from 'next'
 import { Navigation } from '@/components/navigation'
 import { Footer } from '@/components/footer'
-import Image from 'next/image'
+import { ImagePlaceholder } from '@/components/ui/image-placeholder'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
@@ -18,7 +18,6 @@ const projects = [
     year: '2024',
     description: 'A three-day executive retreat transformed into an immersive alpine environment. Custom fabricated installations, material-driven design, and production management for 200 guests.',
     highlights: ['Custom timber installations', 'Bespoke furniture collection', 'Full production management'],
-    image: 'https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=1600&auto=format&fit=crop',
     featured: true,
   },
   {
@@ -29,7 +28,6 @@ const projects = [
     year: '2024',
     description: 'An evening celebration within a private gallery space. Moody atmosphere, architectural lighting, and custom-fabricated sculptural elements.',
     highlights: ['Sculptural centerpieces', 'Atmospheric lighting design', 'Material palette curation'],
-    image: 'https://images.unsplash.com/photo-1519167758481-83f550bb49b3?q=80&w=1600&auto=format&fit=crop',
     featured: true,
   },
   {
@@ -40,7 +38,6 @@ const projects = [
     year: '2024',
     description: 'An outdoor celebration grounded in earthy materiality. Terracotta, natural linens, and custom metalwork created an environment that felt both elevated and rooted.',
     highlights: ['Custom arch fabrication', 'Proprietary colorway development', 'Botanical design direction'],
-    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=1600&auto=format&fit=crop',
     featured: false,
   },
   {
@@ -51,7 +48,6 @@ const projects = [
     year: '2023',
     description: 'A product launch event that transformed a warehouse into an experiential brand environment. Modular installations, integrated technology, and spatial narrative.',
     highlights: ['Modular display system', 'Integrated AV production', 'Brand environment design'],
-    image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=1600&auto=format&fit=crop',
     featured: false,
   },
   {
@@ -62,7 +58,6 @@ const projects = [
     year: '2023',
     description: 'An evening benefit transformed through warm metals, candlelight, and velvet textures. Intimate atmosphere within a grand ballroom setting.',
     highlights: ['Custom table designs', 'Brass fixture fabrication', 'Lighting atmosphere design'],
-    image: 'https://images.unsplash.com/photo-1600566752355-35792bedcfea?q=80&w=1600&auto=format&fit=crop',
     featured: false,
   },
   {
@@ -73,7 +68,6 @@ const projects = [
     year: '2023',
     description: 'A leadership retreat designed to inspire strategic thinking. Natural materials, considered space planning, and an atmosphere of focused intention.',
     highlights: ['Environment strategy', 'Custom workspace design', 'Full production coordination'],
-    image: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?q=80&w=1600&auto=format&fit=crop',
     featured: false,
   },
 ]
@@ -125,13 +119,15 @@ export default function GalleryPage() {
                 className="group grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12"
               >
                 {/* Image */}
-                <div className={`${index % 2 === 0 ? 'lg:col-span-7' : 'lg:col-span-7 lg:col-start-6 lg:order-2'} aspect-[16/10] relative overflow-hidden editorial-image`}>
-                  <Image
-                    src={project.image}
-                    alt={project.title}
-                    fill
-                    className="object-cover transition-transform duration-700 group-hover:scale-105"
-                  />
+                <div className={`${index % 2 === 0 ? 'lg:col-span-7' : 'lg:col-span-7 lg:col-start-6 lg:order-2'}`}>
+                  <div className="overflow-hidden">
+                    <div className="transition-transform duration-700 group-hover:scale-105">
+                      <ImagePlaceholder 
+                        aspectRatio="wide"
+                        label={project.title}
+                      />
+                    </div>
+                  </div>
                 </div>
                 
                 {/* Info */}
@@ -179,13 +175,13 @@ export default function GalleryPage() {
                 href={`/gallery/${project.id}`}
                 className="group"
               >
-                <div className="aspect-[4/3] relative overflow-hidden editorial-image mb-6">
-                  <Image
-                    src={project.image}
-                    alt={project.title}
-                    fill
-                    className="object-cover transition-transform duration-700 group-hover:scale-105"
-                  />
+                <div className="mb-6 overflow-hidden">
+                  <div className="transition-transform duration-700 group-hover:scale-105">
+                    <ImagePlaceholder 
+                      aspectRatio="landscape"
+                      label={project.title}
+                    />
+                  </div>
                 </div>
                 <div className="flex items-center gap-4 text-xs text-muted-foreground mb-2">
                   <span>{project.type}</span>

@@ -1,8 +1,8 @@
 import { Metadata } from 'next'
 import { Navigation } from '@/components/navigation'
 import { Footer } from '@/components/footer'
+import { ImagePlaceholder } from '@/components/ui/image-placeholder'
 import Link from 'next/link'
-import Image from 'next/image'
 
 export const metadata: Metadata = {
   title: 'Assets Portal | Eclectic Hive',
@@ -10,26 +10,10 @@ export const metadata: Metadata = {
 }
 
 const collections = [
-  {
-    name: 'Furniture',
-    count: 45,
-    image: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?q=80&w=600&auto=format&fit=crop',
-  },
-  {
-    name: 'Seating',
-    count: 68,
-    image: 'https://images.unsplash.com/photo-1506439773649-6e0eb8cfb237?q=80&w=600&auto=format&fit=crop',
-  },
-  {
-    name: 'Lighting',
-    count: 32,
-    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=600&auto=format&fit=crop',
-  },
-  {
-    name: 'Objects',
-    count: 120,
-    image: 'https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?q=80&w=600&auto=format&fit=crop',
-  },
+  { name: 'Furniture', count: 45 },
+  { name: 'Seating', count: 68 },
+  { name: 'Lighting', count: 32 },
+  { name: 'Objects', count: 120 },
 ]
 
 export default function AssetsPage() {
@@ -121,12 +105,10 @@ export default function AssetsPage() {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
             {collections.map((collection) => (
               <div key={collection.name} className="group cursor-pointer">
-                <div className="aspect-[3/4] relative overflow-hidden editorial-image mb-4">
-                  <Image
-                    src={collection.image}
-                    alt={collection.name}
-                    fill
-                    className="object-cover transition-transform duration-700 group-hover:scale-105"
+                <div className="relative overflow-hidden mb-4">
+                  <ImagePlaceholder 
+                    aspectRatio="portrait"
+                    label={collection.name}
                   />
                   <div className="absolute inset-0 bg-charcoal/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                     <span className="text-cream text-sm uppercase tracking-widest">

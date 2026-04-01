@@ -1,4 +1,4 @@
-import Image from 'next/image'
+import { ImagePlaceholder } from '@/components/ui/image-placeholder'
 
 const processSteps = [
   {
@@ -66,12 +66,11 @@ export function FabricationProcess() {
           
           {/* Right Column - Image */}
           <div className="lg:col-span-5 lg:col-start-8">
-            <div className="aspect-[3/4] relative overflow-hidden editorial-image lg:sticky lg:top-24">
-              <Image
-                src="https://images.unsplash.com/photo-1581783898377-1c85bf937427?q=80&w=1000&auto=format&fit=crop"
-                alt="Fabrication in progress"
-                fill
-                className="object-cover"
+            <div className="lg:sticky lg:top-24">
+              <ImagePlaceholder 
+                aspectRatio="portrait"
+                variant="dark"
+                label="Fabrication"
               />
             </div>
           </div>

@@ -1,4 +1,4 @@
-import Image from 'next/image'
+import { ImagePlaceholder } from '@/components/ui/image-placeholder'
 
 export function AtelierIntro() {
   return (
@@ -35,20 +35,14 @@ export function AtelierIntro() {
           {/* Right Column - Images */}
           <div className="lg:col-span-6 lg:col-start-7">
             <div className="grid grid-cols-2 gap-4">
-              <div className="aspect-[3/4] relative overflow-hidden editorial-image">
-                <Image
-                  src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?q=80&w=600&auto=format&fit=crop"
-                  alt="Hands at work"
-                  fill
-                  className="object-cover"
-                />
-              </div>
-              <div className="aspect-[3/4] relative overflow-hidden editorial-image mt-12">
-                <Image
-                  src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?q=80&w=600&auto=format&fit=crop"
-                  alt="Material detail"
-                  fill
-                  className="object-cover"
+              <ImagePlaceholder 
+                aspectRatio="portrait"
+                label="Craft"
+              />
+              <div className="mt-12">
+                <ImagePlaceholder 
+                  aspectRatio="portrait"
+                  label="Detail"
                 />
               </div>
             </div>

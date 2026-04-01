@@ -1,9 +1,9 @@
 'use client'
 
 import Link from 'next/link'
-import Image from 'next/image'
 import { TextReveal, FadeUp } from '@/components/animations/text-reveal'
 import { ImageReveal } from '@/components/animations/scroll-section'
+import { ImagePlaceholder } from '@/components/ui/image-placeholder'
 
 export function AtelierPreview() {
   return (
@@ -35,38 +35,26 @@ export function AtelierPreview() {
           {/* Large Image */}
           <div className="md:col-span-7">
             <ImageReveal direction="up" delay={0}>
-              <div className="aspect-[4/5] relative overflow-hidden editorial-image">
-                <Image
-                  src="https://images.unsplash.com/photo-1581783898377-1c85bf937427?q=80&w=1200&auto=format&fit=crop"
-                  alt="Hands working on material fabrication"
-                  fill
-                  className="object-cover"
-                />
-              </div>
+              <ImagePlaceholder 
+                aspectRatio="portrait" 
+                label="Fabrication"
+              />
             </ImageReveal>
           </div>
           
           {/* Stacked Images */}
           <div className="md:col-span-5 flex flex-col gap-4 lg:gap-6">
             <ImageReveal direction="up" delay={0.15}>
-              <div className="aspect-[4/3] relative overflow-hidden editorial-image">
-                <Image
-                  src="https://images.unsplash.com/photo-1558618666-fcd25c85cd64?q=80&w=800&auto=format&fit=crop"
-                  alt="Material samples and textures"
-                  fill
-                  className="object-cover"
-                />
-              </div>
+              <ImagePlaceholder 
+                aspectRatio="landscape" 
+                label="Materials"
+              />
             </ImageReveal>
             <ImageReveal direction="up" delay={0.3}>
-              <div className="aspect-[4/3] relative overflow-hidden editorial-image">
-                <Image
-                  src="https://images.unsplash.com/photo-1586023492125-27b2c045efd7?q=80&w=800&auto=format&fit=crop"
-                  alt="Fabrication workshop detail"
-                  fill
-                  className="object-cover"
-                />
-              </div>
+              <ImagePlaceholder 
+                aspectRatio="landscape" 
+                label="Workshop"
+              />
             </ImageReveal>
           </div>
         </div>

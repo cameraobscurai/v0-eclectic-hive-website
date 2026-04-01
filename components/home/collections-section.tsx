@@ -2,25 +2,22 @@
 
 import { useRef, useState, useEffect } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { TextReveal, FadeUp } from '@/components/animations/text-reveal'
+import { ImagePlaceholder } from '@/components/ui/image-placeholder'
 import { cn } from '@/lib/utils'
 
 const collections = [
   {
     title: 'Terra',
     description: 'Earthen forms, raw textures, grounded palettes',
-    image: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=800&auto=format&fit=crop',
   },
   {
     title: 'Atrium',
     description: 'Architectural volumes, light play, spatial rhythm',
-    image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=800&auto=format&fit=crop',
   },
   {
     title: 'Vesper',
     description: 'Evening warmth, intimate scale, golden hour',
-    image: 'https://images.unsplash.com/photo-1600566752355-35792bedcfea?q=80&w=800&auto=format&fit=crop',
   },
 ]
 
@@ -65,7 +62,7 @@ function CollectionCard({
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <div className="aspect-[3/4] relative overflow-hidden mb-6">
+      <div className="relative overflow-hidden mb-6">
         {/* Image reveal overlay */}
         <div 
           className="absolute inset-0 bg-background z-10 origin-bottom transition-transform duration-1000"
@@ -75,17 +72,17 @@ function CollectionCard({
             transitionTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
           }}
         />
-        <Image
-          src={collection.image}
-          alt={collection.title}
-          fill
-          className={cn(
-            'object-cover transition-transform duration-700',
-            isHovered ? 'scale-105' : 'scale-100'
-          )}
-        />
+        <div className={cn(
+          'transition-transform duration-700',
+          isHovered ? 'scale-105' : 'scale-100'
+        )}>
+          <ImagePlaceholder 
+            aspectRatio="portrait"
+            label={collection.title}
+          />
+        </div>
         {/* Subtle dark overlay */}
-        <div className="absolute inset-0 bg-charcoal/0 group-hover:bg-charcoal/10 transition-colors duration-500" />
+        <div className="absolute inset-0 bg-charcoal/0 group-hover:bg-charcoal/10 transition-colors duration-500 z-20" />
       </div>
       <div className="flex justify-between items-start">
         <div>

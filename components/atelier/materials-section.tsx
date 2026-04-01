@@ -1,25 +1,21 @@
-import Image from 'next/image'
+import { ImagePlaceholder } from '@/components/ui/image-placeholder'
 
 const materials = [
   {
     name: 'Textiles',
     description: 'Velvet, linen, raw silk, boucle, performance fabrics',
-    image: 'https://images.unsplash.com/photo-1558171813-4c088753af8f?q=80&w=600&auto=format&fit=crop',
   },
   {
     name: 'Woods',
     description: 'White oak, walnut, ash, reclaimed timber, engineered panels',
-    image: 'https://images.unsplash.com/photo-1558618666-fcd25c85cd64?q=80&w=600&auto=format&fit=crop',
   },
   {
     name: 'Metals',
     description: 'Brass, blackened steel, copper, aluminum, bronze patina',
-    image: 'https://images.unsplash.com/photo-1504198453319-5ce911bafcde?q=80&w=600&auto=format&fit=crop',
   },
   {
     name: 'Ceramics',
     description: 'Handthrown vessels, architectural tiles, glazed surfaces',
-    image: 'https://images.unsplash.com/photo-1565193566173-7a0ee3dbe261?q=80&w=600&auto=format&fit=crop',
   },
 ]
 
@@ -52,13 +48,13 @@ export function MaterialsSection() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 lg:gap-4">
           {materials.map((material, index) => (
             <div key={material.name} className="group">
-              <div className="aspect-[4/5] relative overflow-hidden editorial-image mb-4">
-                <Image
-                  src={material.image}
-                  alt={material.name}
-                  fill
-                  className="object-cover transition-transform duration-700 group-hover:scale-105"
-                />
+              <div className="mb-4 overflow-hidden">
+                <div className="transition-transform duration-700 group-hover:scale-105">
+                  <ImagePlaceholder 
+                    aspectRatio="portrait"
+                    label={material.name}
+                  />
+                </div>
               </div>
               <div className="flex justify-between items-start">
                 <div>

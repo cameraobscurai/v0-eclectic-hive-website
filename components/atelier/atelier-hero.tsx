@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { HeroPlaceholder } from '@/components/ui/image-placeholder'
 
 export function AtelierHero() {
   const [scrollY, setScrollY] = useState(0)
@@ -18,13 +19,7 @@ export function AtelierHero() {
         className="absolute inset-0"
         style={{ transform: `translateY(${scrollY * 0.25}px)` }}
       >
-        <div 
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-          style={{
-            backgroundImage: 'url(https://images.unsplash.com/photo-1581783898377-1c85bf937427?q=80&w=2400&auto=format&fit=crop)',
-          }}
-        />
-        <div className="absolute inset-0 bg-charcoal/75" />
+        <HeroPlaceholder />
       </div>
       
       {/* Content */}
