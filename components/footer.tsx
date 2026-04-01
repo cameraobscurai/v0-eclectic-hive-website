@@ -6,18 +6,13 @@ import { cn } from '@/lib/utils'
 
 const footerLinks = {
   studio: [
-    { href: '/atelier', label: 'Atelier' },
-    { href: '/services', label: 'Services' },
-    { href: '/gallery', label: 'Gallery' },
+    { href: '/gallery', label: 'Design + Production' },
+    { href: '/inventory', label: 'Inventory' },
     { href: '/team', label: 'The Hive' },
+    { href: '/contact', label: 'Contact' },
   ],
   info: [
-    { href: '/process', label: 'Working With Us' },
     { href: '/faq', label: 'FAQ' },
-    { href: '/assets', label: 'Assets Portal' },
-    { href: '/contact', label: 'Inquire' },
-  ],
-  legal: [
     { href: '/privacy', label: 'Privacy Policy' },
   ],
 }
@@ -176,17 +171,12 @@ export function Footer() {
             <p className="text-xs text-cream/30">
               {new Date().getFullYear()} Eclectic Hive. All rights reserved.
             </p>
-            <div className="flex gap-8">
-              {footerLinks.legal.map((link) => (
-                <Link 
-                  key={link.href}
-                  href={link.href}
-                  className="text-xs text-cream/30 hover:text-cream/60 transition-colors duration-300"
-                >
-                  {link.label}
-                </Link>
-              ))}
-            </div>
+            <Link 
+              href="/privacy"
+              className="text-xs text-cream/30 hover:text-cream/60 transition-colors duration-300"
+            >
+              Privacy Policy
+            </Link>
           </div>
         </div>
       </div>

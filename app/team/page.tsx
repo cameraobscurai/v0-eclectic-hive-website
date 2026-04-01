@@ -11,32 +11,22 @@ const team = [
   {
     name: 'Jill Livingston',
     role: 'Owner | Creative Director',
-    image: 'https://images.squarespace-cdn.com/content/v1/5ed7e5a6b0e8f77099d3fd2d/1712258096193-CJT28MWOXRK51XNWXYGH/Jill+BW.jpg',
+    image: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/4abbdec3-cc0e-47c9-b75e-9eecef715811/Jill+Livingston+2023+Headshot+Close+Up.jpg',
   },
   {
-    name: 'Nicholas Patterson',
+    name: 'Sam Young',
     role: 'General Manager',
-    image: 'https://images.squarespace-cdn.com/content/v1/5ed7e5a6b0e8f77099d3fd2d/1712258101227-SLM6TDBQGQSJ8DS5LK7B/NP+BW.jpg',
+    image: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/261b3a32-4959-4e54-a945-67666a7b0709/Sam+Young+v3.png',
   },
   {
-    name: 'Kurt Van Raden',
-    role: 'Executive Producer',
-    image: 'https://images.squarespace-cdn.com/content/v1/5ed7e5a6b0e8f77099d3fd2d/1712258109040-9UP5P3D3X4GZUMMPIVMJ/Kurt+BW.jpg',
-  },
-  {
-    name: 'Brittany Farrow',
+    name: 'Amanda Ferguson',
     role: 'Senior Designer',
-    image: 'https://images.squarespace-cdn.com/content/v1/5ed7e5a6b0e8f77099d3fd2d/1712258115970-WP2DP7G6EG3P49U7GHZS/Britt+BW.jpg',
+    image: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/b56b8da0-ecf7-42b4-b81b-99fe7b64e4ad/Amanda+Ferguson%2C+Senior+Designer+B%2BW.jpg',
   },
   {
-    name: 'Adrienne Moon',
-    role: 'Resource Manager',
-    image: 'https://images.squarespace-cdn.com/content/v1/5ed7e5a6b0e8f77099d3fd2d/1712258123182-BKZJX1O5QSJJ8H5EQKZB/Adrienne+BW.jpg',
-  },
-  {
-    name: 'Patrick Batten',
-    role: 'Inventory + Warehouse Manager',
-    image: 'https://images.squarespace-cdn.com/content/v1/5ed7e5a6b0e8f77099d3fd2d/1712258131017-MJEPZ2IW04CKPX6WZJ8O/Patrick+BW.jpg',
+    name: 'Annie',
+    role: 'Team Member',
+    image: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/fb2af9f1-b449-42c1-9fd6-4429fcd73350/Annie-001.jpg',
   },
 ]
 
@@ -207,7 +197,7 @@ export default function TeamPage() {
             <div className="lg:col-span-6 lg:col-start-7">
               <div className="relative aspect-[4/3] overflow-hidden bg-muted">
                 <Image
-                  src="https://images.squarespace-cdn.com/content/v1/5ed7e5a6b0e8f77099d3fd2d/1591825920358-4LJJNRX3XZZWKL8JHM9V/Eclectic+Hive+Warehouse.jpg"
+                  src="https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/c932a1b6-1a1b-4c88-9e06-a237a6443aa1/Eclectic+Hive-Carrie+King+Photographer-154.jpg"
                   alt="Eclectic Hive Studio"
                   fill
                   className="object-cover"

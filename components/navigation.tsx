@@ -5,12 +5,10 @@ import Link from 'next/link'
 import { cn } from '@/lib/utils'
 
 const navLinks = [
-  { href: '/atelier', label: 'Atelier' },
-  { href: '/services', label: 'Services' },
-  { href: '/gallery', label: 'Gallery' },
+  { href: '/gallery', label: 'Design + Production' },
+  { href: '/inventory', label: 'Inventory' },
   { href: '/team', label: 'The Hive' },
-  { href: '/process', label: 'Process' },
-  { href: '/contact', label: 'Inquire' },
+  { href: '/contact', label: 'Contact' },
 ]
 
 export function Navigation() {
