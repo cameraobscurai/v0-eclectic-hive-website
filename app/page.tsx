@@ -6,7 +6,7 @@ import Link from 'next/link'
 import { Navigation } from '@/components/navigation'
 import { Footer } from '@/components/footer'
 import { cn } from '@/lib/utils'
-import { prepareTextWithSegments, layoutWithLines, createFontString, waitForFonts, type Line } from '@/lib/pretext'
+import { prepareWithSegments, layoutWithLines, createFontString, waitForFonts, type Line } from '@/lib/pretext'
 
 const heroImages = [
   'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/1710309793584-V7I937AO0B569QLUFQPA/Welcome+Party+Fireside.jpg',
@@ -38,51 +38,128 @@ export default function HomePage() {
 
 function HeroSection() {
   const [loaded, setLoaded] = useState(false)
+  const [barsRevealed, setBarsRevealed] = useState(false)
   const [lines, setLines] = useState<Line[]>([])
   const containerRef = useRef<HTMLDivElement>(null)
+  
+  // Monochromatic charcoal shades for the reveal bars
+  const barColors = [
+    'bg-[#0d0d0d]', // Deepest
+    'bg-[#1a1a1a]', // Dark
+    'bg-[#262626]', // Medium
+    'bg-[#1a1a1a]', // Dark
+    'bg-[#0d0d0d]', // Deepest (symmetrical)
+  ]
   
   const calculateLines = useCallback(async () => {
     await waitForFonts()
     const text = "Design + Production for events that demand more"
     const font = createFontString(18, 'sans', 400)
-    const prepared = prepareTextWithSegments(text, font)
+    const prepared = prepareWithSegments(text, font)
     const containerWidth = containerRef.current?.offsetWidth || 400
     const result = layoutWithLines(prepared, Math.min(containerWidth, 500), 28)
     setLines(result.lines)
   }, [])
   
   useEffect(() => {
-    setLoaded(true)
+    // Start bar reveal after a brief moment
+    const timer1 = setTimeout(() => setBarsRevealed(true), 300)
+    // Then show content
+    const timer2 = setTimeout(() => setLoaded(true), 1200)
     calculateLines()
     window.addEventListener('resize', calculateLines)
-    return () => window.removeEventListener('resize', calculateLines)
+    return () => {
+      clearTimeout(timer1)
+      clearTimeout(timer2)
+      window.removeEventListener('resize', calculateLines)
+    }
   }, [calculateLines])
 
   return (
     <section className="relative h-screen w-full overflow-hidden bg-charcoal">
+      {/* Background images layer */}
       <div className="absolute inset-0 grid grid-cols-3 md:grid-cols-5">
         {heroImages.map((src, i) => (
-          <div key={i} className={cn('relative overflow-hidden transition-all duration-1000 ease-out', i >= 3 ? 'hidden md:block' : '', loaded ? 'opacity-100 scale-100' : 'opacity-0 scale-105')} style={{ transitionDelay: `${i * 150}ms` }}>
+          <div key={i} className={cn('relative overflow-hidden', i >= 3 ? 'hidden md:block' : '')}>
             <Image src={src} alt="" fill className="object-cover" priority={i < 3} />
-            <div className="absolute inset-0 bg-charcoal/40" />
+            <div className="absolute inset-0 bg-charcoal/30" />
           </div>
         ))}
       </div>
+      
+      {/* Animated reveal bars - wipe upward to reveal images */}
+      <div className="absolute inset-0 grid grid-cols-3 md:grid-cols-5 pointer-events-none z-[5]">
+        {barColors.map((color, i) => (
+          <div 
+            key={i} 
+            className={cn(
+              'relative overflow-hidden transition-transform ease-[cubic-bezier(0.76,0,0.24,1)]',
+              i >= 3 ? 'hidden md:block' : '',
+              color,
+              barsRevealed ? '-translate-y-full' : 'translate-y-0'
+            )}
+            style={{ 
+              transitionDuration: '1.2s',
+              transitionDelay: `${i * 120}ms` 
+            }}
+          />
+        ))}
+      </div>
+      
+      {/* Content layer */}
       <div className="relative z-10 flex h-full flex-col items-center justify-center text-cream px-6">
         <h1 className="font-serif text-5xl md:text-7xl lg:text-9xl tracking-tight mb-8 overflow-hidden">
           {'Eclectic Hive'.split('').map((char, i) => (
-            <span key={i} className={cn('inline-block transition-all duration-700', loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-full')} style={{ transitionDelay: `${600 + i * 40}ms` }}>{char === ' ' ? '\u00A0' : char}</span>
+            <span 
+              key={i} 
+              className={cn(
+                'inline-block transition-all duration-700 ease-out',
+                loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-full'
+              )} 
+              style={{ transitionDelay: `${i * 50}ms` }}
+            >
+              {char === ' ' ? '\u00A0' : char}
+            </span>
           ))}
         </h1>
+        
         <div ref={containerRef} className="text-center max-w-xl">
           {lines.length > 0 ? lines.map((line, i) => (
             <div key={i} className="overflow-hidden">
-              <p className={cn('text-sm md:text-base text-cream/70 tracking-wide transition-all duration-700', loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-full')} style={{ transitionDelay: `${1200 + i * 100}ms` }}>{line.text}</p>
+              <p 
+                className={cn(
+                  'text-sm md:text-base text-cream/70 tracking-wide transition-all duration-700',
+                  loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-full'
+                )} 
+                style={{ transitionDelay: `${600 + i * 100}ms` }}
+              >
+                {line.text}
+              </p>
             </div>
-          )) : <p className={cn('text-sm md:text-base text-cream/70 tracking-wide transition-all duration-700', loaded ? 'opacity-100' : 'opacity-0')} style={{ transitionDelay: '1200ms' }}>Design + Production for events that demand more</p>}
+          )) : (
+            <p 
+              className={cn(
+                'text-sm md:text-base text-cream/70 tracking-wide transition-all duration-700',
+                loaded ? 'opacity-100' : 'opacity-0'
+              )} 
+              style={{ transitionDelay: '600ms' }}
+            >
+              Design + Production for events that demand more
+            </p>
+          )}
         </div>
-        <div className={cn('absolute bottom-12 left-1/2 -translate-x-1/2 transition-all duration-1000', loaded ? 'opacity-100' : 'opacity-0')} style={{ transitionDelay: '1600ms' }}>
-          <div className="w-px h-16 bg-cream/30 relative overflow-hidden"><div className="absolute top-0 left-0 w-full h-1/2 bg-cream animate-scroll-down" /></div>
+        
+        {/* Scroll indicator */}
+        <div 
+          className={cn(
+            'absolute bottom-12 left-1/2 -translate-x-1/2 transition-all duration-1000',
+            loaded ? 'opacity-100' : 'opacity-0'
+          )} 
+          style={{ transitionDelay: '1000ms' }}
+        >
+          <div className="w-px h-16 bg-cream/30 relative overflow-hidden">
+            <div className="absolute top-0 left-0 w-full h-1/2 bg-cream animate-scroll-down" />
+          </div>
         </div>
       </div>
     </section>
