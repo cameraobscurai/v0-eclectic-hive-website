@@ -124,7 +124,7 @@ const inventory: InventoryItem[] = [
   },
 ]
 
-export default function InventoryPage() {
+export default function CollectionPage() {
   const [activeCategory, setActiveCategory] = useState<Category>('All')
   const [loaded, setLoaded] = useState(false)
 
@@ -149,17 +149,26 @@ export default function InventoryPage() {
               loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
             )}
           >
-            Inventory
+            The Hive
           </p>
           <h1 
             className={cn(
-              'font-serif text-4xl md:text-5xl lg:text-6xl text-charcoal transition-all duration-700',
+              'font-display text-5xl md:text-6xl lg:text-7xl tracking-tight font-light italic text-charcoal transition-all duration-700',
               loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
             )}
             style={{ transitionDelay: '100ms' }}
           >
-            Lounge Collection
+            Signature Collection
           </h1>
+          <p 
+            className={cn(
+              'text-charcoal/60 mt-6 max-w-xl transition-all duration-700',
+              loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+            )}
+            style={{ transitionDelay: '200ms' }}
+          >
+            Modern but timeless. A curated collection where everything is complimentary but can stand alone.
+          </p>
         </div>
       </section>
       
@@ -229,7 +238,7 @@ export default function InventoryPage() {
       {/* CTA */}
       <section className="px-6 lg:px-12 py-24 bg-charcoal text-cream">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="font-serif text-3xl md:text-4xl mb-6">
+          <h2 className="font-display text-4xl md:text-5xl tracking-tight font-light italic mb-6">
             Looking for something specific?
           </h2>
           <p className="text-cream/60 mb-8 max-w-xl mx-auto">

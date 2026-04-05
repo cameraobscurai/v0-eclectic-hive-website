@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next'
-import { Inter, Josefin_Sans } from 'next/font/google'
+import { Inter, Cormorant_Garamond } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
 
@@ -9,21 +9,21 @@ const inter = Inter({
   display: 'swap',
 })
 
-const josefin = Josefin_Sans({ 
+const cormorant = Cormorant_Garamond({ 
   subsets: ['latin'],
-  variable: '--font-josefin',
+  variable: '--font-display',
   display: 'swap',
-  weight: ['300', '400', '500', '600'],
+  weight: ['300', '400', '500', '600', '700'],
 })
 
 export const metadata: Metadata = {
-  title: 'Eclectic Hive | Design & Fabrication Studio',
-  description: 'Denver-based event design, production, and fabrication house. We create authored environments through design intelligence, proprietary inventory, and fabrication expertise.',
-  keywords: ['event design', 'fabrication', 'production', 'Denver', 'luxury events', 'custom design', 'environment design'],
+  title: 'Eclectic Hive | Design + Production',
+  description: 'Two parts luxe, one part regal, and a dash of edge. Full-service design and production house creating cinematic, art-forward event environments.',
+  keywords: ['event design', 'fabrication', 'production', 'luxury events', 'destination events', 'custom design', 'environment design'],
   authors: [{ name: 'Eclectic Hive' }],
   openGraph: {
-    title: 'Eclectic Hive | Design & Fabrication Studio',
-    description: 'We create authored environments through design intelligence, proprietary inventory, and fabrication expertise.',
+    title: 'Eclectic Hive | Design + Production',
+    description: 'Two parts luxe, one part regal, and a dash of edge. Full-service design and production house.',
     type: 'website',
   },
 }
@@ -43,7 +43,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${josefin.variable}`} data-scroll-behavior="smooth">
+    <html lang="en" className={`${inter.variable} ${cormorant.variable}`} data-scroll-behavior="smooth">
       <body className="font-sans antialiased">
         {children}
         <Analytics />

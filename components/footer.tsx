@@ -6,9 +6,9 @@ import { cn } from '@/lib/utils'
 
 const footerLinks = {
   studio: [
-    { href: '/gallery', label: 'Design + Production' },
-    { href: '/inventory', label: 'Inventory' },
-    { href: '/team', label: 'The Hive' },
+    { href: '/atelier', label: 'Atelier by The Hive' },
+    { href: '/collection', label: 'Signature Collection' },
+    { href: '/gallery', label: 'The Gallery' },
     { href: '/contact', label: 'Contact' },
   ],
   info: [
@@ -52,15 +52,15 @@ export function Footer() {
                 isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
               )}
             >
-              <Link href="/" className="font-serif text-3xl lg:text-4xl tracking-tight inline-block group">
+              <Link href="/" className="font-display text-4xl lg:text-5xl tracking-tight font-light italic inline-block group">
                 <span className="relative">
                   Eclectic Hive
                   <span className="absolute -bottom-2 left-0 w-full h-px bg-cream/20 origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500" />
                 </span>
               </Link>
               <p className="mt-8 text-cream/50 max-w-sm leading-relaxed">
-                A design and fabrication studio creating authored environments through 
-                proprietary inventory, material intelligence, and production expertise.
+                Two parts luxe, one part regal, and a dash of edge. A full-service design 
+                and production house creating cinematic, art-forward event environments.
               </p>
               <p className="mt-10 text-sm text-cream/30">
                 Denver, Colorado

@@ -94,7 +94,7 @@ function HeroSection() {
       
       {/* Content layer */}
       <div className="relative z-10 flex h-full flex-col items-center justify-center text-cream px-6">
-        <h1 className="font-display text-4xl md:text-6xl lg:text-8xl tracking-[0.25em] uppercase font-light mb-8 overflow-hidden">
+        <h1 className="font-display text-5xl md:text-7xl lg:text-9xl tracking-tight font-light italic mb-8 overflow-hidden">
           {'Eclectic Hive'.split('').map((char, i) => (
             <span 
               key={i} 
@@ -143,8 +143,8 @@ function WorkSection() {
       <div className="max-w-7xl mx-auto">
         <div className="mb-20">
           <div className="overflow-hidden"><p className={cn('text-xs uppercase tracking-[0.3em] text-charcoal/50 mb-4 transition-all duration-700', isInView ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0')}>Selected Work</p></div>
-          <div className="overflow-hidden"><h2 className={cn('font-display text-3xl md:text-4xl lg:text-5xl tracking-[0.15em] uppercase font-light text-charcoal transition-all duration-700', isInView ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0')} style={{ transitionDelay: '100ms' }}>Environments built</h2></div>
-          <div className="overflow-hidden"><h2 className={cn('font-display text-3xl md:text-4xl lg:text-5xl tracking-[0.15em] uppercase font-light text-charcoal transition-all duration-700', isInView ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0')} style={{ transitionDelay: '200ms' }}>with intention</h2></div>
+          <div className="overflow-hidden"><h2 className={cn('font-display text-4xl md:text-5xl lg:text-6xl tracking-tight font-light italic text-charcoal transition-all duration-700', isInView ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0')} style={{ transitionDelay: '100ms' }}>Imagined. Refined.</h2></div>
+          <div className="overflow-hidden"><h2 className={cn('font-display text-4xl md:text-5xl lg:text-6xl tracking-tight font-light italic text-charcoal transition-all duration-700', isInView ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0')} style={{ transitionDelay: '200ms' }}>Crafted.</h2></div>
         </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
           {portfolioProjects.map((project, i) => <ProjectCard key={project.title} project={project} index={i} isInView={isInView} isLarge={i === 0} />)}
@@ -165,7 +165,7 @@ function ProjectCard({ project, index, isInView, isLarge }: { project: typeof po
       <div className="absolute inset-0 bg-charcoal/0 group-hover:bg-charcoal/50 transition-colors duration-500" />
       <div className="absolute inset-0 flex flex-col justify-end p-6 lg:p-8">
         <div className="overflow-hidden"><p className={cn('text-xs uppercase tracking-[0.2em] text-cream/70 mb-2 transition-all duration-500', isHovered ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0')}>{project.planner}</p></div>
-        <div className="overflow-hidden"><h3 className="font-display text-xl lg:text-2xl tracking-[0.1em] uppercase font-light text-cream">{project.title.split('').map((char, i) => <span key={i} className={cn('inline-block transition-all duration-500', isHovered ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0')} style={{ transitionDelay: `${i * 30}ms` }}>{char === ' ' ? '\u00A0' : char}</span>)}</h3></div>
+        <div className="overflow-hidden"><h3 className="font-display text-2xl lg:text-3xl tracking-tight font-light italic text-cream">{project.title.split('').map((char, i) => <span key={i} className={cn('inline-block transition-all duration-500', isHovered ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0')} style={{ transitionDelay: `${i * 30}ms` }}>{char === ' ' ? '\u00A0' : char}</span>)}</h3></div>
       </div>
     </Link>
   )
@@ -185,11 +185,11 @@ function StudioSection() {
         <div className="flex items-center px-8 lg:px-16 xl:px-24 py-24 lg:py-32">
           <div className="max-w-lg">
             <div className="overflow-hidden"><p className={cn('text-xs uppercase tracking-[0.3em] text-cream/50 mb-6 transition-all duration-700', isInView ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0')} style={{ transitionDelay: '200ms' }}>The Studio</p></div>
-            <h2 className="font-display text-3xl md:text-4xl tracking-[0.1em] uppercase font-light mb-8">{['Design-led.', 'Fabrication-fluent.'].map((word, wi) => <span key={wi} className="overflow-hidden inline-block mr-3"><span className={cn('inline-block transition-all duration-700', isInView ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0')} style={{ transitionDelay: `${300 + wi * 150}ms` }}>{word}</span></span>)}</h2>
+            <h2 className="font-display text-4xl md:text-5xl tracking-tight font-light italic mb-8">{['Two parts luxe,', 'one part regal.'].map((word, wi) => <span key={wi} className="overflow-hidden inline-block mr-3"><span className={cn('inline-block transition-all duration-700', isInView ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0')} style={{ transitionDelay: `${300 + wi * 150}ms` }}>{word}</span></span>)}</h2>
             <p className={cn('text-cream/70 leading-relaxed mb-8 relative transition-all duration-700', isInView ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0')} style={{ transitionDelay: '500ms' }}>We are a full-service design and production house, taking our clients&apos; vision and molding that with our approach to <span className="relative inline-block"><span className="relative z-10">cinematic and art-forward design</span><span className={cn('absolute inset-0 bg-sand/40 -mx-1 origin-left transition-transform duration-700', isInView ? 'scale-x-100' : 'scale-x-0')} style={{ transitionDelay: '900ms' }} /></span>. Predominantly a destination design house, traveling wherever our clients and projects take us.</p>
             <div className={cn('flex flex-wrap gap-6 transition-all duration-700', isInView ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0')} style={{ transitionDelay: '700ms' }}>
-              <Link href="/team" className="text-sm uppercase tracking-[0.2em] text-cream/70 hover:text-cream transition-colors relative group">Meet The Hive<span className="absolute -bottom-1 left-0 w-full h-px bg-cream/30 origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300" /></Link>
-              <Link href="/inventory" className="text-sm uppercase tracking-[0.2em] text-cream/70 hover:text-cream transition-colors relative group">Browse Inventory<span className="absolute -bottom-1 left-0 w-full h-px bg-cream/30 origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300" /></Link>
+              <Link href="/atelier" className="text-sm uppercase tracking-[0.2em] text-cream/70 hover:text-cream transition-colors relative group">The Atelier<span className="absolute -bottom-1 left-0 w-full h-px bg-cream/30 origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300" /></Link>
+              <Link href="/collection" className="text-sm uppercase tracking-[0.2em] text-cream/70 hover:text-cream transition-colors relative group">Signature Collection<span className="absolute -bottom-1 left-0 w-full h-px bg-cream/30 origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300" /></Link>
             </div>
           </div>
         </div>
@@ -206,7 +206,7 @@ function InquirySection() {
   return (
     <section ref={ref} className="py-32 lg:py-48 px-6 lg:px-12 bg-cream">
       <div className="max-w-4xl mx-auto text-center">
-        <h2 className="font-display text-3xl md:text-4xl lg:text-5xl tracking-[0.1em] uppercase font-light text-charcoal mb-8">{"Let's build something together".split(' ').map((word, i) => <span key={i} className="overflow-hidden inline-block mr-[0.25em]"><span className={cn('inline-block transition-all duration-700', isInView ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0')} style={{ transitionDelay: `${i * 80}ms` }}>{word}</span></span>)}</h2>
+        <h2 className="font-display text-4xl md:text-5xl lg:text-6xl tracking-tight font-light italic text-charcoal mb-8">{"Let's create something unforgettable".split(' ').map((word, i) => <span key={i} className="overflow-hidden inline-block mr-[0.25em]"><span className={cn('inline-block transition-all duration-700', isInView ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0')} style={{ transitionDelay: `${i * 80}ms` }}>{word}</span></span>)}</h2>
         <div className="overflow-hidden"><p className={cn('text-charcoal/60 max-w-xl mx-auto mb-12 transition-all duration-700', isInView ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0')} style={{ transitionDelay: '400ms' }}>Whether you&apos;re a planner with a vision or a couple dreaming of the impossible, we&apos;d love to hear from you.</p></div>
         <div className="overflow-hidden"><Link href="/contact" className={cn('inline-block px-10 py-4 bg-charcoal text-cream text-sm uppercase tracking-[0.2em] hover:bg-charcoal/90 transition-all duration-500', isInView ? 'translate-y-0 opacity-100' : 'translate-y-8 opacity-0')} style={{ transitionDelay: '500ms' }}>Start a Conversation</Link></div>
       </div>

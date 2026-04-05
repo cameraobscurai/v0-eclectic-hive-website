@@ -85,18 +85,17 @@ export function LogoFull({ className, variant = 'dark' }: Omit<LogoProps, 'showT
   )
 }
 
-// Navigation logo - simplified for header
+// Navigation logo - simplified for header (editorial serif, italic)
 export function NavLogo({ className, variant = 'dark' }: Omit<LogoProps, 'showTagline'>) {
   const color = variant === 'dark' ? 'text-charcoal' : 'text-cream'
   
   return (
     <span 
       className={cn(
-        'font-display text-base tracking-[0.3em] uppercase font-light',
+        'font-display text-xl tracking-tight font-light italic',
         color,
         className
       )}
-      style={{ fontFamily: 'var(--font-display)' }}
     >
       Eclectic Hive
     </span>

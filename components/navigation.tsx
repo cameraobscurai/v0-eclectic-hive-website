@@ -6,9 +6,9 @@ import { cn } from '@/lib/utils'
 import { NavLogo } from '@/components/logo'
 
 const navLinks = [
-  { href: '/gallery', label: 'Design + Production' },
-  { href: '/inventory', label: 'Inventory' },
-  { href: '/team', label: 'The Hive' },
+  { href: '/atelier', label: 'Atelier by The Hive' },
+  { href: '/collection', label: 'Signature Collection' },
+  { href: '/gallery', label: 'The Gallery' },
   { href: '/contact', label: 'Contact' },
 ]
 
@@ -130,7 +130,7 @@ export function Navigation() {
               )}
               style={{ transitionDelay: isOpen ? '100ms' : '0ms' }}
             >
-              <span className="text-cream font-display text-3xl md:text-4xl tracking-[0.2em] uppercase font-light hover:text-sand transition-colors">
+              <span className="text-cream font-display text-4xl md:text-5xl tracking-tight font-light italic hover:text-sand transition-colors">
                 Home
               </span>
             </Link>
@@ -145,7 +145,7 @@ export function Navigation() {
                 )}
                 style={{ transitionDelay: isOpen ? `${150 + index * 50}ms` : '0ms' }}
               >
-                <span className="text-cream font-display text-3xl md:text-4xl tracking-[0.2em] uppercase font-light hover:text-sand transition-colors">
+                <span className="text-cream font-display text-4xl md:text-5xl tracking-tight font-light italic hover:text-sand transition-colors">
                   {link.label}
                 </span>
               </Link>

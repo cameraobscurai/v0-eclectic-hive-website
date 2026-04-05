@@ -64,7 +64,7 @@
 
 @theme inline {
   --font-sans: 'Inter', 'Inter Fallback', system-ui, sans-serif;
-  --font-display: 'Josefin Sans', 'Josefin Sans Fallback', system-ui, sans-serif;
+  --font-display: 'Cormorant Garamond', 'Georgia', serif;
   --font-mono: 'Geist Mono', 'Geist Mono Fallback', monospace;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -104,10 +104,10 @@
     @apply bg-background text-foreground;
   }
   
-  /* Brand typography - wide tracked geometric sans */
+  /* Brand typography - editorial serif (Saol Display equivalent) */
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-display);
-    @apply tracking-[0.15em] uppercase font-light;
+    @apply tracking-tight font-light;
   }
   
   /* Smooth scrolling */
