@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next'
-import { Inter, Playfair_Display } from 'next/font/google'
+import { Inter, Josefin_Sans } from 'next/font/google'
 import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
 
@@ -9,10 +9,11 @@ const inter = Inter({
   display: 'swap',
 })
 
-const playfair = Playfair_Display({ 
+const josefin = Josefin_Sans({ 
   subsets: ['latin'],
-  variable: '--font-playfair',
+  variable: '--font-josefin',
   display: 'swap',
+  weight: ['300', '400', '500', '600'],
 })
 
 export const metadata: Metadata = {
@@ -42,7 +43,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${playfair.variable}`} data-scroll-behavior="smooth">
+    <html lang="en" className={`${inter.variable} ${josefin.variable}`} data-scroll-behavior="smooth">
       <body className="font-sans antialiased">
         {children}
         <Analytics />

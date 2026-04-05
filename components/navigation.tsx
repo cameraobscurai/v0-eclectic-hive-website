@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
+import { NavLogo } from '@/components/logo'
 
 const navLinks = [
   { href: '/gallery', label: 'Design + Production' },
@@ -64,16 +65,8 @@ export function Navigation() {
           scrolled ? 'py-4 lg:py-5' : 'py-6 lg:py-8'
         )}>
           {/* Logo */}
-          <Link 
-            href="/" 
-            className="relative group"
-          >
-            <span className={cn(
-              'font-serif text-xl tracking-tight transition-colors duration-300',
-              scrolled || isOpen ? 'text-cream' : 'text-cream'
-            )}>
-              Eclectic Hive
-            </span>
+          <Link href="/" className="relative group">
+            <NavLogo variant="light" />
             <span className="absolute -bottom-1 left-0 w-full h-px bg-cream/30 origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300" />
           </Link>
           
@@ -88,10 +81,7 @@ export function Navigation() {
                   animationDelay: `${index * 50}ms`,
                 }}
               >
-                <span className={cn(
-                  'text-sm tracking-wide uppercase transition-colors duration-300',
-                  scrolled ? 'text-cream/80 hover:text-cream' : 'text-cream/80 hover:text-cream'
-                )}>
+                <span className="text-xs tracking-[0.2em] uppercase font-light text-cream/80 hover:text-cream transition-colors duration-300">
                   {link.label}
                 </span>
                 <span className="absolute -bottom-1 left-0 w-full h-px bg-cream/50 origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300" />
@@ -140,7 +130,7 @@ export function Navigation() {
               )}
               style={{ transitionDelay: isOpen ? '100ms' : '0ms' }}
             >
-              <span className="text-cream font-serif text-4xl md:text-5xl tracking-tight hover:text-terracotta transition-colors">
+              <span className="text-cream font-display text-3xl md:text-4xl tracking-[0.2em] uppercase font-light hover:text-sand transition-colors">
                 Home
               </span>
             </Link>
@@ -155,7 +145,7 @@ export function Navigation() {
                 )}
                 style={{ transitionDelay: isOpen ? `${150 + index * 50}ms` : '0ms' }}
               >
-                <span className="text-cream font-serif text-4xl md:text-5xl tracking-tight hover:text-terracotta transition-colors">
+                <span className="text-cream font-display text-3xl md:text-4xl tracking-[0.2em] uppercase font-light hover:text-sand transition-colors">
                   {link.label}
                 </span>
               </Link>
@@ -203,7 +193,7 @@ function ProgressBar() {
   return (
     <div className="absolute bottom-0 left-0 right-0 h-px bg-cream/5">
       <div 
-        className="h-full bg-terracotta/60 transition-none"
+        className="h-full bg-sand transition-none"
         style={{ width: `${progress}%` }}
       />
     </div>
