@@ -11,44 +11,24 @@ const faqs = [
     category: 'Working With Us',
     items: [
       {
-        id: 'event-types',
-        question: 'What types of events do you work on?',
-        answer: 'We design environments for weddings, corporate events, galas, private celebrations, brand activations, and experiential installations. Our work spans intimate gatherings of 20 to large-scale productions of 500+. The common thread is clients who value authored environments over assembled ones.',
+        id: 'process',
+        question: 'What is your process for new clients?',
+        answer: 'During a consultation call with our team, we learn about your vision and how we can best support you. Once direction is established, we create a budget range and prepare a 1-2 page Style Guide. A non-refundable Creative Services Fee and signed contract secures your date, after which your designer creates a customized proposal with detailed estimate.',
       },
       {
-        id: 'timeline',
-        question: 'How far in advance should we reach out?',
-        answer: 'For full environment design projects, we recommend reaching out 6-12 months before your event. For design consultation only, 3-6 months provides adequate time. For fabrication-only projects, timing depends on scope and complexity—some pieces require 8-12 weeks of production.',
+        id: 'proposals',
+        question: 'Do you provide proposals before signing a contract?',
+        answer: 'In an effort to protect our time with clients who have made a financial investment to our team, we do not provide full design proposals without receiving a Creative Services Fee and signed contract. Contracted clients receive prioritized attention and time with design and logistical details.',
       },
       {
         id: 'location',
         question: 'Do you work outside of Colorado?',
-        answer: 'Yes. While our studio is based in Denver, we work with clients throughout the Mountain West and beyond. We have produced events in Aspen, Jackson Hole, Park City, and other destinations. Travel and logistics are factored into project proposals.',
+        answer: 'We are predominantly a destination design house, traveling wherever our clients and projects take us. We offer both domestic and international design services and support. Our fees include accommodations, per diems and mileage for those projects.',
       },
       {
-        id: 'process',
-        question: 'What is your design process like?',
-        answer: 'Our process moves through five phases: Discovery, Concept Development, Design Development, Fabrication & Production, and Installation. Each phase has clear deliverables and client touchpoints. We believe in collaborative process with clear creative direction.',
-      },
-    ],
-  },
-  {
-    category: 'Pricing & Investment',
-    items: [
-      {
-        id: 'cost',
-        question: 'How much does a project cost?',
-        answer: 'Investment varies significantly based on scope, scale, and complexity. As a general orientation: full environment design projects typically begin at $25,000 for design services, with fabrication and production costs varying based on scope. Design consultation engagements begin at $5,000. We provide detailed proposals after initial consultation.',
-      },
-      {
-        id: 'included',
-        question: 'What is included in design fees?',
-        answer: 'Design fees cover all creative development work: concept development, material direction, spatial planning, renderings, vendor specification, and design management through execution. Fabrication, rentals, florals, and other production elements are typically separate line items.',
-      },
-      {
-        id: 'retainer',
-        question: 'Do you require a retainer?',
-        answer: 'Yes. We require a retainer to secure your date and begin work. Typically this is 50% of design fees at contract signing, with the balance due before installation. Fabrication and production invoices follow separate schedules based on vendor requirements.',
+        id: 'minimums',
+        question: 'Do you have minimum project requirements?',
+        answer: 'We do not have set minimums as the availability of our team and inventory shifts throughout the year, depending on existing booked events and seasonality of our inquiries. Our team works closely together to discuss every opportunity to ensure we can successfully fulfill the scope of services requested.',
       },
     ],
   },
@@ -56,24 +36,24 @@ const faqs = [
     category: 'Services & Capabilities',
     items: [
       {
-        id: 'fabrication-only',
-        question: 'Can you handle just the fabrication?',
-        answer: 'Yes. For event professionals who have their own design direction, we offer fabrication services through our atelier. This includes custom furniture, architectural elements, sculptural pieces, and specialty constructions. We require detailed specifications or work collaboratively to develop them.',
+        id: 'full-service',
+        question: 'What does full-service design include?',
+        answer: 'We are a full-service design and production house. Our curated collection includes lounge furniture, bars + cocktail tables, lighting, tableware, dining tables + chairs, custom designs and fabrication, stage design, dance floor vinyl, food + beverage styling, graphics, drape, and accents/styling.',
+      },
+      {
+        id: 'production',
+        question: 'What production services do you offer?',
+        answer: 'We provide full production management including space planning + CAD design, 3D modeling of event spaces, vendor management, production timeline management, logistical on-site management, support with permit and code inspections, entertainment management and run of show.',
       },
       {
         id: 'rentals',
-        question: 'Do you offer rentals?',
-        answer: 'Our proprietary inventory is available for use within our design projects—not as standalone rentals. For clients seeking rental-only relationships, we maintain a separate inventory portal with select pieces available. However, our primary offering is the authored environment.',
+        question: 'Can I just rent items without design services?',
+        answer: 'We are happy to provide rental-only services for those clients who do not need design or production support but want access to our inventory collection. However, our primary offering is the authored environment—designed, fabricated, and produced as a complete expression.',
       },
       {
-        id: 'vendors',
-        question: 'What about florals, catering, and other vendors?',
-        answer: 'We focus on environment design, fabrication, and production. We do not provide florals, catering, or entertainment directly, but we work closely with preferred partners and can make recommendations. Our production team coordinates all vendors to ensure cohesive execution.',
-      },
-      {
-        id: 'existing-vendors',
-        question: 'Can you work with our existing vendors?',
-        answer: 'Absolutely. We collaborate regularly with planners, florists, caterers, and other event professionals. Clear communication and shared commitment to excellence make these partnerships successful.',
+        id: 'planners',
+        question: 'Do you work with event planners?',
+        answer: 'We provide full production management to planners who wish to remain client + guest-facing, while we ensure a seamless production from pre-planning to execution behind the scenes. This allows planners to focus on their strengths while we handle the technical production.',
       },
     ],
   },
