@@ -67,7 +67,7 @@ function HeroSection() {
       <div className="absolute inset-0 grid grid-cols-3 md:grid-cols-5">
         {heroImages.map((src, i) => (
           <div key={i} className={cn('relative overflow-hidden', i >= 3 ? 'hidden md:block' : '')}>
-            <Image src={src} alt="" fill className="object-cover" priority={i < 3} />
+            <Image src={src} alt="" fill className="object-cover" priority={i < 3} sizes="(max-width: 768px) 33vw, 20vw" />
             <div className="absolute inset-0 bg-charcoal/30" />
           </div>
         ))}
@@ -189,7 +189,7 @@ function StudioSection() {
             <p className={cn('text-cream/70 leading-relaxed mb-8 relative transition-all duration-700', isInView ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0')} style={{ transitionDelay: '500ms' }}>We are a full-service design and production house, taking our clients&apos; vision and molding that with our approach to <span className="relative inline-block"><span className="relative z-10">cinematic and art-forward design</span><span className={cn('absolute inset-0 bg-sand/40 -mx-1 origin-left transition-transform duration-700', isInView ? 'scale-x-100' : 'scale-x-0')} style={{ transitionDelay: '900ms' }} /></span>. Predominantly a destination design house, traveling wherever our clients and projects take us.</p>
             <div className={cn('flex flex-wrap gap-6 transition-all duration-700', isInView ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0')} style={{ transitionDelay: '700ms' }}>
               <Link href="/atelier" className="text-sm uppercase tracking-[0.2em] text-cream/70 hover:text-cream transition-colors relative group">The Atelier<span className="absolute -bottom-1 left-0 w-full h-px bg-cream/30 origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300" /></Link>
-              <Link href="/collection" className="text-sm uppercase tracking-[0.2em] text-cream/70 hover:text-cream transition-colors relative group">Signature Collection<span className="absolute -bottom-1 left-0 w-full h-px bg-cream/30 origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300" /></Link>
+              <Link href="/collection" className="text-sm uppercase tracking-[0.2em] text-cream/70 hover:text-cream transition-colors relative group">Hive Signature Collection<span className="absolute -bottom-1 left-0 w-full h-px bg-cream/30 origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300" /></Link>
             </div>
           </div>
         </div>

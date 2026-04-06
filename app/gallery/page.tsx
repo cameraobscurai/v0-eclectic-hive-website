@@ -161,7 +161,7 @@ function FeaturedProject({ project, index }: { project: typeof projects[0]; inde
             <span className="w-1 h-1 rounded-full bg-muted-foreground" />
             <span>{project.year}</span>
           </div>
-          <h2 className="font-serif text-3xl lg:text-4xl tracking-tight">{project.title}</h2>
+          <h2 className="font-display text-3xl lg:text-4xl tracking-tight font-light">{project.title}</h2>
           <p className="mt-1 text-sm text-muted-foreground">{project.type}</p>
           <p className="mt-4 text-muted-foreground leading-relaxed">{project.description}</p>
           
@@ -243,7 +243,7 @@ function ArchiveCard({ project, index }: { project: typeof projects[0]; index: n
         <span className="w-1 h-1 rounded-full bg-muted-foreground" />
         <span>{project.year}</span>
       </div>
-      <h3 className="font-serif text-xl lg:text-2xl tracking-tight">{project.title}</h3>
+      <h3 className="font-display text-xl lg:text-2xl tracking-tight font-light">{project.title}</h3>
       <p className="mt-2 text-sm text-muted-foreground">{project.type}</p>
     </Link>
   )

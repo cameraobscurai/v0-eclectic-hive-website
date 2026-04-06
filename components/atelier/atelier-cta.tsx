@@ -9,7 +9,7 @@ export function AtelierCTA() {
             Work With Us
           </p>
           
-          <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl leading-[1.1] tracking-tight">
+          <h2 className="font-display text-3xl md:text-4xl lg:text-5xl leading-[1.1] tracking-tight font-light">
             Commission a piece.
             <br />
             <span className="italic">Author an environment.</span>

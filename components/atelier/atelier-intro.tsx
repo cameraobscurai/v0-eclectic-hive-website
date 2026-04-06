@@ -11,7 +11,7 @@ export function AtelierIntro() {
               The Creative Engine
             </p>
             
-            <h2 className="font-serif text-3xl md:text-4xl leading-[1.1] tracking-tight">
+            <h2 className="font-display text-3xl md:text-4xl leading-[1.1] tracking-tight font-light">
               Construction
               <br />
               <span className="italic">as authorship</span>

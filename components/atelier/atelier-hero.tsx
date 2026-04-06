@@ -35,10 +35,10 @@ export function AtelierHero() {
             
             {/* Main Headline */}
             <div className="lg:col-span-7">
-              <h1 className="font-serif text-cream text-4xl md:text-5xl lg:text-6xl xl:text-7xl leading-[0.95] tracking-tight animate-reveal delay-100">
-                Where materiality
+              <h1 className="font-display text-cream text-4xl md:text-5xl lg:text-6xl xl:text-7xl leading-[0.95] tracking-tight font-light animate-reveal delay-100">
+                <span className="italic">Imagined. Refined.</span>
                 <br />
-                meets <span className="italic">intention</span>
+                <span className="italic">Crafted.</span>
               </h1>
             </div>
             
