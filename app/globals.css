@@ -236,6 +236,24 @@ img {
 }
 
 /* Tabular numbers for consistent spacing */
-.tabular-nums {
+  .tabular-nums {
   font-variant-numeric: tabular-nums;
+  }
+
+/* Press logo marquee — used in PressSection on homepage */
+@keyframes marquee {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+
+/* Respect system accessibility preference — disable all motion */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
