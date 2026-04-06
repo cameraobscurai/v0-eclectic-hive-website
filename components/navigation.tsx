@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 import { NavLogo } from '@/components/logo'
@@ -13,11 +13,11 @@ const navLinks = [
 ]
 
 export function Navigation() {
-  const [isOpen, setIsOpen] = useState(false)
+const [isOpen, setIsOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [hidden, setHidden] = useState(false)
-  const [lastScrollY, setLastScrollY] = useState(0)
-
+  const lastScrollY = useRef(0)
+  
   useEffect(() => {
     const handleScroll = () => {
       const currentScrollY = window.scrollY
@@ -26,18 +26,18 @@ export function Navigation() {
       setScrolled(currentScrollY > 100)
       
       // Hide on scroll down, show on scroll up
-      if (currentScrollY > lastScrollY && currentScrollY > 200) {
+      if (currentScrollY > lastScrollY.current && currentScrollY > 200) {
         setHidden(true)
       } else {
         setHidden(false)
       }
       
-      setLastScrollY(currentScrollY)
+      lastScrollY.current = currentScrollY
     }
-
+    
     window.addEventListener('scroll', handleScroll, { passive: true })
     return () => window.removeEventListener('scroll', handleScroll)
-  }, [lastScrollY])
+  }, [])
 
   // Lock body scroll when mobile menu is open
   useEffect(() => {

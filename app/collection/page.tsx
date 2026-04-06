@@ -132,10 +132,6 @@ export default function CollectionPage() {
     setLoaded(true)
   }, [])
 
-  const filteredInventory = activeCategory === 'All' 
-    ? inventory 
-    : inventory.filter(item => item.category === activeCategory)
-
   return (
     <main className="bg-cream min-h-screen">
       <Navigation />
@@ -206,18 +202,21 @@ export default function CollectionPage() {
         </div>
       </section>
       
-      {/* Grid */}
+      {/* Grid - stable keys, CSS-based show/hide for smooth transitions */}
       <section className="px-6 lg:px-12 py-16">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 lg:gap-8">
-            {filteredInventory.map((item, i) => (
+            {inventory.map((item, i) => {
+              const isVisible = activeCategory === 'All' || item.category === activeCategory
+              return (
               <div
                 key={item.name}
                 className={cn(
                   'group transition-all duration-500',
-                  loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+                  loaded && isVisible ? 'opacity-100 scale-100' : 'opacity-0 scale-95 pointer-events-none',
+                  !isVisible && 'hidden'
                 )}
-                style={{ transitionDelay: `${300 + i * 50}ms` }}
+                style={{ transitionDelay: loaded ? `${i * 30}ms` : `${300 + i * 50}ms` }}
               >
                 <div className="relative aspect-square bg-white mb-4 overflow-hidden">
                   <Image
@@ -230,7 +229,8 @@ export default function CollectionPage() {
                 <h3 className="text-sm text-charcoal font-medium">{item.name}</h3>
                 <p className="text-xs text-charcoal/50 uppercase tracking-wider mt-1">{item.category}</p>
               </div>
-            ))}
+              )
+            })}
           </div>
         </div>
       </section>

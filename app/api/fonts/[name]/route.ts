@@ -30,7 +30,7 @@ export async function GET(
     return new NextResponse(result.stream, {
       headers: {
         'Content-Type': 'font/otf',
-        'Cache-Control': 'public, max-age=31536000, immutable',
+        'Cache-Control': 'private, max-age=31536000, immutable',
         'Access-Control-Allow-Origin': '*',
       },
     })
