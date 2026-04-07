@@ -30,10 +30,7 @@ export async function GET(
     return new NextResponse(result.stream, {
       headers: {
         'Content-Type': 'font/otf',
-        // FIX: was 'public' — fonts are licensed/private, must not be CDN-cached
         'Cache-Control': 'private, max-age=31536000, immutable',
-        // FIX: was '*' — only this origin should load these fonts
-        'Access-Control-Allow-Origin': 'same-origin',
       },
     })
   } catch (error) {
