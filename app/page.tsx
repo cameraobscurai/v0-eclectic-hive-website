@@ -97,17 +97,17 @@ function PressSection() {
       {/* Fade edges with mask so the scroll looks continuous */}
       <div className="relative flex overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]">
         <div className="flex gap-14 items-center animate-[marquee_28s_linear_infinite] shrink-0 pr-14">
-          {[...PRESS_LOGOS, ...PRESS_LOGOS].map((logo, i) => (
+{[...PRESS_LOGOS, ...PRESS_LOGOS].map((logo, i) => (
             <div
               key={i}
-              className="relative h-5 w-20 shrink-0 opacity-35 hover:opacity-60 transition-opacity duration-300"
+              className="relative h-8 w-28 shrink-0 opacity-60 hover:opacity-90 transition-opacity duration-300"
             >
               <Image
                 src={logo.src}
                 alt={logo.name}
                 fill
-                className="object-contain"
-                sizes="80px"
+                className="object-contain brightness-0 invert"
+                sizes="112px"
               />
             </div>
           ))}
