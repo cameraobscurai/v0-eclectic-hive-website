@@ -11,7 +11,7 @@ export const metadata: Metadata = {
 
 export default function ContactPage() {
   return (
-    <main className="bg-cream min-h-screen">
+    <main id="main-content" className="bg-cream min-h-screen">
       <Navigation />
 
       {/* Editorial header */}

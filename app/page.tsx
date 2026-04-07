@@ -69,7 +69,7 @@ const PRESS_LOGOS = [
 
 export default function HomePage() {
   return (
-    <main className="bg-background">
+    <main id="main-content" className="bg-background">
       <Navigation />
       <HeroSection />
       <PressSection />

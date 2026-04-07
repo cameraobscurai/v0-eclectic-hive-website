@@ -133,7 +133,7 @@ export default function CollectionPage() {
   }, [])
 
   return (
-    <main className="bg-cream min-h-screen">
+    <main id="main-content" className="bg-cream min-h-screen">
       <Navigation />
       
       {/* Header */}

@@ -251,7 +251,7 @@ function ArchiveCard({ project, index }: { project: typeof projects[0]; index: n
 
 export default function GalleryPage() {
   return (
-    <main>
+    <main id="main-content">
       <Navigation />
       
       {/* Hero */}

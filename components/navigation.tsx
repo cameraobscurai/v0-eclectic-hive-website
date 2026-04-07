@@ -7,10 +7,13 @@ import { cn } from '@/lib/utils'
 
 const NAV_LINKS = [
   { href: '/atelier', label: 'Atelier by The Hive' },
-  { href: '/collection', label: 'Signature Collection' },
+  { href: '/collection', label: 'Hive Signature Collection' },
   { href: '/gallery', label: 'The Gallery' },
   { href: '/contact', label: 'Contact' },
 ]
+
+// Pages with light (cream) backgrounds need dark nav text
+const LIGHT_BG_PAGES = ['/collection', '/contact', '/faq', '/privacy']
 
 export function Navigation() {
   const [isOpen, setIsOpen] = useState(false)
@@ -18,6 +21,9 @@ export function Navigation() {
   const [hidden, setHidden] = useState(false)
   const [progress, setProgress] = useState(0)
   const pathname = usePathname()
+  
+  // Determine if current page has light background (needs dark nav)
+  const isLightPage = LIGHT_BG_PAGES.includes(pathname)
 
   // FIX: useRef prevents the stale closure that caused the old
   // scroll handler to re-subscribe on every render.
@@ -65,7 +71,11 @@ export function Navigation() {
       <header
         className={cn(
           'fixed top-0 left-0 right-0 z-50 transition-all duration-500',
-          scrolled ? 'bg-charcoal/95 backdrop-blur-sm' : 'bg-transparent',
+          scrolled 
+            ? 'bg-charcoal/95 backdrop-blur-sm' 
+            : isLightPage 
+              ? 'bg-cream/95 backdrop-blur-sm' 
+              : 'bg-transparent',
           hidden && !isOpen ? '-translate-y-full' : 'translate-y-0'
         )}
       >
@@ -77,31 +87,40 @@ export function Navigation() {
         >
           {/* Logo */}
           <Link href="/" className="relative group" aria-label="Eclectic Hive — home">
-            <span className="font-display text-xl tracking-tight font-light italic text-cream">
+            <span className={cn(
+              "font-display text-xl tracking-tight font-light italic transition-colors duration-300",
+              scrolled || !isLightPage ? 'text-cream' : 'text-charcoal'
+            )}>
               Eclectic Hive
             </span>
-            <span className="absolute -bottom-1 left-0 w-full h-px bg-cream/30 origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300" />
+            <span className={cn(
+              "absolute -bottom-1 left-0 w-full h-px origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300",
+              scrolled || !isLightPage ? 'bg-cream/30' : 'bg-charcoal/30'
+            )} />
           </Link>
 
           {/* Desktop links */}
           <div className="hidden lg:flex items-center gap-10">
             {NAV_LINKS.map((link) => {
               const active = pathname === link.href
+              const textColor = scrolled || !isLightPage
+                ? (active ? 'text-cream' : 'text-cream/70 hover:text-cream')
+                : (active ? 'text-charcoal' : 'text-charcoal/70 hover:text-charcoal')
+              const underlineColor = scrolled || !isLightPage ? 'bg-cream/50' : 'bg-charcoal/50'
               return (
                 <Link
                   key={link.href}
                   href={link.href}
                   className={cn(
                     'relative group text-xs tracking-[0.2em] uppercase font-light transition-colors duration-300',
-                    active
-                      ? 'text-cream'
-                      : 'text-cream/70 hover:text-cream'
+                    textColor
                   )}
                 >
                   {link.label}
                   <span
                     className={cn(
-                      'absolute -bottom-1 left-0 w-full h-px bg-cream/50 origin-left transition-transform duration-300',
+                      'absolute -bottom-1 left-0 w-full h-px origin-left transition-transform duration-300',
+                      underlineColor,
                       active
                         ? 'scale-x-100'
                         : 'scale-x-0 group-hover:scale-x-100'
@@ -122,13 +141,15 @@ export function Navigation() {
           >
             <span
               className={cn(
-                'w-6 h-px bg-cream transition-all duration-300 ease-out',
+                'w-6 h-px transition-all duration-300 ease-out',
+                scrolled || !isLightPage ? 'bg-cream' : 'bg-charcoal',
                 isOpen ? 'rotate-45 translate-y-px' : '-translate-y-1'
               )}
             />
             <span
               className={cn(
-                'w-6 h-px bg-cream transition-all duration-300 ease-out',
+                'w-6 h-px transition-all duration-300 ease-out',
+                scrolled || !isLightPage ? 'bg-cream' : 'bg-charcoal',
                 isOpen ? '-rotate-45' : 'translate-y-1'
               )}
             />
@@ -136,7 +157,10 @@ export function Navigation() {
         </nav>
 
         {/* Scroll progress bar */}
-        <div className="absolute bottom-0 left-0 right-0 h-px bg-cream/5" aria-hidden="true">
+        <div className={cn(
+          "absolute bottom-0 left-0 right-0 h-px",
+          scrolled || !isLightPage ? 'bg-cream/5' : 'bg-charcoal/10'
+        )} aria-hidden="true">
           <div
             className="h-full bg-sand transition-none"
             style={{ width: `${progress}%` }}
