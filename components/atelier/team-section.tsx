@@ -6,19 +6,34 @@ import { cn } from '@/lib/utils'
 
 const team = [
   {
-    name: 'Team Member',
-    role: 'Creative Director',
-    image: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/cfa4c553-1dd4-42dd-8576-0bc47ec25447/Eclectic+Hive-Carrie+King+Photographer-199.jpg',
+    name: 'Jill Livingston',
+    role: 'Founder & Creative Director',
+    image: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Jill%2BLivingston%2B2023%2BHeadshot%2BClose%2BUp-NHuZ95g6QfydPaT0PXTA0TdvNPtczK.webp',
   },
   {
-    name: 'Team Member',
-    role: 'Lead Designer',
-    image: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/cfa4c553-1dd4-42dd-8576-0bc47ec25447/Eclectic+Hive-Carrie+King+Photographer-199.jpg',
+    name: 'Annie',
+    role: 'Operations Director',
+    image: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Annie-001-tNiKz1tG6JqpBALc82EWwaLgrQx4Rl.webp',
+  },
+  {
+    name: 'Amanda Ferguson',
+    role: 'Senior Designer',
+    image: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Amanda%2BFerguson%2C%2BSenior%2BDesigner%2BB%2BW-PccIqTjE27Epv1ieb04mUYeg4HbcFC.webp',
+  },
+  {
+    name: 'Sam Young',
+    role: 'Production Manager',
+    image: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Sam%2BYoung%2Bv3-FziaYBR9Xlec5f3osxqy4l2Sr97UoE.webp',
   },
   {
     name: 'Team Member',
     role: 'Fabrication Lead',
-    image: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/cfa4c553-1dd4-42dd-8576-0bc47ec25447/Eclectic+Hive-Carrie+King+Photographer-199.jpg',
+    image: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Eclectic%2BHive-Carrie%2BKing%2BPhotographer-154-gzuuJFrZ86qUqzaJhZrEAjBXHLwwPe.webp',
+  },
+  {
+    name: 'Team Member',
+    role: 'Designer',
+    image: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Eclectic%2BHive-Carrie%2BKing%2BPhotographer-199-r3X3oOyxvAoTbdOkiUyuhXDdlRXeKk.webp',
   },
 ]
 
