@@ -1,12 +1,15 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, lazy, Suspense } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Navigation } from '@/components/navigation'
 import { Footer } from '@/components/footer'
 import { HeroSection } from '@/components/hero-section'
 import { cn } from '@/lib/utils'
+
+// Lazy load the 3D showcase for performance
+const Home3DShowcase = lazy(() => import('@/components/home-3d-showcase').then(mod => ({ default: mod.Home3DShowcase })))
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
 
@@ -72,6 +75,21 @@ export default function HomePage() {
     <main id="main-content" className="bg-background">
       <Navigation />
       <HeroSection />
+      
+      {/* 3D Product Showcase - positioned prominently after hero */}
+      <Suspense fallback={
+        <section className="bg-cream py-16 lg:py-24">
+          <div className="max-w-[1600px] mx-auto px-6 lg:px-12">
+            <div 
+              className="rounded-2xl bg-[#F5F0E8] animate-pulse"
+              style={{ aspectRatio: '16 / 9', maxHeight: '70vh' }}
+            />
+          </div>
+        </section>
+      }>
+        <Home3DShowcase />
+      </Suspense>
+      
       <PressSection />
       <WorkSection />
       <StudioSection />
