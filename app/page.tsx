@@ -40,31 +40,31 @@ const PORTFOLIO_PROJECTS = [
   },
 ]
 
-// Press logos from Vercel Blob (these are already on the existing site)
+// Press logos - white logos on beige background
 const PRESS_LOGOS = [
   {
     name: 'Elle',
-    src: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/75bd222a-7422-4812-acbc-de6094cc3f94/Elle+Logo+w+2.png',
+    src: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Elle%2BLogo%2Bw%2B2-OVQNlm5PY1I9dKvM2JblVMgBvFfYj7.webp',
   },
   {
     name: "Harper's Bazaar",
-    src: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/175c3488-357e-4471-bf57-5166361f5f6f/Bazaar+Logo+W.png',
+    src: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Bazaar%2BLogo%2BW-Y41iLCo3Nck09LLPlG974WK0B927jI.webp',
   },
   {
     name: 'The Knot',
-    src: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/6f4d4842-fc45-4e36-970d-0324904ae858/Knot+logo+w.png',
+    src: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-h11ekHP7Chbg2IvGhPvl5IEqwDAW78.png',
   },
   {
     name: 'Vogue',
-    src: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/04f5af04-4d91-415f-b7bc-df4f3763fd6f/Vogue+logo+w.png',
+    src: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Vogue%2Blogo%2Bw-NfImu5uR2feTV0gVZLpDgb3izl9xAO.webp',
   },
   {
     name: 'Martha Stewart Weddings',
-    src: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/9e18aea5-5eef-4cd3-817f-f11d9d8be2c1/MS+logo+w.png',
+    src: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/MS%2Blogo%2Bw-qJWRNbqp0fnELXYBwPDut01f5GbAXE.webp',
   },
   {
     name: 'Brides',
-    src: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/04db900a-8f7b-4b97-a29c-8b4adf39d66b/Brides+logo+W.png',
+    src: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Brides%2Blogo%2BW-mt7R82vdgFSNJzMdkravKAHEO77igK.webp',
   },
 ]
 
@@ -105,30 +105,29 @@ export default function HomePage() {
 
 function PressSection() {
   return (
-    <section className="bg-[#E8E0D4] py-20 lg:py-28">
+    <section className="bg-[#D5CDC5] py-16 lg:py-24">
       {/* Label */}
-      <div className="flex items-center gap-3 mb-12 px-6 lg:px-16">
-        <span className="w-6 h-px bg-charcoal/20" />
-        <p className="text-[11px] tracking-[0.3em] uppercase text-charcoal/40">
+      <div className="flex items-center gap-3 mb-10 px-6 lg:px-16">
+        <span className="w-5 h-px bg-charcoal/15" />
+        <p className="text-[10px] tracking-[0.35em] uppercase text-charcoal/35">
           As featured in
         </p>
       </div>
       
-      {/* Large logos - static display like their site */}
-      <div className="px-6 lg:px-16">
-        <div className="flex flex-wrap items-center justify-center gap-x-16 gap-y-10 lg:gap-x-24">
+      {/* Large logos - matching their live site exactly */}
+      <div className="px-6 lg:px-20">
+        <div className="flex flex-wrap items-center justify-center gap-x-12 gap-y-8 lg:gap-x-20">
           {PRESS_LOGOS.map((logo, i) => (
             <div
               key={i}
-              className="relative h-10 w-32 lg:h-14 lg:w-44 shrink-0 opacity-80 hover:opacity-100 transition-opacity duration-300"
+              className="relative h-8 w-28 lg:h-12 lg:w-40 shrink-0"
             >
               <Image
                 src={logo.src}
                 alt={logo.name}
                 fill
                 className="object-contain"
-                sizes="176px"
-                style={{ filter: 'brightness(0) saturate(100%)' }}
+                sizes="160px"
               />
             </div>
           ))}
