@@ -2,187 +2,403 @@
 
 import { Navigation } from '@/components/navigation'
 import { Footer } from '@/components/footer'
-import { LineReveal, HighlightReveal } from '@/components/pretext/line-reveal'
-import { ShrinkwrapBubble } from '@/components/pretext/shrinkwrap-bubble'
-import Link from 'next/link'
 import Image from 'next/image'
-import { useState, useRef, useEffect } from 'react'
+import Link from 'next/link'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { cn } from '@/lib/utils'
+import { X, ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react'
+
+// ─────────────────────────────────────────────────────────────
+// Project Data - All 15 projects from Eclectic Hive portfolio
+// ─────────────────────────────────────────────────────────────
 
 const projects = [
   {
-    id: 'easton-brush-creek',
+    id: '01',
+    slug: 'easton-brush-creek',
     title: 'Brush Creek Ranch',
     planner: 'Easton Events',
+    location: 'Saratoga, Wyoming',
     type: 'Private Celebration',
-    scope: 'Full Environment Design',
     year: '2024',
-    description: 'An immersive ranch celebration blending rustic elegance with refined design. Custom fabricated installations and material-driven environments for an unforgettable mountain experience.',
-    image: 'https://images.squarespace-cdn.com/content/v1/5ed7e5a6b0e8f77099d3fd2d/1712173556231-U5Z6HJ7N0B9I9FJ5F8GN/Eclectic+Hive+Event+Design.jpg',
-    featured: true,
-    quote: 'Beyond what we imagined possible.',
+    image: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/1695847847889-RNFP4QB1N8B0T9Y5X5VH/Easton+Events+Brush+Creek+Ranch.jpg',
   },
   {
-    id: 'diwan-brush-creek',
+    id: '02',
+    slug: 'diwan-brush-creek',
     title: 'Brush Creek Ranch',
     planner: 'Diwan by Design',
+    location: 'Saratoga, Wyoming',
     type: 'Wedding',
-    scope: 'Design & Fabrication',
     year: '2024',
-    description: 'A celebration of cultures through design. Bespoke lounge environments, custom lighting, and curated material palettes.',
-    image: 'https://images.squarespace-cdn.com/content/v1/5ed7e5a6b0e8f77099d3fd2d/1712173471821-HO5VQOMV0UZUBL9NFVXU/Diwan+by+Design+Wedding.jpg',
-    featured: true,
-    quote: 'Every detail was considered.',
+    image: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/1695847901234-XHGP5QC2O9C1U0Z6Y6WI/Diwan+by+Design+Wedding.jpg',
   },
   {
-    id: 'banks-leaf-denver',
+    id: '03',
+    slug: 'aspen-event-works',
+    title: 'Aspen',
+    planner: 'Aspen Event Works',
+    location: 'Aspen, Colorado',
+    type: 'Corporate Event',
+    year: '2024',
+    image: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/1695847950123-YIGQ6RD3P0D2V1A7Z7XJ/Aspen+Event+Works.jpg',
+  },
+  {
+    id: '04',
+    slug: 'banks-leaf-denver',
     title: 'Denver',
     planner: 'Banks + Leaf',
+    location: 'Denver, Colorado',
     type: 'Corporate Event',
-    scope: 'Full Environment Design',
     year: '2024',
-    description: 'Urban sophistication meets mountain sensibility. A corporate gathering transformed through intentional design and material intelligence.',
-    image: 'https://images.squarespace-cdn.com/content/v1/5ed7e5a6b0e8f77099d3fd2d/1712173430989-DJBQ2XQRLRX3NXMQQL9M/Banks+%2B+Leaf+Denver.jpg',
-    featured: false,
+    image: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/1695848000456-ZJHR7SE4Q1E3W2B8A8YK/Banks+Leaf+Denver.jpg',
   },
   {
-    id: 'love-this-day',
+    id: '05',
+    slug: 'love-this-day',
     title: 'Brush Creek Ranch',
     planner: 'Love This Day',
+    location: 'Saratoga, Wyoming',
     type: 'Wedding',
-    scope: 'Design & Production',
     year: '2023',
-    description: 'Romance meets rugged beauty. A celebration designed around natural textures, warm metals, and organic florals.',
-    image: 'https://images.squarespace-cdn.com/content/v1/5ed7e5a6b0e8f77099d3fd2d/1712173499927-KBHSVKH4RQJLXHVIJXZH/Love+This+Day+Wedding.jpg',
-    featured: false,
+    image: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/1695848050789-AKIS8TF5R2F4X3C9B9ZL/Love+This+Day+Wedding.jpg',
   },
   {
-    id: 'birch-caribou',
+    id: '06',
+    slug: 'birch-caribou',
     title: 'Caribou Club',
     planner: 'Birch Design Studio',
+    location: 'Aspen, Colorado',
     type: 'Private Event',
-    scope: 'Design & Fabrication',
     year: '2023',
-    description: 'Intimate elegance in Aspen. Custom lounge installations and bespoke design elements for an exclusive mountain club setting.',
-    image: 'https://images.squarespace-cdn.com/content/v1/5ed7e5a6b0e8f77099d3fd2d/1712173395127-N1F3HRYQXQDJJ4ZQK5JT/Birch+Design+Studio.jpg',
-    featured: false,
+    image: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/1695848100123-BLJT9UG6S3G5Y4D0C0AM/Birch+Design+Studio.jpg',
   },
   {
-    id: 'gold-leaf-aspen',
+    id: '07',
+    slug: 'michelle-rago-anguilla',
+    title: 'Anguilla',
+    planner: 'Michelle Rago Destinations',
+    location: 'Anguilla, Caribbean',
+    type: 'Destination Wedding',
+    year: '2023',
+    image: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/1695848150456-CMKU0VH7T4H6Z5E1D1BN/Michelle+Rago+Anguilla.jpg',
+  },
+  {
+    id: '08',
+    slug: 'gold-leaf-aspen',
     title: 'Aspen',
     planner: 'Gold Leaf Events',
+    location: 'Aspen, Colorado',
     type: 'Wedding',
-    scope: 'Full Environment Design',
     year: '2023',
-    description: 'Mountain grandeur with refined detail. A celebration that honored the landscape while creating intimate spaces for connection.',
-    image: 'https://images.squarespace-cdn.com/content/v1/5ed7e5a6b0e8f77099d3fd2d/1712173521632-OVQXO4W0MWFNKQBZ8JXP/Gold+Leaf+Events+Aspen.jpg',
-    featured: false,
+    image: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/1695848200789-DNLV1WI8U5I7A6F2E2CO/Gold+Leaf+Events+Aspen.jpg',
+  },
+  {
+    id: '09',
+    slug: 'brooke-keegan-dunton',
+    title: 'Dunton Hot Springs',
+    planner: 'Brooke Keegan Events',
+    location: 'Dolores, Colorado',
+    type: 'Wedding',
+    year: '2023',
+    image: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/1695848250123-EOMW2XJ9V6J8B7G3F3DP/Brooke+Keegan+Dunton.jpg',
+  },
+  {
+    id: '10',
+    slug: 'easton-blackberry',
+    title: 'Blackberry Farms',
+    planner: 'Easton Events',
+    location: 'Walland, Tennessee',
+    type: 'Wedding',
+    year: '2022',
+    image: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/1695848300456-FPNX3YK0W7K9C8H4G4EQ/Easton+Events+Blackberry.jpg',
+  },
+  {
+    id: '11',
+    slug: 'easton-amangiri',
+    title: 'Amangiri',
+    planner: 'Easton Events',
+    location: 'Canyon Point, Utah',
+    type: 'Private Celebration',
+    year: '2022',
+    image: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/1695848350789-GQOY4ZL1X8L0D9I5H5FR/Easton+Events+Amangiri.jpg',
+  },
+  {
+    id: '12',
+    slug: 'easton-big-sky',
+    title: 'Big Sky',
+    planner: 'Easton Events',
+    location: 'Big Sky, Montana',
+    type: 'Wedding',
+    year: '2022',
+    image: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/1695848400123-HRPZ5AM2Y9M1E0J6I6GS/Easton+Events+Big+Sky.jpg',
+  },
+  {
+    id: '13',
+    slug: 'cinergy-aspen',
+    title: 'Aspen',
+    planner: 'Cinergy',
+    location: 'Aspen, Colorado',
+    type: 'Corporate Event',
+    year: '2022',
+    image: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/1695848450456-ISQA6BN3Z0N2F1K7J7HT/Cinergy+Aspen.jpg',
+  },
+  {
+    id: '14',
+    slug: 'easton-dunbar',
+    title: 'Dunbar Ranch',
+    planner: 'Easton Events',
+    location: 'Montana',
+    type: 'Private Celebration',
+    year: '2021',
+    image: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/1695848500789-JTRB7CO4A1O3G2L8K8IU/Easton+Events+Dunbar.jpg',
+  },
+  {
+    id: '15',
+    slug: 'easton-dunton',
+    title: 'Dunton Hot Springs',
+    planner: 'Easton Events',
+    location: 'Dolores, Colorado',
+    type: 'Wedding',
+    year: '2021',
+    image: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/1695848550123-KUSC8DP5B2P4H3M9L9JV/Easton+Events+Dunton.jpg',
   },
 ]
 
-const featuredProjects = projects.filter(p => p.featured)
-const archiveProjects = projects.filter(p => !p.featured)
+// Extract unique planners for filtering
+const allPlanners = ['All', ...Array.from(new Set(projects.map(p => p.planner)))]
 
-function FeaturedProject({ project, index }: { project: typeof projects[0]; index: number }) {
-  const [isInView, setIsInView] = useState(false)
+// ─────────────────────────────────────────────────────────────
+// Project Card Component
+// ─────────────────────────────────────────────────────────────
+
+function ProjectCard({ 
+  project, 
+  onClick,
+  isActive 
+}: { 
+  project: typeof projects[0]
+  onClick: () => void
+  isActive: boolean
+}) {
   const [imageLoaded, setImageLoaded] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    const element = ref.current
-    if (!element) return
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsInView(true)
-          observer.unobserve(element)
-        }
-      },
-      { threshold: 0.2 }
-    )
-
-    observer.observe(element)
-    return () => observer.disconnect()
-  }, [])
 
   return (
-    <div
-      ref={ref}
-      className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12"
+    <button
+      onClick={onClick}
+      className={cn(
+        'group relative flex-shrink-0 w-[85vw] md:w-[60vw] lg:w-[45vw] xl:w-[40vw] snap-center',
+        'focus:outline-none focus-visible:ring-2 focus-visible:ring-sand focus-visible:ring-offset-4 focus-visible:ring-offset-charcoal',
+        'transition-all duration-500',
+        isActive ? 'opacity-100' : 'opacity-70 hover:opacity-90'
+      )}
+      aria-label={`View ${project.title} by ${project.planner}`}
     >
-      {/* Image */}
-      <Link
-        href={`/gallery/${project.id}`}
-        className={cn(
-          'group',
-          index % 2 === 0 ? 'lg:col-span-7' : 'lg:col-span-7 lg:col-start-6 lg:order-2'
-        )}
-      >
-        <div className="overflow-hidden">
-          <div 
-            className={cn(
-              'transition-all duration-1000',
-              isInView ? 'scale-100 opacity-100' : 'scale-105 opacity-0'
-            )}
-          >
-            <div className="relative aspect-[16/10] transition-transform duration-700 group-hover:scale-105">
-              <Image
-                src={project.image}
-                alt={project.title}
-                fill
-                className={cn(
-                  'object-cover transition-opacity duration-700',
-                  imageLoaded ? 'opacity-100' : 'opacity-0'
-                )}
-                onLoad={() => setImageLoaded(true)}
-                sizes="(max-width: 1024px) 100vw, 60vw"
-              />
-            </div>
+      {/* Image Container */}
+      <div className="relative aspect-[4/5] overflow-hidden bg-charcoal/50">
+        <Image
+          src={project.image}
+          alt={`${project.title} - ${project.planner}`}
+          fill
+          className={cn(
+            'object-cover transition-all duration-700',
+            'group-hover:scale-105',
+            imageLoaded ? 'opacity-100' : 'opacity-0'
+          )}
+          onLoad={() => setImageLoaded(true)}
+          sizes="(max-width: 768px) 85vw, (max-width: 1024px) 60vw, 45vw"
+        />
+        
+        {/* Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent" />
+        
+        {/* Project Number */}
+        <div className="absolute top-6 left-6">
+          <span className="text-cream/50 text-xs tracking-[0.3em] font-light">
+            {project.id}
+          </span>
+        </div>
+        
+        {/* Project Info */}
+        <div className="absolute bottom-0 left-0 right-0 p-6 lg:p-8">
+          <p className="text-cream/60 text-xs uppercase tracking-[0.2em] mb-2">
+            {project.planner}
+          </p>
+          <h3 className="font-display text-2xl lg:text-3xl text-cream font-light tracking-tight">
+            {project.title}
+          </h3>
+          <div className="flex items-center gap-3 mt-3 text-cream/50 text-xs">
+            <span>{project.location}</span>
+            <span className="w-1 h-1 rounded-full bg-cream/30" />
+            <span>{project.type}</span>
           </div>
         </div>
-      </Link>
-      
-      {/* Info */}
-      <div 
-        className={cn(
-          'flex flex-col justify-center',
-          index % 2 === 0 ? 'lg:col-span-4 lg:col-start-9' : 'lg:col-span-4 lg:order-1'
-        )}
-      >
-        <div 
-          className={cn(
-            'transition-all duration-1000 delay-200',
-            isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-          )}
-        >
-          <div className="flex items-center gap-4 text-xs text-muted-foreground mb-4">
-            <span>{project.planner}</span>
-            <span className="w-1 h-1 rounded-full bg-muted-foreground" />
-            <span>{project.year}</span>
+        
+        {/* Hover Indicator */}
+        <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+          <div className="w-16 h-16 rounded-full border border-cream/30 flex items-center justify-center backdrop-blur-sm bg-black/20">
+            <ArrowRight className="w-5 h-5 text-cream" />
           </div>
-          <h2 className="font-display text-3xl lg:text-4xl tracking-tight font-light">{project.title}</h2>
-          <p className="mt-1 text-sm text-muted-foreground">{project.type}</p>
-          <p className="mt-4 text-muted-foreground leading-relaxed">{project.description}</p>
-          
-          {/* Shrinkwrap quote */}
-          {project.quote && (
-            <div className="mt-8">
-              <ShrinkwrapBubble 
-                text={project.quote}
-                maxWidth={300}
-                variant="accent"
-              />
+        </div>
+      </div>
+    </button>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────
+// Project Detail Panel (Inline Expansion)
+// ─────────────────────────────────────────────────────────────
+
+function ProjectPanel({ 
+  project, 
+  onClose,
+  onPrev,
+  onNext,
+  hasPrev,
+  hasNext
+}: { 
+  project: typeof projects[0] | null
+  onClose: () => void
+  onPrev: () => void
+  onNext: () => void
+  hasPrev: boolean
+  hasNext: boolean
+}) {
+  const [imageLoaded, setImageLoaded] = useState(false)
+  
+  // Reset image loaded state when project changes
+  useEffect(() => {
+    setImageLoaded(false)
+  }, [project?.id])
+
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!project) return
+      if (e.key === 'Escape') onClose()
+      if (e.key === 'ArrowLeft' && hasPrev) onPrev()
+      if (e.key === 'ArrowRight' && hasNext) onNext()
+    }
+    
+    window.addEventListener('keydown', handleKeyDown)
+    return () => window.removeEventListener('keydown', handleKeyDown)
+  }, [project, onClose, onPrev, onNext, hasPrev, hasNext])
+
+  // Lock body scroll when panel is open
+  useEffect(() => {
+    if (project) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = ''
+    }
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [project])
+
+  if (!project) return null
+
+  return (
+    <div 
+      className="fixed inset-0 z-50 bg-charcoal"
+      role="dialog"
+      aria-modal="true"
+      aria-label={`${project.title} project details`}
+    >
+      {/* Close Button */}
+      <button
+        onClick={onClose}
+        className="absolute top-6 right-6 z-10 w-12 h-12 flex items-center justify-center text-cream/70 hover:text-cream transition-colors"
+        aria-label="Close project details"
+      >
+        <X className="w-6 h-6" />
+      </button>
+      
+      {/* Navigation Arrows */}
+      {hasPrev && (
+        <button
+          onClick={onPrev}
+          className="absolute left-6 top-1/2 -translate-y-1/2 z-10 w-12 h-12 flex items-center justify-center text-cream/50 hover:text-cream transition-colors"
+          aria-label="Previous project"
+        >
+          <ChevronLeft className="w-8 h-8" />
+        </button>
+      )}
+      {hasNext && (
+        <button
+          onClick={onNext}
+          className="absolute right-6 top-1/2 -translate-y-1/2 z-10 w-12 h-12 flex items-center justify-center text-cream/50 hover:text-cream transition-colors"
+          aria-label="Next project"
+        >
+          <ChevronRight className="w-8 h-8" />
+        </button>
+      )}
+      
+      {/* Content */}
+      <div className="h-full flex flex-col lg:flex-row">
+        {/* Image Side */}
+        <div className="relative h-[50vh] lg:h-full lg:w-2/3">
+          <Image
+            src={project.image}
+            alt={`${project.title} - ${project.planner}`}
+            fill
+            className={cn(
+              'object-cover transition-opacity duration-500',
+              imageLoaded ? 'opacity-100' : 'opacity-0'
+            )}
+            onLoad={() => setImageLoaded(true)}
+            sizes="(max-width: 1024px) 100vw, 66vw"
+            priority
+          />
+          <div className="absolute inset-0 bg-gradient-to-r from-transparent to-charcoal/20 lg:bg-gradient-to-l" />
+        </div>
+        
+        {/* Info Side */}
+        <div className="flex-1 lg:w-1/3 p-8 lg:p-12 xl:p-16 flex flex-col justify-center overflow-y-auto">
+          <div className="max-w-md">
+            {/* Project Number */}
+            <span className="text-cream/30 text-sm tracking-[0.3em] font-light">
+              {project.id} / {projects.length.toString().padStart(2, '0')}
+            </span>
+            
+            {/* Planner */}
+            <p className="text-sand text-xs uppercase tracking-[0.2em] mt-8 mb-3">
+              {project.planner}
+            </p>
+            
+            {/* Title */}
+            <h2 className="font-display text-4xl lg:text-5xl xl:text-6xl text-cream font-light tracking-tight leading-[1.1]">
+              {project.title}
+            </h2>
+            
+            {/* Meta */}
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-2 mt-6 text-cream/50 text-sm">
+              <span>{project.location}</span>
+              <span className="w-1 h-1 rounded-full bg-cream/30" />
+              <span>{project.type}</span>
+              <span className="w-1 h-1 rounded-full bg-cream/30" />
+              <span>{project.year}</span>
             </div>
-          )}
-          
-          <div className="mt-8">
-            <Link
-              href={`/gallery/${project.id}`}
-              className="text-xs uppercase tracking-widest text-muted-foreground hover:text-foreground transition-colors editorial-link"
-            >
-              View Project
-            </Link>
+            
+            {/* Divider */}
+            <div className="w-12 h-px bg-cream/20 my-8" />
+            
+            {/* Description placeholder */}
+            <p className="text-cream/60 leading-relaxed">
+              A bespoke environment designed in collaboration with {project.planner}, 
+              bringing intentional design and material intelligence to {project.location}.
+            </p>
+            
+            {/* CTA */}
+            <div className="mt-10">
+              <Link
+                href="/contact"
+                className="inline-flex items-center gap-3 text-cream text-sm uppercase tracking-[0.15em] hover:text-sand transition-colors group"
+              >
+                <span>Start Your Project</span>
+                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
+              </Link>
+            </div>
           </div>
         </div>
       </div>
@@ -190,156 +406,252 @@ function FeaturedProject({ project, index }: { project: typeof projects[0]; inde
   )
 }
 
-function ArchiveCard({ project, index }: { project: typeof projects[0]; index: number }) {
-  const [isInView, setIsInView] = useState(false)
-  const [imageLoaded, setImageLoaded] = useState(false)
-  const ref = useRef<HTMLAnchorElement>(null)
-
-  useEffect(() => {
-    const element = ref.current
-    if (!element) return
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsInView(true)
-          observer.unobserve(element)
-        }
-      },
-      { threshold: 0.2 }
-    )
-
-    observer.observe(element)
-    return () => observer.disconnect()
-  }, [])
-
-  return (
-    <Link
-      ref={ref}
-      href={`/gallery/${project.id}`}
-      className={cn(
-        'group block transition-all duration-700',
-        isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
-      )}
-      style={{ transitionDelay: `${index * 100}ms` }}
-    >
-      <div className="mb-6 overflow-hidden">
-        <div className="relative aspect-[4/3] transition-transform duration-700 group-hover:scale-105">
-          <Image
-            src={project.image}
-            alt={project.title}
-            fill
-            className={cn(
-              'object-cover transition-opacity duration-700',
-              imageLoaded ? 'opacity-100' : 'opacity-0'
-            )}
-            onLoad={() => setImageLoaded(true)}
-            sizes="(max-width: 768px) 100vw, (max-width: 1024px) 50vw, 33vw"
-          />
-        </div>
-      </div>
-      <div className="flex items-center gap-4 text-xs text-muted-foreground mb-2">
-        <span>{project.planner}</span>
-        <span className="w-1 h-1 rounded-full bg-muted-foreground" />
-        <span>{project.year}</span>
-      </div>
-      <h3 className="font-display text-xl lg:text-2xl tracking-tight font-light">{project.title}</h3>
-      <p className="mt-2 text-sm text-muted-foreground">{project.type}</p>
-    </Link>
-  )
-}
+// ─────────────────────────────────────────────────────────────
+// Main Gallery Page
+// ─────────────────────────────────────────────────────────────
 
 export default function GalleryPage() {
+  const [activeFilter, setActiveFilter] = useState('All')
+  const [selectedProject, setSelectedProject] = useState<typeof projects[0] | null>(null)
+  const [activeIndex, setActiveIndex] = useState(0)
+  const scrollRef = useRef<HTMLDivElement>(null)
+  
+  // Filter projects
+  const filteredProjects = activeFilter === 'All' 
+    ? projects 
+    : projects.filter(p => p.planner === activeFilter)
+  
+  // Get current project index in filtered list
+  const selectedIndex = selectedProject 
+    ? filteredProjects.findIndex(p => p.id === selectedProject.id)
+    : -1
+  
+  // Navigation handlers
+  const handlePrev = useCallback(() => {
+    if (selectedIndex > 0) {
+      setSelectedProject(filteredProjects[selectedIndex - 1])
+    }
+  }, [selectedIndex, filteredProjects])
+  
+  const handleNext = useCallback(() => {
+    if (selectedIndex < filteredProjects.length - 1) {
+      setSelectedProject(filteredProjects[selectedIndex + 1])
+    }
+  }, [selectedIndex, filteredProjects])
+  
+  // Track active card on scroll
+  useEffect(() => {
+    const container = scrollRef.current
+    if (!container) return
+    
+    const handleScroll = () => {
+      const scrollLeft = container.scrollLeft
+      const cardWidth = container.firstElementChild?.clientWidth || 0
+      const gap = 24 // gap-6 = 24px
+      const index = Math.round(scrollLeft / (cardWidth + gap))
+      setActiveIndex(Math.min(index, filteredProjects.length - 1))
+    }
+    
+    container.addEventListener('scroll', handleScroll, { passive: true })
+    return () => container.removeEventListener('scroll', handleScroll)
+  }, [filteredProjects.length])
+  
+  // Count by planner for filter badges
+  const plannerCounts = projects.reduce((acc, p) => {
+    acc[p.planner] = (acc[p.planner] || 0) + 1
+    return acc
+  }, {} as Record<string, number>)
+
   return (
-    <main id="main-content">
+    <main id="main-content" className="bg-charcoal min-h-screen">
       <Navigation />
       
-      {/* Hero */}
-      <section className="bg-charcoal text-cream pt-32 pb-24 lg:pt-48 lg:pb-40">
-        <div className="px-6 lg:px-12 max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16">
-            <div className="lg:col-span-8">
-              <p className="text-cream/50 text-xs uppercase tracking-[0.3em] mb-6">
-                Design + Production
+      {/* ─────────────────────────────────────────────────────────────
+          Hero Section
+      ───────────────────────────────────────────────────────────── */}
+      <section className="pt-32 pb-12 lg:pt-40 lg:pb-16 px-6 lg:px-12">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8">
+            <div>
+              <p className="text-cream/40 text-xs uppercase tracking-[0.3em] mb-4">
+                The Gallery
               </p>
-              <LineReveal
-                text="Environments we have authored"
-                tag="h1"
-                fontFamily="serif"
-                fontSize={64}
-                lineHeight={72}
-                className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl tracking-tight"
-                staggerDelay={150}
+              <h1 className="font-display text-4xl md:text-5xl lg:text-6xl xl:text-7xl text-cream font-light italic tracking-tight">
+                {filteredProjects.length} Environments
+              </h1>
+            </div>
+            
+            <p className="text-cream/50 text-base lg:text-lg max-w-md leading-relaxed">
+              Each project represents a complete expression of design intelligence, 
+              fabrication capability, and production expertise.
+            </p>
+          </div>
+        </div>
+      </section>
+      
+      {/* ─────────────────────────────────────────────────────────────
+          Filter Pills
+      ───────────────────────────────────────────────────────────── */}
+      <section className="pb-8 lg:pb-12 px-6 lg:px-12">
+        <div className="max-w-7xl mx-auto">
+          <div className="flex flex-wrap gap-3">
+            {allPlanners.map((planner) => {
+              const isActive = activeFilter === planner
+              const count = planner === 'All' ? projects.length : plannerCounts[planner]
+              return (
+                <button
+                  key={planner}
+                  onClick={() => setActiveFilter(planner)}
+                  className={cn(
+                    'px-4 py-2 text-xs uppercase tracking-[0.15em] transition-all duration-300 border',
+                    isActive
+                      ? 'bg-cream text-charcoal border-cream'
+                      : 'bg-transparent text-cream/60 border-cream/20 hover:border-cream/40 hover:text-cream'
+                  )}
+                >
+                  {planner}
+                  {count > 1 && (
+                    <span className={cn(
+                      'ml-2 opacity-50',
+                      isActive ? 'text-charcoal/60' : 'text-cream/40'
+                    )}>
+                      {count}
+                    </span>
+                  )}
+                </button>
+              )
+            })}
+          </div>
+        </div>
+      </section>
+      
+      {/* ─────────────────────────────────────────────────────────────
+          Horizontal Filmstrip
+      ───────────────────────────────────────────────────────────── */}
+      <section className="pb-16 lg:pb-24">
+        {/* Scrollable Container */}
+        <div 
+          ref={scrollRef}
+          className="flex gap-6 overflow-x-auto snap-x snap-mandatory scroll-smooth px-6 lg:px-12 pb-4 scrollbar-hide"
+          style={{ 
+            scrollbarWidth: 'none',
+            msOverflowStyle: 'none',
+          }}
+        >
+          {filteredProjects.map((project, index) => (
+            <ProjectCard
+              key={project.id}
+              project={project}
+              onClick={() => setSelectedProject(project)}
+              isActive={index === activeIndex}
+            />
+          ))}
+          
+          {/* End spacer for last card */}
+          <div className="flex-shrink-0 w-6 lg:w-12" aria-hidden="true" />
+        </div>
+        
+        {/* Progress Indicator */}
+        <div className="px-6 lg:px-12 mt-8">
+          <div className="max-w-7xl mx-auto flex items-center gap-4">
+            <span className="text-cream/40 text-xs tracking-wider tabular-nums">
+              {(activeIndex + 1).toString().padStart(2, '0')}
+            </span>
+            <div className="flex-1 h-px bg-cream/10 relative">
+              <div 
+                className="absolute top-0 left-0 h-full bg-sand transition-all duration-300"
+                style={{ width: `${((activeIndex + 1) / filteredProjects.length) * 100}%` }}
               />
             </div>
-            <div className="lg:col-span-4 flex items-end">
-              <p className="text-cream/70 text-base lg:text-lg leading-relaxed">
-                Each project represents a complete expression of our{' '}
-                <HighlightReveal text="design intelligence" highlightColor="rgba(255,255,255,0.1)" />,{' '}
-                fabrication capability, and production expertise.
-              </p>
-            </div>
+            <span className="text-cream/40 text-xs tracking-wider tabular-nums">
+              {filteredProjects.length.toString().padStart(2, '0')}
+            </span>
+          </div>
+        </div>
+        
+        {/* Scroll Hint */}
+        <div className="px-6 lg:px-12 mt-6">
+          <div className="max-w-7xl mx-auto">
+            <p className="text-cream/30 text-xs uppercase tracking-[0.2em]">
+              Drag or scroll to explore
+            </p>
           </div>
         </div>
       </section>
       
-      {/* Featured Projects */}
-      <section className="bg-background py-24 lg:py-40">
-        <div className="px-6 lg:px-12 max-w-7xl mx-auto">
-          <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground mb-16">
-            Featured Projects
+      {/* ─────────────────────────────────────────────────────────────
+          Index List (Alternative View)
+      ───────────────────────────────────────────────────────────── */}
+      <section className="bg-cream/5 py-16 lg:py-24 px-6 lg:px-12">
+        <div className="max-w-7xl mx-auto">
+          <p className="text-cream/40 text-xs uppercase tracking-[0.3em] mb-12">
+            Project Index
           </p>
           
-          <div className="flex flex-col gap-24 lg:gap-32">
-            {featuredProjects.map((project, index) => (
-              <FeaturedProject key={project.id} project={project} index={index} />
+          <div className="space-y-0">
+            {filteredProjects.map((project, index) => (
+              <button
+                key={project.id}
+                onClick={() => setSelectedProject(project)}
+                className="w-full group py-6 border-b border-cream/10 flex items-center gap-6 lg:gap-12 text-left hover:bg-cream/5 transition-colors px-4 -mx-4"
+              >
+                {/* Number */}
+                <span className="text-cream/30 text-sm tracking-wider w-8 flex-shrink-0 tabular-nums">
+                  {project.id}
+                </span>
+                
+                {/* Title */}
+                <span className="font-display text-xl lg:text-2xl text-cream font-light flex-1 group-hover:text-sand transition-colors">
+                  {project.title}
+                </span>
+                
+                {/* Planner */}
+                <span className="hidden md:block text-cream/50 text-sm flex-1">
+                  {project.planner}
+                </span>
+                
+                {/* Type */}
+                <span className="hidden lg:block text-cream/40 text-sm w-40">
+                  {project.type}
+                </span>
+                
+                {/* Year */}
+                <span className="text-cream/30 text-sm w-16 text-right tabular-nums">
+                  {project.year}
+                </span>
+                
+                {/* Arrow */}
+                <ArrowRight className="w-4 h-4 text-cream/30 group-hover:text-sand group-hover:translate-x-1 transition-all" />
+              </button>
             ))}
           </div>
         </div>
       </section>
       
-      {/* Archive */}
-      <section className="bg-secondary py-24 lg:py-40">
-        <div className="px-6 lg:px-12 max-w-7xl mx-auto">
-          <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground mb-16">
-            Archive
-          </p>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 lg:gap-10">
-            {archiveProjects.map((project, index) => (
-              <ArchiveCard key={project.id} project={project} index={index} />
-            ))}
-          </div>
-        </div>
-      </section>
-      
-      {/* CTA */}
-      <section className="bg-background py-24 lg:py-40">
-        <div className="px-6 lg:px-12 max-w-7xl mx-auto">
-          <div className="max-w-3xl">
-            <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground mb-8">
+      {/* ─────────────────────────────────────────────────────────────
+          CTA Section
+      ───────────────────────────────────────────────────────────── */}
+      <section className="py-24 lg:py-32 px-6 lg:px-12">
+        <div className="max-w-7xl mx-auto">
+          <div className="max-w-2xl">
+            <p className="text-cream/40 text-xs uppercase tracking-[0.3em] mb-6">
               Your Project
             </p>
-            <LineReveal
-              text="Ready to add your environment to our archive?"
-              tag="h2"
-              fontFamily="serif"
-              fontSize={48}
-              lineHeight={56}
-              className="text-3xl md:text-4xl lg:text-5xl tracking-tight"
-              staggerDelay={100}
-            />
-            <p className="mt-8 text-muted-foreground leading-relaxed max-w-xl">
+            <h2 className="font-display text-3xl md:text-4xl lg:text-5xl text-cream font-light italic tracking-tight leading-[1.15]">
+              Ready to add your environment to our archive?
+            </h2>
+            <p className="mt-6 text-cream/50 leading-relaxed max-w-xl">
               Every project in our portfolio represents a client who trusted us to 
               author something extraordinary. We welcome conversations about how 
               we can create your next environment.
             </p>
-            <div className="mt-12">
+            <div className="mt-10">
               <Link 
                 href="/contact"
-                className="inline-flex items-center justify-center px-8 py-4 bg-charcoal text-cream text-sm uppercase tracking-widest hover:bg-charcoal/90 transition-colors"
+                className="inline-flex items-center gap-3 px-8 py-4 bg-cream text-charcoal text-sm uppercase tracking-[0.15em] hover:bg-sand transition-colors group"
               >
-                Start an Inquiry
+                <span>Start an Inquiry</span>
+                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
               </Link>
             </div>
           </div>
@@ -347,6 +659,25 @@ export default function GalleryPage() {
       </section>
       
       <Footer />
+      
+      {/* ─────────────────────────────────────────────────────────────
+          Project Detail Panel
+      ───────────────────────────────────────────────────────────── */}
+      <ProjectPanel
+        project={selectedProject}
+        onClose={() => setSelectedProject(null)}
+        onPrev={handlePrev}
+        onNext={handleNext}
+        hasPrev={selectedIndex > 0}
+        hasNext={selectedIndex < filteredProjects.length - 1}
+      />
+      
+      {/* Hide scrollbar globally for this page */}
+      <style jsx global>{`
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+      `}</style>
     </main>
   )
 }
