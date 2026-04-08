@@ -69,10 +69,11 @@ function LoadingOverlay() {
 function Scene({ isRotating, onModelLoaded }: { isRotating: boolean; onModelLoaded: () => void }) {
   return (
     <>
-      {/* Very simple lighting - minimize GPU load */}
-      <ambientLight intensity={0.8} />
-      <directionalLight position={[5, 8, 4]} intensity={0.8} color="#fff8f0" />
-      <directionalLight position={[-5, 4, -2]} intensity={0.3} color="#f5f5ff" />
+      {/* Bright, warm lighting to properly illuminate the model */}
+      <ambientLight intensity={1.5} />
+      <directionalLight position={[5, 8, 4]} intensity={2} color="#fff8f0" />
+      <directionalLight position={[-5, 4, -2]} intensity={1} color="#f5f5ff" />
+      <directionalLight position={[0, 5, 8]} intensity={0.8} color="#ffffff" />
       
       <Suspense fallback={null}>
         <Model isRotating={isRotating} onLoaded={onModelLoaded} />
