@@ -299,3 +299,17 @@ img {
 .animate-panel-enter {
   animation: panel-enter 0.4s cubic-bezier(0.22, 1, 0.36, 1) forwards;
 }
+
+/* Press logo marquee animation */
+@keyframes marquee {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-100%);
+  }
+}
+
+.animate-marquee {
+  animation: marquee 35s linear infinite;
+}

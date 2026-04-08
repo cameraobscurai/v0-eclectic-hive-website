@@ -75,14 +75,15 @@ export default function HomePage() {
     <main id="main-content" className="bg-background">
       <Navigation />
       <HeroSection />
+      <PressSection />
       
-      {/* 3D Product Showcase - positioned prominently after hero */}
+      {/* 3D Product Showcase - after press logos */}
       <Suspense fallback={
         <section className="bg-cream py-16 lg:py-24">
-          <div className="max-w-[1600px] mx-auto px-6 lg:px-12">
+          <div className="max-w-[1800px] mx-auto px-6 lg:px-16">
             <div 
-              className="rounded-2xl bg-[#F5F0E8] animate-pulse"
-              style={{ aspectRatio: '16 / 9', maxHeight: '70vh' }}
+              className="rounded-2xl bg-[#E8E0D4] animate-pulse"
+              style={{ aspectRatio: '21 / 9', maxHeight: '65vh' }}
             />
           </div>
         </section>
@@ -90,7 +91,6 @@ export default function HomePage() {
         <Home3DShowcase />
       </Suspense>
       
-      <PressSection />
       <WorkSection />
       <StudioSection />
       <InquirySection />
@@ -105,27 +105,46 @@ export default function HomePage() {
 
 function PressSection() {
   return (
-    <section className="bg-charcoal py-10 overflow-hidden">
-      <div className="flex items-center gap-2 mb-4 px-6 lg:px-12">
+    <section className="bg-charcoal py-8 overflow-hidden">
+      <div className="flex items-center gap-2 mb-6 px-6 lg:px-12">
         <span className="w-4 h-px bg-cream/20" />
         <p className="text-[10px] tracking-[0.35em] uppercase text-cream/30">
           As featured in
         </p>
       </div>
-      {/* Fade edges with mask so the scroll looks continuous */}
-      <div className="relative flex overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_8%,black_92%,transparent)]">
-        <div className="flex gap-14 items-center animate-[marquee_28s_linear_infinite] shrink-0 pr-14">
-{[...PRESS_LOGOS, ...PRESS_LOGOS].map((logo, i) => (
+      
+      {/* Infinite scrolling ticker */}
+      <div className="relative flex overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_5%,black_95%,transparent)]">
+        {/* First copy */}
+        <div className="flex gap-16 items-center animate-marquee shrink-0">
+          {PRESS_LOGOS.map((logo, i) => (
             <div
-              key={i}
-              className="relative h-8 w-28 shrink-0 opacity-60 hover:opacity-90 transition-opacity duration-300"
+              key={`a-${i}`}
+              className="relative h-7 w-24 shrink-0 opacity-50 hover:opacity-80 transition-opacity duration-300"
             >
               <Image
                 src={logo.src}
                 alt={logo.name}
                 fill
                 className="object-contain brightness-0 invert"
-                sizes="112px"
+                sizes="96px"
+              />
+            </div>
+          ))}
+        </div>
+        {/* Second copy for seamless loop */}
+        <div className="flex gap-16 items-center animate-marquee shrink-0 ml-16" aria-hidden="true">
+          {PRESS_LOGOS.map((logo, i) => (
+            <div
+              key={`b-${i}`}
+              className="relative h-7 w-24 shrink-0 opacity-50"
+            >
+              <Image
+                src={logo.src}
+                alt={logo.name}
+                fill
+                className="object-contain brightness-0 invert"
+                sizes="96px"
               />
             </div>
           ))}
