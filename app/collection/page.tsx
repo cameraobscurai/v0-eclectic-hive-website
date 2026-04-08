@@ -1,13 +1,22 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, lazy, Suspense } from 'react'
 import Image from 'next/image'
 import { Navigation } from '@/components/navigation'
 import { Footer } from '@/components/footer'
 import { cn } from '@/lib/utils'
+import { Box } from 'lucide-react'
+
+// Lazy load the 3D viewer for performance
+const ProductViewer3D = lazy(() => import('@/components/product-viewer-3d').then(mod => ({ default: mod.ProductViewer3D })))
 
 // Real inventory from eclectichive.com/lounge
 const categories = ['All', 'Sofas & Loveseats', 'Chairs', 'Ottomans', 'Benches'] as const
+
+// 3D model mapping - add more as models become available
+const MODEL_3D_MAP: Record<string, string> = {
+  'LINDT Sofa': 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/04c9d9d2b5314e5a-8y7OUV6nPxO85ZCzkdZjwpAlALyBeF.glb',
+}
 
 type Category = typeof categories[number]
 
@@ -127,10 +136,28 @@ const inventory: InventoryItem[] = [
 export default function CollectionPage() {
   const [activeCategory, setActiveCategory] = useState<Category>('All')
   const [loaded, setLoaded] = useState(false)
+  const [viewer3D, setViewer3D] = useState<{ isOpen: boolean; productName: string; modelUrl: string }>({
+    isOpen: false,
+    productName: '',
+    modelUrl: '',
+  })
 
   useEffect(() => {
     setLoaded(true)
   }, [])
+
+  const open3DViewer = (productName: string) => {
+    const modelUrl = MODEL_3D_MAP[productName]
+    if (modelUrl) {
+      setViewer3D({ isOpen: true, productName, modelUrl })
+    }
+  }
+
+  const close3DViewer = () => {
+    setViewer3D({ isOpen: false, productName: '', modelUrl: '' })
+  }
+
+  const has3DModel = (productName: string) => productName in MODEL_3D_MAP
 
   return (
     <main id="main-content" className="bg-cream min-h-screen">
@@ -226,9 +253,30 @@ export default function CollectionPage() {
                     className="object-contain p-4 transition-transform duration-500 group-hover:scale-105"
                     sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
                   />
+                  {/* 3D View Button - only shows for items with 3D models */}
+                  {has3DModel(item.name) && (
+                    <button
+                      onClick={() => open3DViewer(item.name)}
+                      className="absolute bottom-3 right-3 flex items-center gap-2 px-3 py-2 bg-charcoal/90 text-cream text-xs uppercase tracking-wider rounded hover:bg-charcoal transition-all opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0"
+                      aria-label={`View ${item.name} in 3D`}
+                    >
+                      <Box className="w-3.5 h-3.5" />
+                      <span>View 3D</span>
+                    </button>
+                  )}
                 </div>
-                <h3 className="text-sm text-charcoal font-medium">{item.name}</h3>
-                <p className="text-xs text-charcoal/50 uppercase tracking-wider mt-1">{item.category}</p>
+                <div className="flex items-start justify-between gap-2">
+                  <div>
+                    <h3 className="text-sm text-charcoal font-medium">{item.name}</h3>
+                    <p className="text-xs text-charcoal/50 uppercase tracking-wider mt-1">{item.category}</p>
+                  </div>
+                  {has3DModel(item.name) && (
+                    <span className="flex items-center gap-1 text-[10px] uppercase tracking-wider text-charcoal/40 mt-0.5">
+                      <Box className="w-3 h-3" />
+                      3D
+                    </span>
+                  )}
+                </div>
               </div>
               )
             })}
@@ -256,6 +304,16 @@ export default function CollectionPage() {
       </section>
       
       <Footer />
+
+      {/* 3D Product Viewer Modal */}
+      <Suspense fallback={null}>
+        <ProductViewer3D
+          modelUrl={viewer3D.modelUrl}
+          productName={viewer3D.productName}
+          isOpen={viewer3D.isOpen}
+          onClose={close3DViewer}
+        />
+      </Suspense>
     </main>
   )
 }
