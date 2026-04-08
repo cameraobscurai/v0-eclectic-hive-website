@@ -137,7 +137,15 @@ export function Home3DShowcase() {
   const [showContent, setShowContent] = useState(false)
   const [isRotating, setIsRotating] = useState(true)
   const [isInView, setIsInView] = useState(false)
+  const [isMounted, setIsMounted] = useState(false)
   const containerRef = useRef<HTMLElement>(null)
+  
+  // Only render canvas on client side and preload model
+  useEffect(() => {
+    setIsMounted(true)
+    // Preload model after mount (client-side only)
+    useGLTF.preload(MODEL_URL)
+  }, [])
   
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -213,25 +221,27 @@ export function Home3DShowcase() {
         >
           {!showContent && <LoadingOverlay />}
           
-          <div className={cn(
-            "absolute inset-0 transition-opacity duration-500",
-            showContent ? "opacity-100" : "opacity-0"
-          )}>
-            <Canvas
-              shadows
-              camera={{ position: [4, 2, 4], fov: 30 }}
-              gl={{ 
-                antialias: true,
-                toneMapping: THREE.ACESFilmicToneMapping,
-                toneMappingExposure: 1.2,
-                powerPreference: 'high-performance',
-              }}
-              dpr={[1, 2]}
-            >
-              <color attach="background" args={[BG_COLOR]} />
-              <Scene isRotating={isRotating} onModelLoaded={handleModelLoaded} />
-            </Canvas>
-          </div>
+          {isMounted && (
+            <div className={cn(
+              "absolute inset-0 transition-opacity duration-500",
+              showContent ? "opacity-100" : "opacity-0"
+            )}>
+              <Canvas
+                shadows
+                camera={{ position: [4, 2, 4], fov: 30 }}
+                gl={{ 
+                  antialias: true,
+                  toneMapping: THREE.ACESFilmicToneMapping,
+                  toneMappingExposure: 1.2,
+                  powerPreference: 'high-performance',
+                }}
+                dpr={[1, 2]}
+              >
+                <color attach="background" args={[BG_COLOR]} />
+                <Scene isRotating={isRotating} onModelLoaded={handleModelLoaded} />
+              </Canvas>
+            </div>
+          )}
           
           {/* Minimal controls */}
           <div className={cn(
@@ -283,5 +293,3 @@ export function Home3DShowcase() {
     </section>
   )
 }
-
-useGLTF.preload(MODEL_URL)
