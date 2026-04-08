@@ -17,8 +17,10 @@ import Link from 'next/link'
 // LINDT Sofa model URL
 const MODEL_URL = 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/04c9d9d2b5314e5a-8y7OUV6nPxO85ZCzkdZjwpAlALyBeF.glb'
 
-// Background matching the cream/warm aesthetic
-const BG_COLOR = '#F5F0E8'
+// Background matching the cream/warm aesthetic - darker for more drama
+const BG_COLOR = '#E8E2D9'
+const BG_GRADIENT_FROM = '#F0EBE3'
+const BG_GRADIENT_TO = '#DED7CC'
 
 interface Home3DShowcaseProps {
   className?: string
@@ -105,62 +107,86 @@ function LoadingOverlay() {
 function Scene({ isRotating, onModelLoaded }: { isRotating: boolean; onModelLoaded: () => void }) {
   return (
     <>
-      {/* Ambient base lighting */}
-      <ambientLight intensity={0.8} />
+      {/* Ambient base lighting - subtle */}
+      <ambientLight intensity={0.5} />
       
-      {/* Key light - warm, from upper right */}
+      {/* Key light - warm, dramatic from upper right with strong shadows */}
       <directionalLight 
-        position={[8, 10, 5]} 
-        intensity={1.0} 
+        position={[6, 12, 4]} 
+        intensity={1.8} 
         castShadow
-        shadow-mapSize={[1024, 1024]}
+        shadow-mapSize={[2048, 2048]}
+        shadow-camera-far={50}
+        shadow-camera-left={-10}
+        shadow-camera-right={10}
+        shadow-camera-top={10}
+        shadow-camera-bottom={-10}
         shadow-bias={-0.0001}
-        color="#fff9f0"
+        color="#fff5e6"
       />
       
-      {/* Fill light - cool, from left */}
+      {/* Fill light - cooler, softer from left */}
       <directionalLight 
-        position={[-6, 4, -3]} 
-        intensity={0.4} 
-        color="#f0f5ff"
+        position={[-8, 6, -2]} 
+        intensity={0.35} 
+        color="#e8f0ff"
       />
       
-      {/* Rim light - behind */}
+      {/* Rim light - creates edge definition */}
       <directionalLight 
-        position={[0, 6, -10]} 
-        intensity={0.3} 
+        position={[-2, 4, -8]} 
+        intensity={0.5} 
+        color="#ffeedd"
+      />
+      
+      {/* Top accent light */}
+      <pointLight
+        position={[0, 8, 0]}
+        intensity={0.3}
         color="#ffffff"
+        decay={2}
+        distance={20}
       />
       
-      {/* Environment for material reflections */}
-      <Environment preset="apartment" environmentIntensity={0.25} />
+      {/* Environment for realistic material reflections */}
+      <Environment preset="city" environmentIntensity={0.2} />
       
       {/* The 3D model */}
       <Suspense fallback={null}>
         <Model isRotating={isRotating} onLoaded={onModelLoaded} />
       </Suspense>
       
-      {/* Ground shadow */}
+      {/* Primary ground shadow - soft and expansive */}
       <ContactShadows 
         position={[0, -0.9, 0]} 
-        opacity={0.15} 
-        scale={12} 
-        blur={3} 
-        far={4}
-        color="#9a9080"
+        opacity={0.25} 
+        scale={16} 
+        blur={2.5} 
+        far={5}
+        color="#6b6358"
+      />
+      
+      {/* Secondary shadow layer - sharper for definition */}
+      <ContactShadows 
+        position={[0, -0.88, 0]} 
+        opacity={0.1} 
+        scale={8} 
+        blur={1} 
+        far={3}
+        color="#4a453e"
       />
       
       {/* Camera controls */}
       <OrbitControls 
         enablePan={false}
         enableZoom={true}
-        minDistance={2}
-        maxDistance={5}
+        minDistance={2.2}
+        maxDistance={4.5}
         minPolarAngle={Math.PI / 4}
         maxPolarAngle={Math.PI / 2.1}
         enableDamping={true}
-        dampingFactor={0.05}
-        rotateSpeed={0.5}
+        dampingFactor={0.03}
+        rotateSpeed={0.4}
       />
     </>
   )
@@ -251,75 +277,122 @@ export function Home3DShowcase({ className = '' }: Home3DShowcaseProps) {
           </div>
         </div>
         
-        {/* 3D Viewer Container */}
+        {/* 3D Viewer Container - Glassmorphic design */}
         <div 
           className={cn(
-            "relative rounded-2xl overflow-hidden transition-all duration-1000 delay-200",
+            "relative rounded-3xl overflow-hidden transition-all duration-1000 delay-200",
             isInView ? "translate-y-0 opacity-100" : "translate-y-8 opacity-0"
           )}
           style={{ 
-            backgroundColor: BG_COLOR,
             aspectRatio: '16 / 9',
             maxHeight: '70vh'
           }}
         >
+          {/* Glassmorphic border frame */}
+          <div 
+            className="absolute inset-0 rounded-3xl pointer-events-none z-20"
+            style={{
+              background: 'linear-gradient(135deg, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.2) 100%)',
+              padding: '1px',
+              WebkitMask: 'linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0)',
+              WebkitMaskComposite: 'xor',
+              maskComposite: 'exclude',
+            }}
+          />
+          
+          {/* Outer glow effect */}
+          <div 
+            className="absolute -inset-1 rounded-3xl pointer-events-none z-10 opacity-60"
+            style={{
+              background: 'radial-gradient(ellipse at 30% 20%, rgba(255,255,255,0.15) 0%, transparent 50%)',
+              filter: 'blur(20px)',
+            }}
+          />
+          
+          {/* Inner container with gradient background */}
+          <div 
+            className="absolute inset-0 rounded-3xl overflow-hidden"
+            style={{
+              background: `linear-gradient(145deg, ${BG_GRADIENT_FROM} 0%, ${BG_COLOR} 50%, ${BG_GRADIENT_TO} 100%)`,
+              boxShadow: `
+                inset 0 1px 1px rgba(255,255,255,0.4),
+                inset 0 -1px 1px rgba(0,0,0,0.05),
+                0 25px 50px -12px rgba(0,0,0,0.15),
+                0 12px 24px -8px rgba(0,0,0,0.1),
+                0 4px 8px -2px rgba(0,0,0,0.05)
+              `,
+            }}
+          />
           {/* Loading state */}
           {!showContent && <LoadingOverlay />}
           
-          {/* Canvas */}
+          {/* Canvas - positioned within the glassmorphic container */}
           <div 
             className={cn(
-              "absolute inset-0 transition-opacity duration-700",
+              "absolute inset-0 transition-opacity duration-700 z-0",
               showContent ? "opacity-100" : "opacity-0"
             )}
           >
             <Canvas
               shadows
-              camera={{ position: [3, 1.8, 3], fov: 35 }}
+              camera={{ position: [3.5, 2, 3.5], fov: 32 }}
               className="w-full h-full"
               gl={{ 
                 antialias: true,
                 toneMapping: THREE.ACESFilmicToneMapping,
-                toneMappingExposure: 1.15,
-                powerPreference: 'high-performance'
+                toneMappingExposure: 1.25,
+                powerPreference: 'high-performance',
+                alpha: false,
               }}
               dpr={[1, 2]}
             >
+              {/* Gradient background via shader-like layers */}
               <color attach="background" args={[BG_COLOR]} />
-              <fog attach="fog" args={[BG_COLOR, 12, 30]} />
+              <fog attach="fog" args={[BG_GRADIENT_TO, 15, 35]} />
               <Scene isRotating={isRotating} onModelLoaded={handleModelLoaded} />
             </Canvas>
           </div>
           
-          {/* Controls overlay */}
+          {/* Controls overlay - glassmorphic style */}
           <div 
             className={cn(
-              "absolute bottom-0 left-0 right-0 p-4 lg:p-6 flex items-end justify-between pointer-events-none transition-all duration-500 delay-500",
+              "absolute bottom-0 left-0 right-0 p-5 lg:p-8 flex items-end justify-between pointer-events-none z-30 transition-all duration-500 delay-500",
               showContent ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
             )}
           >
-            {/* Left: Interaction hint */}
+            {/* Left: Interaction hint - glassmorphic pill */}
             <div className="pointer-events-none">
-              <div className="inline-flex items-center gap-3 px-4 py-2 bg-white/70 backdrop-blur-sm rounded-full border border-charcoal/5">
+              <div 
+                className="inline-flex items-center gap-3 px-5 py-2.5 rounded-full"
+                style={{
+                  background: 'rgba(255,255,255,0.7)',
+                  backdropFilter: 'blur(12px)',
+                  WebkitBackdropFilter: 'blur(12px)',
+                  border: '1px solid rgba(255,255,255,0.5)',
+                  boxShadow: '0 4px 16px rgba(0,0,0,0.06), inset 0 1px 0 rgba(255,255,255,0.5)',
+                }}
+              >
                 <svg className="w-4 h-4 text-charcoal/40" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15.042 21.672L13.684 16.6m0 0l-2.51 2.225.569-9.47 5.227 7.917-3.286-.672zM12 2.25V4.5m5.834.166l-1.591 1.591M20.25 10.5H18M7.757 14.743l-1.59 1.59M6 10.5H3.75m4.007-4.243l-1.59-1.59" />
                 </svg>
-                <span className="text-[10px] text-charcoal/50 uppercase tracking-[0.1em]">
+                <span className="text-[10px] text-charcoal/60 uppercase tracking-[0.12em] font-medium">
                   Drag to explore · Scroll to zoom
                 </span>
               </div>
             </div>
             
-            {/* Right: Play/Pause control */}
+            {/* Right: Play/Pause control - glassmorphic */}
             <div className="pointer-events-auto">
               <button
                 onClick={() => setIsRotating(!isRotating)}
-                className={cn(
-                  "w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300",
-                  "bg-white/80 backdrop-blur-sm border border-charcoal/10",
-                  "hover:bg-white hover:scale-105 active:scale-95",
-                  "shadow-sm"
-                )}
+                className="w-14 h-14 rounded-full flex items-center justify-center transition-all duration-300 hover:scale-105 active:scale-95"
+                style={{
+                  background: 'rgba(255,255,255,0.75)',
+                  backdropFilter: 'blur(12px)',
+                  WebkitBackdropFilter: 'blur(12px)',
+                  border: '1px solid rgba(255,255,255,0.6)',
+                  boxShadow: '0 8px 24px rgba(0,0,0,0.08), inset 0 1px 0 rgba(255,255,255,0.6)',
+                }}
                 aria-label={isRotating ? "Pause rotation" : "Resume rotation"}
               >
                 {isRotating ? (
@@ -338,14 +411,23 @@ export function Home3DShowcase({ className = '' }: Home3DShowcaseProps) {
             </div>
           </div>
           
-          {/* Corner badge */}
+          {/* Corner badge - glassmorphic style */}
           <div 
             className={cn(
-              "absolute top-4 right-4 lg:top-6 lg:right-6 transition-all duration-500 delay-700",
+              "absolute top-5 right-5 lg:top-7 lg:right-7 z-30 transition-all duration-500 delay-700",
               showContent ? "opacity-100 scale-100" : "opacity-0 scale-90"
             )}
           >
-            <div className="px-3 py-1.5 bg-charcoal text-cream text-[9px] uppercase tracking-[0.15em] rounded-full">
+            <div 
+              className="px-4 py-2 text-[9px] uppercase tracking-[0.15em] rounded-full font-medium"
+              style={{
+                background: 'rgba(45, 42, 38, 0.85)',
+                backdropFilter: 'blur(8px)',
+                WebkitBackdropFilter: 'blur(8px)',
+                color: '#F5F0E8',
+                boxShadow: '0 4px 12px rgba(0,0,0,0.15), inset 0 1px 0 rgba(255,255,255,0.1)',
+              }}
+            >
               Interactive 3D
             </div>
           </div>
