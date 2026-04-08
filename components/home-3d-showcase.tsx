@@ -4,9 +4,7 @@ import { Suspense, useRef, useState, useEffect, useCallback } from 'react'
 import { Canvas, useFrame } from '@react-three/fiber'
 import { 
   OrbitControls, 
-  Environment, 
   useGLTF, 
-  ContactShadows,
   Center
 } from '@react-three/drei'
 import * as THREE from 'three'
@@ -71,42 +69,14 @@ function LoadingOverlay() {
 function Scene({ isRotating, onModelLoaded }: { isRotating: boolean; onModelLoaded: () => void }) {
   return (
     <>
-      {/* Simple, warm lighting setup */}
-      <ambientLight intensity={0.6} />
-      
-      {/* Main key light */}
-      <directionalLight 
-        position={[5, 8, 4]} 
-        intensity={1.2} 
-        castShadow
-        shadow-mapSize={[1024, 1024]}
-        shadow-bias={-0.0001}
-        color="#fff8f0"
-      />
-      
-      {/* Fill light */}
-      <directionalLight 
-        position={[-5, 4, -2]} 
-        intensity={0.4} 
-        color="#f5f5ff"
-      />
-      
-      {/* Environment for material reflections */}
-      <Environment preset="apartment" environmentIntensity={0.3} />
+      {/* Very simple lighting - minimize GPU load */}
+      <ambientLight intensity={0.8} />
+      <directionalLight position={[5, 8, 4]} intensity={0.8} color="#fff8f0" />
+      <directionalLight position={[-5, 4, -2]} intensity={0.3} color="#f5f5ff" />
       
       <Suspense fallback={null}>
         <Model isRotating={isRotating} onLoaded={onModelLoaded} />
       </Suspense>
-      
-      {/* Clean ground shadow */}
-      <ContactShadows 
-        position={[0, -0.85, 0]} 
-        opacity={0.35} 
-        scale={12} 
-        blur={2} 
-        far={4}
-        color="#8a8278"
-      />
       
       <OrbitControls 
         enablePan={false}
@@ -129,6 +99,7 @@ export function Home3DShowcase() {
   const [isRotating, setIsRotating] = useState(true)
   const [isInView, setIsInView] = useState(false)
   const [isMounted, setIsMounted] = useState(false)
+  const [hasWebGLError, setHasWebGLError] = useState(false)
   const containerRef = useRef<HTMLElement>(null)
   
   // Only render canvas on client side and preload model
@@ -210,32 +181,46 @@ export function Home3DShowcase() {
             boxShadow: '0 20px 60px -15px rgba(0,0,0,0.12), 0 8px 20px -8px rgba(0,0,0,0.08)'
           }}
         >
-          {!showContent && <LoadingOverlay />}
+          {!showContent && !hasWebGLError && <LoadingOverlay />}
           
-          {isMounted && (
+          {/* Fallback when WebGL fails */}
+          {hasWebGLError && (
+            <div 
+              className="absolute inset-0 flex items-center justify-center"
+              style={{ backgroundColor: BG_COLOR }}
+            >
+              <div className="text-center">
+                <p className="text-charcoal/40 text-sm mb-4">3D preview unavailable</p>
+                <Link
+                  href="/collection"
+                  className="text-xs uppercase tracking-[0.15em] text-charcoal/60 hover:text-charcoal transition-colors"
+                >
+                  View Collection Instead
+                </Link>
+              </div>
+            </div>
+          )}
+          
+          {isMounted && !hasWebGLError && (
             <div className={cn(
               "absolute inset-0 transition-opacity duration-500",
               showContent ? "opacity-100" : "opacity-0"
             )}>
               <Canvas
-                shadows
                 camera={{ position: [4, 2, 4], fov: 30 }}
                 gl={{ 
-                  antialias: true,
+                  antialias: false,
                   toneMapping: THREE.ACESFilmicToneMapping,
-                  toneMappingExposure: 1.2,
-                  powerPreference: 'high-performance',
-                  preserveDrawingBuffer: true,
+                  toneMappingExposure: 1.1,
+                  powerPreference: 'low-power',
+                  preserveDrawingBuffer: false,
                   failIfMajorPerformanceCaveat: false,
                 }}
-                dpr={[1, 1.5]}
+                dpr={1}
                 onCreated={({ gl }) => {
                   gl.domElement.addEventListener('webglcontextlost', (e) => {
                     e.preventDefault()
-                    console.log('[v0] WebGL context lost, attempting recovery...')
-                  }, false)
-                  gl.domElement.addEventListener('webglcontextrestored', () => {
-                    console.log('[v0] WebGL context restored')
+                    setHasWebGLError(true)
                   }, false)
                 }}
               >
