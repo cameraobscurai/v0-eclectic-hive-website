@@ -136,7 +136,12 @@ export default function CollectionPage() {
   const [activeCategory, setActiveCategory] = useState<Category>('All')
   const [loaded, setLoaded] = useState(false)
   // Track which product has 3D view active (by name, or null for none)
-  const [active3DProduct, setActive3DProduct] = useState<string | null>(null)
+  // Auto-activate first product with 3D model on load
+  const [active3DProduct, setActive3DProduct] = useState<string | null>(() => {
+    // Find the first product that has a 3D model
+    const firstWith3D = Object.keys(MODEL_3D_MAP)[0]
+    return firstWith3D || null
+  })
 
   useEffect(() => {
     setLoaded(true)
