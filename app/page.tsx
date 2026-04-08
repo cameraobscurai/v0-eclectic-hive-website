@@ -13,6 +13,50 @@ const Home3DShowcase = lazy(() => import('@/components/home-3d-showcase').then(m
 
 // ─── Data ─────────────────────────────────────────────────────────────────────
 
+// New Collections product images
+const NEW_COLLECTION_PRODUCTS = [
+  {
+    name: 'GEORGIA Sconce',
+    src: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/GEORGIA%2BSconce%2B1-rnc4CfwUpYrddyEN1oZ9B2AK5yhfyz.webp',
+  },
+  {
+    name: 'CRESSIDA Table Lamp',
+    src: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/CRESSIDA%2BTable%2BLamp-7vpkT2QzVYlThgDRVshSk3XOLY5ja7.webp',
+  },
+  {
+    name: 'JINA Duo',
+    src: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/JINA%2BDuo-j7eLEUai1yqDNA6NSfIq4Nj5UJZoX4.webp',
+  },
+  {
+    name: 'AGATHA Duo',
+    src: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/AGATHA%2BDuo-KYMnfwMmh4lt6l8yfhY7AuLhem533g.webp',
+  },
+  {
+    name: 'CONCRETA Wall Sconce',
+    src: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/CONCRETA%2BWall%2BSconce%2B0-49NNZi7tHXTuGuSL9ieNtbgm24eKPZ.webp',
+  },
+  {
+    name: 'CULETTA Marble Lamp',
+    src: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/CULETTA%2BMarble%2BCab%2BLamp-wy4XnS6P7WgnkozWwyGLs9QO2FmtNx.webp',
+  },
+  {
+    name: 'ARIA Table Lamp',
+    src: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/%27-z4pajVWeYKYf27FFw5FgQdOlsgJXHN.webp',
+  },
+  {
+    name: 'MELA Marble Tray',
+    src: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/MELA%2BMarble%2BTray-QoJv0kKnBPqyBPPcBUG4rfKdBygHGI.webp',
+  },
+  {
+    name: 'RODRICK Cab Lamp',
+    src: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/RODRICK%2BCab%2BLamp-xwOJ67xlzwd3KMRN3gaZI4kpY58w8f.webp',
+  },
+  {
+    name: 'DIVYA Paper Mache Vase',
+    src: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/DIVYA%2BPaper%2BMache%2BVase-FZmZcEEla0Nxg0lEbpyyB6zomAHgDE.webp',
+  },
+]
+
 const PORTFOLIO_PROJECTS = [
   {
     title: 'Brush Creek Ranch',
@@ -91,6 +135,7 @@ export default function HomePage() {
         <Home3DShowcase />
       </Suspense>
       
+      <NewCollectionsSection />
       <WorkSection />
       <StudioSection />
       <InquirySection />
@@ -132,6 +177,155 @@ function PressSection() {
             </div>
           ))}
         </div>
+      </div>
+    </section>
+  )
+}
+
+// ─── New Collections Carousel ─────────────────────────────────────────────────
+
+function NewCollectionsSection() {
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const [canScrollLeft, setCanScrollLeft] = useState(false)
+  const [canScrollRight, setCanScrollRight] = useState(true)
+  const [isInView, setIsInView] = useState(false)
+  const sectionRef = useRef<HTMLElement>(null)
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsInView(true)
+          observer.disconnect()
+        }
+      },
+      { threshold: 0.2 }
+    )
+    if (sectionRef.current) observer.observe(sectionRef.current)
+    return () => observer.disconnect()
+  }, [])
+
+  const checkScroll = () => {
+    if (!scrollRef.current) return
+    const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current
+    setCanScrollLeft(scrollLeft > 10)
+    setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10)
+  }
+
+  useEffect(() => {
+    const el = scrollRef.current
+    if (!el) return
+    el.addEventListener('scroll', checkScroll)
+    checkScroll()
+    return () => el.removeEventListener('scroll', checkScroll)
+  }, [])
+
+  const scroll = (direction: 'left' | 'right') => {
+    if (!scrollRef.current) return
+    const scrollAmount = scrollRef.current.clientWidth * 0.6
+    scrollRef.current.scrollBy({
+      left: direction === 'left' ? -scrollAmount : scrollAmount,
+      behavior: 'smooth'
+    })
+  }
+
+  return (
+    <section ref={sectionRef} className="py-24 lg:py-32 bg-white">
+      {/* Header */}
+      <div className="max-w-[1800px] mx-auto px-6 lg:px-16 mb-12">
+        <div className="flex items-end justify-between">
+          <div>
+            <div className="overflow-hidden">
+              <h2 
+                className={cn(
+                  "text-2xl md:text-3xl lg:text-4xl tracking-[0.15em] uppercase font-light text-charcoal transition-all duration-700",
+                  isInView ? "translate-y-0 opacity-100" : "translate-y-full opacity-0"
+                )}
+              >
+                New Collections
+              </h2>
+            </div>
+          </div>
+          
+          {/* Navigation arrows */}
+          <div 
+            className={cn(
+              "flex items-center gap-3 transition-all duration-700 delay-300",
+              isInView ? "opacity-100" : "opacity-0"
+            )}
+          >
+            <button
+              onClick={() => scroll('left')}
+              disabled={!canScrollLeft}
+              className={cn(
+                "w-12 h-12 rounded-full border flex items-center justify-center transition-all duration-300",
+                canScrollLeft 
+                  ? "border-charcoal/20 text-charcoal hover:bg-charcoal hover:text-cream" 
+                  : "border-charcoal/10 text-charcoal/20 cursor-not-allowed"
+              )}
+              aria-label="Scroll left"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+              </svg>
+            </button>
+            <button
+              onClick={() => scroll('right')}
+              disabled={!canScrollRight}
+              className={cn(
+                "w-12 h-12 rounded-full border flex items-center justify-center transition-all duration-300",
+                canScrollRight 
+                  ? "border-charcoal/20 text-charcoal hover:bg-charcoal hover:text-cream" 
+                  : "border-charcoal/10 text-charcoal/20 cursor-not-allowed"
+              )}
+              aria-label="Scroll right"
+            >
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Products carousel */}
+      <div 
+        ref={scrollRef}
+        className="flex gap-6 lg:gap-8 overflow-x-auto scrollbar-hide px-6 lg:px-16 pb-4"
+        style={{ 
+          scrollSnapType: 'x mandatory',
+          WebkitOverflowScrolling: 'touch',
+          scrollbarWidth: 'none',
+          msOverflowStyle: 'none'
+        }}
+      >
+        {NEW_COLLECTION_PRODUCTS.map((product, i) => (
+          <Link
+            href="/collection"
+            key={product.name}
+            className={cn(
+              "group flex-shrink-0 w-[280px] lg:w-[320px] transition-all duration-700",
+              isInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+            )}
+            style={{ 
+              scrollSnapAlign: 'start',
+              transitionDelay: `${200 + i * 80}ms`
+            }}
+          >
+            <div className="relative aspect-[3/4] bg-[#F8F6F3] mb-4 overflow-hidden">
+              <Image
+                src={product.src}
+                alt={product.name}
+                fill
+                className="object-contain p-6 transition-transform duration-500 group-hover:scale-105"
+                sizes="320px"
+              />
+            </div>
+            <p className="text-sm tracking-[0.1em] text-charcoal/70 group-hover:text-charcoal transition-colors">
+              {product.name}
+            </p>
+          </Link>
+        ))}
       </div>
     </section>
   )
