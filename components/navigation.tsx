@@ -9,11 +9,12 @@ const NAV_LINKS = [
   { href: '/atelier', label: 'Atelier by The Hive' },
   { href: '/collection', label: 'Hive Signature Collection' },
   { href: '/gallery', label: 'The Gallery' },
+  { href: '/design', label: 'Design Tools' },
   { href: '/contact', label: 'Contact' },
 ]
 
 // Pages with light (cream) backgrounds need dark nav text
-const LIGHT_BG_PAGES = ['/collection', '/contact', '/faq', '/privacy']
+const LIGHT_BG_PAGES = ['/collection', '/contact', '/faq', '/privacy', '/design']
 
 export function Navigation() {
   const [isOpen, setIsOpen] = useState(false)
