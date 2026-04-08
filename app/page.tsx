@@ -150,29 +150,29 @@ export default function HomePage() {
 
 function PressSection() {
   return (
-    <section className="bg-[#D5CDC5] py-16 lg:py-24">
+    <section className="bg-[#D5CDC5] py-12 lg:py-16">
       {/* Label */}
-      <div className="flex items-center gap-3 mb-10 px-6 lg:px-16">
+      <div className="flex items-center gap-3 mb-8 px-6 lg:px-16">
         <span className="w-5 h-px bg-charcoal/15" />
         <p className="text-[10px] tracking-[0.35em] uppercase text-charcoal/35">
           As featured in
         </p>
       </div>
       
-      {/* Large logos - matching their live site exactly */}
-      <div className="px-6 lg:px-20">
-        <div className="flex flex-wrap items-center justify-center gap-x-12 gap-y-8 lg:gap-x-20">
+      {/* Large logos - images have beige bg baked in, display them large */}
+      <div className="px-4 lg:px-12">
+        <div className="flex flex-wrap items-center justify-center gap-2 lg:gap-4">
           {PRESS_LOGOS.map((logo, i) => (
             <div
               key={i}
-              className="relative h-8 w-28 lg:h-12 lg:w-40 shrink-0"
+              className="relative w-[120px] h-[120px] md:w-[160px] md:h-[160px] lg:w-[200px] lg:h-[200px] shrink-0"
             >
               <Image
                 src={logo.src}
                 alt={logo.name}
                 fill
-                className="object-contain"
-                sizes="160px"
+                className="object-cover"
+                sizes="(max-width: 768px) 120px, (max-width: 1024px) 160px, 200px"
               />
             </div>
           ))}
