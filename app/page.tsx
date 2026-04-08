@@ -105,46 +105,30 @@ export default function HomePage() {
 
 function PressSection() {
   return (
-    <section className="bg-charcoal py-8 overflow-hidden">
-      <div className="flex items-center gap-2 mb-6 px-6 lg:px-12">
-        <span className="w-4 h-px bg-cream/20" />
-        <p className="text-[10px] tracking-[0.35em] uppercase text-cream/30">
+    <section className="bg-[#E8E0D4] py-20 lg:py-28">
+      {/* Label */}
+      <div className="flex items-center gap-3 mb-12 px-6 lg:px-16">
+        <span className="w-6 h-px bg-charcoal/20" />
+        <p className="text-[11px] tracking-[0.3em] uppercase text-charcoal/40">
           As featured in
         </p>
       </div>
       
-      {/* Infinite scrolling ticker */}
-      <div className="relative flex overflow-hidden [mask-image:linear-gradient(to_right,transparent,black_5%,black_95%,transparent)]">
-        {/* First copy */}
-        <div className="flex gap-16 items-center animate-marquee shrink-0">
+      {/* Large logos - static display like their site */}
+      <div className="px-6 lg:px-16">
+        <div className="flex flex-wrap items-center justify-center gap-x-16 gap-y-10 lg:gap-x-24">
           {PRESS_LOGOS.map((logo, i) => (
             <div
-              key={`a-${i}`}
-              className="relative h-7 w-24 shrink-0 opacity-50 hover:opacity-80 transition-opacity duration-300"
+              key={i}
+              className="relative h-10 w-32 lg:h-14 lg:w-44 shrink-0 opacity-80 hover:opacity-100 transition-opacity duration-300"
             >
               <Image
                 src={logo.src}
                 alt={logo.name}
                 fill
-                className="object-contain brightness-0 invert"
-                sizes="96px"
-              />
-            </div>
-          ))}
-        </div>
-        {/* Second copy for seamless loop */}
-        <div className="flex gap-16 items-center animate-marquee shrink-0 ml-16" aria-hidden="true">
-          {PRESS_LOGOS.map((logo, i) => (
-            <div
-              key={`b-${i}`}
-              className="relative h-7 w-24 shrink-0 opacity-50"
-            >
-              <Image
-                src={logo.src}
-                alt={logo.name}
-                fill
-                className="object-contain brightness-0 invert"
-                sizes="96px"
+                className="object-contain"
+                sizes="176px"
+                style={{ filter: 'brightness(0) saturate(100%)' }}
               />
             </div>
           ))}
@@ -443,7 +427,7 @@ function StudioSection() {
   )
 }
 
-// ─── Inquiry CTA ──────────────────────────────────────────────────────────────
+// ─── Inquiry CTA ────────────��─────────────────────────────────────────────────
 
 function InquirySection() {
   const [isInView, setIsInView] = useState(false)

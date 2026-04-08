@@ -7,8 +7,7 @@ import {
   Environment, 
   useGLTF, 
   ContactShadows,
-  Center,
-  useProgress
+  Center
 } from '@react-three/drei'
 import * as THREE from 'three'
 import { cn } from '@/lib/utils'
@@ -56,22 +55,14 @@ function Model({
 }
 
 function LoadingOverlay() {
-  const { progress } = useProgress()
-  
   return (
     <div 
       className="absolute inset-0 flex flex-col items-center justify-center z-10"
       style={{ backgroundColor: BG_COLOR }}
     >
-      <div className="relative w-12 h-12 mb-4">
+      <div className="relative w-10 h-10">
         <div className="absolute inset-0 border border-charcoal/10 rounded-full" />
         <div className="absolute inset-0 border-2 border-transparent border-t-charcoal/30 rounded-full animate-spin" />
-      </div>
-      <div className="w-24 h-px bg-charcoal/10 rounded-full overflow-hidden">
-        <div 
-          className="h-full bg-charcoal/30 transition-all duration-300"
-          style={{ width: `${progress}%` }}
-        />
       </div>
     </div>
   )
