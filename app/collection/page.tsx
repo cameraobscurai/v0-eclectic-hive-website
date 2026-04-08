@@ -5,10 +5,9 @@ import Image from 'next/image'
 import { Navigation } from '@/components/navigation'
 import { Footer } from '@/components/footer'
 import { cn } from '@/lib/utils'
-import { Box } from 'lucide-react'
 
 // Lazy load the 3D viewer for performance
-const ProductViewer3D = lazy(() => import('@/components/product-viewer-3d').then(mod => ({ default: mod.ProductViewer3D })))
+const InlineProductViewer = lazy(() => import('@/components/product-viewer-3d').then(mod => ({ default: mod.InlineProductViewer })))
 
 // Real inventory from eclectichive.com/lounge
 const categories = ['All', 'Sofas & Loveseats', 'Chairs', 'Ottomans', 'Benches'] as const
@@ -136,28 +135,23 @@ const inventory: InventoryItem[] = [
 export default function CollectionPage() {
   const [activeCategory, setActiveCategory] = useState<Category>('All')
   const [loaded, setLoaded] = useState(false)
-  const [viewer3D, setViewer3D] = useState<{ isOpen: boolean; productName: string; modelUrl: string }>({
-    isOpen: false,
-    productName: '',
-    modelUrl: '',
-  })
+  // Track which product has 3D view active (by name, or null for none)
+  const [active3DProduct, setActive3DProduct] = useState<string | null>(null)
 
   useEffect(() => {
     setLoaded(true)
   }, [])
 
-  const open3DViewer = (productName: string) => {
-    const modelUrl = MODEL_3D_MAP[productName]
-    if (modelUrl) {
-      setViewer3D({ isOpen: true, productName, modelUrl })
+  const toggle3DView = (productName: string) => {
+    if (active3DProduct === productName) {
+      setActive3DProduct(null) // Close if already open
+    } else {
+      setActive3DProduct(productName) // Open this one
     }
   }
 
-  const close3DViewer = () => {
-    setViewer3D({ isOpen: false, productName: '', modelUrl: '' })
-  }
-
   const has3DModel = (productName: string) => productName in MODEL_3D_MAP
+  const is3DActive = (productName: string) => active3DProduct === productName
 
   return (
     <main id="main-content" className="bg-cream min-h-screen">
@@ -246,22 +240,52 @@ export default function CollectionPage() {
                 style={{ transitionDelay: loaded ? `${i * 30}ms` : `${300 + i * 50}ms` }}
               >
                 <div className="relative aspect-square bg-white mb-4 overflow-hidden">
-                  <Image
-                    src={item.image}
-                    alt={item.name}
-                    fill
-                    className="object-contain p-4 transition-transform duration-500 group-hover:scale-105"
-                    sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                  />
-                  {/* 3D View Button - only shows for items with 3D models */}
+                  {/* Show 3D viewer or static image based on toggle state */}
+                  {is3DActive(item.name) && has3DModel(item.name) ? (
+                    <Suspense fallback={
+                      <div className="absolute inset-0 flex items-center justify-center bg-white">
+                        <div className="w-6 h-6 border-2 border-charcoal/10 border-t-charcoal/60 rounded-full animate-spin" />
+                      </div>
+                    }>
+                      <InlineProductViewer modelUrl={MODEL_3D_MAP[item.name]} />
+                    </Suspense>
+                  ) : (
+                    <Image
+                      src={item.image}
+                      alt={item.name}
+                      fill
+                      className="object-contain p-4 transition-transform duration-500 group-hover:scale-105"
+                      sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                      loading={i < 4 ? "eager" : "lazy"}
+                      priority={i === 0}
+                    />
+                  )}
+                  
+                  {/* 3D Toggle Button - clean, minimal design */}
                   {has3DModel(item.name) && (
                     <button
-                      onClick={() => open3DViewer(item.name)}
-                      className="absolute bottom-3 right-3 flex items-center gap-2 px-3 py-2 bg-charcoal/90 text-cream text-xs uppercase tracking-wider rounded hover:bg-charcoal transition-all opacity-0 group-hover:opacity-100 transform translate-y-2 group-hover:translate-y-0"
-                      aria-label={`View ${item.name} in 3D`}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        toggle3DView(item.name)
+                      }}
+                      className={cn(
+                        "absolute top-3 right-3 w-9 h-9 flex items-center justify-center rounded-full transition-all duration-300",
+                        is3DActive(item.name)
+                          ? "bg-charcoal text-cream shadow-lg"
+                          : "bg-white/90 text-charcoal/60 hover:bg-white hover:text-charcoal shadow-sm border border-charcoal/5"
+                      )}
+                      aria-label={is3DActive(item.name) ? `Show photo of ${item.name}` : `View ${item.name} in 3D`}
+                      aria-pressed={is3DActive(item.name)}
                     >
-                      <Box className="w-3.5 h-3.5" />
-                      <span>View 3D</span>
+                      {is3DActive(item.name) ? (
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+                        </svg>
+                      ) : (
+                        <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M21 7.5l-9-5.25L3 7.5m18 0l-9 5.25m9-5.25v9l-9 5.25M3 7.5l9 5.25M3 7.5v9l9 5.25m0-9v9" />
+                        </svg>
+                      )}
                     </button>
                   )}
                 </div>
@@ -271,8 +295,12 @@ export default function CollectionPage() {
                     <p className="text-xs text-charcoal/50 uppercase tracking-wider mt-1">{item.category}</p>
                   </div>
                   {has3DModel(item.name) && (
-                    <span className="flex items-center gap-1 text-[10px] uppercase tracking-wider text-charcoal/40 mt-0.5">
-                      <Box className="w-3 h-3" />
+                    <span className={cn(
+                      "text-[9px] uppercase tracking-wider px-1.5 py-0.5 rounded transition-colors",
+                      is3DActive(item.name) 
+                        ? "bg-charcoal text-cream" 
+                        : "bg-charcoal/5 text-charcoal/50"
+                    )}>
                       3D
                     </span>
                   )}
@@ -304,16 +332,6 @@ export default function CollectionPage() {
       </section>
       
       <Footer />
-
-      {/* 3D Product Viewer Modal */}
-      <Suspense fallback={null}>
-        <ProductViewer3D
-          modelUrl={viewer3D.modelUrl}
-          productName={viewer3D.productName}
-          isOpen={viewer3D.isOpen}
-          onClose={close3DViewer}
-        />
-      </Suspense>
     </main>
   )
 }
