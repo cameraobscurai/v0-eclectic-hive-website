@@ -225,8 +225,19 @@ export function Home3DShowcase() {
                   toneMapping: THREE.ACESFilmicToneMapping,
                   toneMappingExposure: 1.2,
                   powerPreference: 'high-performance',
+                  preserveDrawingBuffer: true,
+                  failIfMajorPerformanceCaveat: false,
                 }}
-                dpr={[1, 2]}
+                dpr={[1, 1.5]}
+                onCreated={({ gl }) => {
+                  gl.domElement.addEventListener('webglcontextlost', (e) => {
+                    e.preventDefault()
+                    console.log('[v0] WebGL context lost, attempting recovery...')
+                  }, false)
+                  gl.domElement.addEventListener('webglcontextrestored', () => {
+                    console.log('[v0] WebGL context restored')
+                  }, false)
+                }}
               >
                 <color attach="background" args={[BG_COLOR]} />
                 <Scene isRotating={isRotating} onModelLoaded={handleModelLoaded} />

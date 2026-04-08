@@ -149,30 +149,31 @@ export default function HomePage() {
 // Duplicating the logo array creates seamless infinite scroll.
 
 function PressSection() {
+  // The logo images have #D5CDC3 beige background baked in - match it exactly
   return (
-    <section className="bg-[#D5CDC5] py-12 lg:py-16">
+    <section className="py-16 lg:py-20" style={{ backgroundColor: '#D5CDC3' }}>
       {/* Label */}
-      <div className="flex items-center gap-3 mb-8 px-6 lg:px-16">
-        <span className="w-5 h-px bg-charcoal/15" />
+      <div className="flex items-center gap-3 mb-10 px-6 lg:px-16">
+        <span className="w-6 h-px bg-charcoal/15" />
         <p className="text-[10px] tracking-[0.35em] uppercase text-charcoal/35">
           As featured in
         </p>
       </div>
       
-      {/* Large logos - images have beige bg baked in, display them large */}
-      <div className="px-4 lg:px-12">
-        <div className="flex flex-wrap items-center justify-center gap-2 lg:gap-4">
+      {/* Large logos - match their site exactly with big square tiles */}
+      <div className="px-6 lg:px-16">
+        <div className="flex flex-wrap items-center justify-center gap-0">
           {PRESS_LOGOS.map((logo, i) => (
             <div
               key={i}
-              className="relative w-[120px] h-[120px] md:w-[160px] md:h-[160px] lg:w-[200px] lg:h-[200px] shrink-0"
+              className="relative w-[140px] h-[140px] sm:w-[160px] sm:h-[160px] md:w-[180px] md:h-[180px] lg:w-[220px] lg:h-[220px]"
             >
               <Image
                 src={logo.src}
                 alt={logo.name}
                 fill
                 className="object-cover"
-                sizes="(max-width: 768px) 120px, (max-width: 1024px) 160px, 200px"
+                sizes="(max-width: 640px) 140px, (max-width: 768px) 160px, (max-width: 1024px) 180px, 220px"
               />
             </div>
           ))}
