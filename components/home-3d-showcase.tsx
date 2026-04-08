@@ -210,14 +210,13 @@ export function Home3DShowcase() {
               <Canvas
                 camera={{ position: [4, 2, 4], fov: 30 }}
                 gl={{ 
-                  antialias: false,
+                  antialias: true,
                   toneMapping: THREE.ACESFilmicToneMapping,
-                  toneMappingExposure: 1.1,
-                  powerPreference: 'low-power',
-                  preserveDrawingBuffer: false,
+                  toneMappingExposure: 1.2,
+                  powerPreference: 'default',
                   failIfMajorPerformanceCaveat: false,
                 }}
-                dpr={1}
+                dpr={[1, 2]}
                 onCreated={({ gl }) => {
                   gl.domElement.addEventListener('webglcontextlost', (e) => {
                     e.preventDefault()
