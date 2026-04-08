@@ -35,7 +35,7 @@ function Model({ url, onLoaded }: { url: string; onLoaded: () => void }) {
   // Auto-rotation via useFrame for smoother control
   useFrame((state, delta) => {
     if (modelRef.current) {
-      modelRef.current.rotation.y += delta * 0.3 // Smooth auto-rotate
+      modelRef.current.rotation.y += delta * 0.08 // Slow, elegant auto-rotate
     }
   })
   
