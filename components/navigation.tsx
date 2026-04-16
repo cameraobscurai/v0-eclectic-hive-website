@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 
@@ -88,16 +89,17 @@ export function Navigation() {
         >
           {/* Logo */}
           <Link href="/" className="relative group" aria-label="Eclectic Hive — home">
-            <span className={cn(
-              "font-display text-xl tracking-tight font-light italic transition-colors duration-300",
-              scrolled || !isLightPage ? 'text-cream' : 'text-charcoal'
-            )}>
-              Eclectic Hive
-            </span>
-            <span className={cn(
-              "absolute -bottom-1 left-0 w-full h-px origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300",
-              scrolled || !isLightPage ? 'bg-cream/30' : 'bg-charcoal/30'
-            )} />
+            <Image
+              src="/images/logo.png"
+              alt="Eclectic Hive"
+              width={140}
+              height={50}
+              className={cn(
+                "h-10 lg:h-12 w-auto transition-all duration-300",
+                scrolled ? "brightness-0 invert" : isLightPage ? "" : "brightness-0 invert"
+              )}
+              priority
+            />
           </Link>
 
           {/* Desktop links */}
