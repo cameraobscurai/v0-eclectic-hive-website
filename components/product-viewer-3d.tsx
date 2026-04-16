@@ -115,9 +115,7 @@ function Scene({ modelUrl, onModelLoaded }: { modelUrl: string; onModelLoaded: (
       {/* Camera controls - no auto-rotate here since we do it in useFrame */}
       <OrbitControls 
         enablePan={false}
-        enableZoom={true}
-        minDistance={1.8}
-        maxDistance={4}
+        enableZoom={false}
         minPolarAngle={Math.PI / 4}
         maxPolarAngle={Math.PI / 2.2}
         autoRotate={false}

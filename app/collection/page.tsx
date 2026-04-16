@@ -191,7 +191,7 @@ export default function CollectionPage() {
         </div>
       </section>
       
-      {/* ────────────────────────────────────────────────────��────────
+      {/* ────────────────────────────────────────────────────���────────
           Filter & Search Bar
       ───────────────────────────────────────────────────────────── */}
       <section className="py-4 px-6 lg:px-12 bg-cream border-y border-charcoal/10">
@@ -418,25 +418,36 @@ export default function CollectionPage() {
       <section className="px-4 lg:px-6 py-6 bg-white">
         {filteredProducts.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-[3px]">
-            {filteredProducts.map((product, i) => (
+            {filteredProducts.map((product, i) => {
+              // Stagger by row (4 columns) for clean top-down reveal
+              const row = Math.floor(i / 4)
+              const delay = Math.min(row * 80, 400)
+              
+              return (
               <div
                 key={`${product.name}-${i}`}
                 className={cn(
-                  "group cursor-pointer transition-all duration-500",
-                  loaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+                  "group cursor-pointer transition-all duration-500 ease-out",
+                  loaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3"
                 )}
-                style={{ transitionDelay: `${Math.min(i * 30, 300)}ms` }}
+                style={{ transitionDelay: `${delay}ms` }}
               >
                 {/* Image container - light taupe like reference */}
                 <div className="relative aspect-square bg-[#E5E1DC] overflow-hidden">
-                  <Image
-                    src={product.image}
-                    alt={product.name}
-                    fill
-                    className="object-contain p-6 transition-transform duration-700 group-hover:scale-105"
-                    sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                    style={{ filter: 'drop-shadow(0 6px 12px rgba(0,0,0,0.12))' }}
-                  />
+                  <div className="absolute inset-0 p-5">
+                    <div 
+                      className="relative w-full h-full"
+                      style={{ filter: 'drop-shadow(0 8px 16px rgba(0,0,0,0.15))' }}
+                    >
+                      <Image
+                        src={product.image}
+                        alt={product.name}
+                        fill
+                        className="object-contain transition-transform duration-700 group-hover:scale-105"
+                        sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                      />
+                    </div>
+                  </div>
                 </div>
                 
                 {/* Info */}
@@ -449,7 +460,8 @@ export default function CollectionPage() {
                   </p>
                 </div>
               </div>
-            ))}
+              )
+            })}
           </div>
         ) : (
           <div className="py-20 text-center">
