@@ -191,7 +191,7 @@ export default function CollectionPage() {
         </div>
       </section>
       
-      {/* ────────────────────────────────────────────────────����────────
+      {/* ────────────────────────────────────────────────────�����────────
           Filter & Search Bar
       ───────────────────────────────────────────────────────────── */}
       <section className="py-4 px-6 lg:px-12 bg-cream border-y border-charcoal/10">
@@ -432,13 +432,12 @@ export default function CollectionPage() {
                 )}
                 style={{ transitionDelay: `${delay}ms` }}
               >
-                {/* Image container - flexbox centers the image */}
-                <div className="aspect-square bg-[#E5E1DC] overflow-hidden flex items-center justify-center p-5">
+                {/* Image container - matches Squarespace PNG background */}
+                <div className="aspect-square bg-[#D4D0CB] overflow-hidden flex items-center justify-center">
                   <img
                     src={product.image}
                     alt={product.name}
-                    className="max-w-full max-h-full object-contain transition-transform duration-700 group-hover:scale-105"
-                    style={{ filter: 'drop-shadow(0 8px 20px rgba(0,0,0,0.18))' }}
+                    className="w-full h-full object-contain"
                     loading="lazy"
                   />
                 </div>
