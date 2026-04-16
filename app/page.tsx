@@ -1,705 +1,236 @@
 'use client'
 
-import { useState, useEffect, useRef, lazy, Suspense } from 'react'
-import Image from 'next/image'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Navigation } from '@/components/navigation'
-import { Footer } from '@/components/footer'
-import { HeroSection } from '@/components/hero-section'
 import { cn } from '@/lib/utils'
 
-// Lazy load the 3D showcase for performance
-const Home3DShowcase = lazy(() => import('@/components/home-3d-showcase').then(mod => ({ default: mod.Home3DShowcase })))
-
-// ─── Data ─────────────────────────────────────────────────────────────────────
-
-// New Collections product images
-const NEW_COLLECTION_PRODUCTS = [
-  {
-    name: 'GEORGIA Sconce',
-    src: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/GEORGIA%2BSconce%2B1-rnc4CfwUpYrddyEN1oZ9B2AK5yhfyz.webp',
-  },
-  {
-    name: 'CRESSIDA Table Lamp',
-    src: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/CRESSIDA%2BTable%2BLamp-7vpkT2QzVYlThgDRVshSk3XOLY5ja7.webp',
-  },
-  {
-    name: 'JINA Duo',
-    src: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/JINA%2BDuo-j7eLEUai1yqDNA6NSfIq4Nj5UJZoX4.webp',
-  },
-  {
-    name: 'AGATHA Duo',
-    src: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/AGATHA%2BDuo-KYMnfwMmh4lt6l8yfhY7AuLhem533g.webp',
-  },
-  {
-    name: 'CONCRETA Wall Sconce',
-    src: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/CONCRETA%2BWall%2BSconce%2B0-49NNZi7tHXTuGuSL9ieNtbgm24eKPZ.webp',
-  },
-  {
-    name: 'CULETTA Marble Lamp',
-    src: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/CULETTA%2BMarble%2BCab%2BLamp-wy4XnS6P7WgnkozWwyGLs9QO2FmtNx.webp',
-  },
-  {
-    name: 'ARIA Table Lamp',
-    src: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/%27-z4pajVWeYKYf27FFw5FgQdOlsgJXHN.webp',
-  },
-  {
-    name: 'MELA Marble Tray',
-    src: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/MELA%2BMarble%2BTray-QoJv0kKnBPqyBPPcBUG4rfKdBygHGI.webp',
-  },
-  {
-    name: 'RODRICK Cab Lamp',
-    src: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/RODRICK%2BCab%2BLamp-xwOJ67xlzwd3KMRN3gaZI4kpY58w8f.webp',
-  },
-  {
-    name: 'DIVYA Paper Mache Vase',
-    src: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/DIVYA%2BPaper%2BMache%2BVase-FZmZcEEla0Nxg0lEbpyyB6zomAHgDE.webp',
-  },
-]
-
-const PORTFOLIO_PROJECTS = [
-  {
-    title: 'Brush Creek Ranch',
-    planner: 'Easton Events',
-    image:
-      'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/2db573b8-41e3-4083-9bbb-8c1f0238705e/Reception+4.jpg',
-  },
-  {
-    title: 'Caribou Club',
-    planner: 'Birch Design Studio',
-    image:
-      'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/5f04747d-1cc8-453c-96ae-6935b023c23f/Caribou+Rehearsal+Dinner+Tablescape+2.jpg',
-  },
-  {
-    title: 'Denver Celebration',
-    planner: 'Banks + Leaf',
-    image:
-      'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/3181fcca-b89e-46e8-9cbf-c6df4184c80f/2021_09_05_sapnaari-sp-0108.jpg',
-  },
-  {
-    title: 'WestWorld Reception',
-    planner: 'Gold Leaf Events',
-    image:
-      'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/a9d917a6-6644-46d7-9371-ab4326c5e6e8/WestWorld+Reception.jpg',
-  },
-]
-
-// Press logos - white logos on beige background
+// Press logos
 const PRESS_LOGOS = [
-  {
-    name: 'Elle',
-    src: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Elle%2BLogo%2Bw%2B2-OVQNlm5PY1I9dKvM2JblVMgBvFfYj7.webp',
-  },
-  {
-    name: "Harper's Bazaar",
-    src: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Bazaar%2BLogo%2BW-Y41iLCo3Nck09LLPlG974WK0B927jI.webp',
-  },
-  {
-    name: 'The Knot',
-    src: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-h11ekHP7Chbg2IvGhPvl5IEqwDAW78.png',
-  },
-  {
-    name: 'Vogue',
-    src: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Vogue%2Blogo%2Bw-NfImu5uR2feTV0gVZLpDgb3izl9xAO.webp',
-  },
-  {
-    name: 'Martha Stewart Weddings',
-    src: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/MS%2Blogo%2Bw-qJWRNbqp0fnELXYBwPDut01f5GbAXE.webp',
-  },
-  {
-    name: 'Brides',
-    src: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Brides%2Blogo%2BW-mt7R82vdgFSNJzMdkravKAHEO77igK.webp',
-  },
+  { name: 'Elle', src: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Elle%2BLogo%2Bw%2B2-OVQNlm5PY1I9dKvM2JblVMgBvFfYj7.webp' },
+  { name: "Harper's Bazaar", src: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Bazaar%2BLogo%2BW-Y41iLCo3Nck09LLPlG974WK0B927jI.webp' },
+  { name: 'The Knot', src: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-h11ekHP7Chbg2IvGhPvl5IEqwDAW78.png' },
+  { name: 'Vogue', src: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Vogue%2Blogo%2Bw-NfImu5uR2feTV0gVZLpDgb3izl9xAO.webp' },
+  { name: 'Martha Stewart', src: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/MS%2Blogo%2Bw-qJWRNbqp0fnELXYBwPDut01f5GbAXE.webp' },
+  { name: 'Brides', src: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Brides%2Blogo%2BW-mt7R82vdgFSNJzMdkravKAHEO77igK.webp' },
 ]
 
-// ─── Page ─────────────────────────────────────────────────────────────────────
+// Navigation destinations
+const DESTINATIONS = [
+  {
+    href: '/atelier',
+    title: 'Atelier',
+    subtitle: 'Design + Fabrication',
+    description: 'Full-service event design from concept to installation',
+    image: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/1710309793584-V7I937AO0B569QLUFQPA/Welcome+Party+Fireside.jpg',
+  },
+  {
+    href: '/collection',
+    title: 'Collection',
+    subtitle: 'Signature Inventory',
+    description: 'Curated furniture and decor for exceptional events',
+    image: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/1603393204231-W79P4V24URXTZREUL8H6/LINDT_Sofa_0.png',
+  },
+  {
+    href: '/gallery',
+    title: 'Gallery',
+    subtitle: 'Selected Work',
+    description: 'A portfolio of our most memorable collaborations',
+    image: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/2db573b8-41e3-4083-9bbb-8c1f0238705e/Reception+4.jpg',
+  },
+]
 
 export default function HomePage() {
+  const [loaded, setLoaded] = useState(false)
+  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
+
+  useEffect(() => {
+    setLoaded(true)
+  }, [])
+
   return (
-    <main id="main-content" className="bg-background">
+    <main className="bg-charcoal min-h-screen">
       <Navigation />
-      <HeroSection />
-      <PressSection />
       
-      {/* 3D Product Showcase - after press logos */}
-      <Suspense fallback={
-        <section className="bg-cream py-16 lg:py-24">
-          <div className="max-w-[1800px] mx-auto px-6 lg:px-16">
-            <div 
-              className="rounded-2xl bg-[#E8E0D4] animate-pulse"
-              style={{ aspectRatio: '21 / 9', maxHeight: '65vh' }}
-            />
-          </div>
-        </section>
-      }>
-        <Home3DShowcase />
-      </Suspense>
-      
-      <NewCollectionsSection />
-      <WorkSection />
-      <StudioSection />
-      <InquirySection />
-      <Footer />
-    </main>
-  )
-}
-
-// ─── Press strip ──────────────────────────────────────────────────────────────
-// Pure CSS marquee — no JS, no layout shift, no library.
-// Duplicating the logo array creates seamless infinite scroll.
-
-function PressSection() {
-  // The logo images have #D5CDC3 beige background baked in - match it exactly
-  return (
-    <section className="py-16 lg:py-20" style={{ backgroundColor: '#D5CDC3' }}>
-      {/* Label */}
-      <div className="flex items-center gap-3 mb-10 px-6 lg:px-16">
-        <span className="w-6 h-px bg-charcoal/15" />
-        <p className="text-[10px] tracking-[0.35em] uppercase text-charcoal/35">
-          As featured in
-        </p>
-      </div>
-      
-      {/* Large logos - match their site exactly with big square tiles */}
-      <div className="px-6 lg:px-16">
-        <div className="flex flex-wrap items-center justify-center gap-0">
-          {PRESS_LOGOS.map((logo, i) => (
+      {/* Hero - Full viewport with centered logo */}
+      <section className="relative h-screen flex flex-col items-center justify-center px-6">
+        {/* Animated background panels */}
+        <div className="absolute inset-0 grid grid-cols-3 md:grid-cols-5">
+          {['bg-[#0d0d0d]', 'bg-[#1a1a1a]', 'bg-[#262626]', 'bg-[#1a1a1a]', 'bg-[#0d0d0d]'].map((color, i) => (
             <div
               key={i}
-              className="relative w-[140px] h-[140px] sm:w-[160px] sm:h-[160px] md:w-[180px] md:h-[180px] lg:w-[220px] lg:h-[220px]"
-            >
-              <Image
-                src={logo.src}
-                alt={logo.name}
-                fill
-                className="object-cover"
-                sizes="(max-width: 640px) 140px, (max-width: 768px) 160px, (max-width: 1024px) 180px, 220px"
-              />
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  )
-}
-
-// ─── New Collections Carousel ─────────────────────────────────────────────────
-
-function NewCollectionsSection() {
-  const scrollRef = useRef<HTMLDivElement>(null)
-  const [canScrollLeft, setCanScrollLeft] = useState(false)
-  const [canScrollRight, setCanScrollRight] = useState(true)
-  const [isInView, setIsInView] = useState(false)
-  const sectionRef = useRef<HTMLElement>(null)
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsInView(true)
-          observer.disconnect()
-        }
-      },
-      { threshold: 0.2 }
-    )
-    if (sectionRef.current) observer.observe(sectionRef.current)
-    return () => observer.disconnect()
-  }, [])
-
-  const checkScroll = () => {
-    if (!scrollRef.current) return
-    const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current
-    setCanScrollLeft(scrollLeft > 10)
-    setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10)
-  }
-
-  useEffect(() => {
-    const el = scrollRef.current
-    if (!el) return
-    el.addEventListener('scroll', checkScroll)
-    checkScroll()
-    return () => el.removeEventListener('scroll', checkScroll)
-  }, [])
-
-  const scroll = (direction: 'left' | 'right') => {
-    if (!scrollRef.current) return
-    const scrollAmount = scrollRef.current.clientWidth * 0.6
-    scrollRef.current.scrollBy({
-      left: direction === 'left' ? -scrollAmount : scrollAmount,
-      behavior: 'smooth'
-    })
-  }
-
-  return (
-    <section ref={sectionRef} className="py-24 lg:py-32 bg-white">
-      {/* Header */}
-      <div className="max-w-[1800px] mx-auto px-6 lg:px-16 mb-12">
-        <div className="flex items-end justify-between">
-          <div>
-            <div className="overflow-hidden">
-              <h2 
-                className={cn(
-                  "text-2xl md:text-3xl lg:text-4xl tracking-[0.15em] uppercase font-light text-charcoal transition-all duration-700",
-                  isInView ? "translate-y-0 opacity-100" : "translate-y-full opacity-0"
-                )}
-              >
-                New Collections
-              </h2>
-            </div>
-          </div>
-          
-          {/* Navigation arrows */}
-          <div 
-            className={cn(
-              "flex items-center gap-3 transition-all duration-700 delay-300",
-              isInView ? "opacity-100" : "opacity-0"
-            )}
-          >
-            <button
-              onClick={() => scroll('left')}
-              disabled={!canScrollLeft}
-              className={cn(
-                "w-12 h-12 rounded-full border flex items-center justify-center transition-all duration-300",
-                canScrollLeft 
-                  ? "border-charcoal/20 text-charcoal hover:bg-charcoal hover:text-cream" 
-                  : "border-charcoal/10 text-charcoal/20 cursor-not-allowed"
-              )}
-              aria-label="Scroll left"
-            >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-              </svg>
-            </button>
-            <button
-              onClick={() => scroll('right')}
-              disabled={!canScrollRight}
-              className={cn(
-                "w-12 h-12 rounded-full border flex items-center justify-center transition-all duration-300",
-                canScrollRight 
-                  ? "border-charcoal/20 text-charcoal hover:bg-charcoal hover:text-cream" 
-                  : "border-charcoal/10 text-charcoal/20 cursor-not-allowed"
-              )}
-              aria-label="Scroll right"
-            >
-              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-              </svg>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Products carousel */}
-      <div 
-        ref={scrollRef}
-        className="flex gap-6 lg:gap-8 overflow-x-auto scrollbar-hide px-6 lg:px-16 pb-4"
-        style={{ 
-          scrollSnapType: 'x mandatory',
-          WebkitOverflowScrolling: 'touch',
-          scrollbarWidth: 'none',
-          msOverflowStyle: 'none'
-        }}
-      >
-        {NEW_COLLECTION_PRODUCTS.map((product, i) => (
-          <Link
-            href="/collection"
-            key={product.name}
-            className={cn(
-              "group flex-shrink-0 w-[280px] lg:w-[320px] transition-all duration-700",
-              isInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
-            )}
-            style={{ 
-              scrollSnapAlign: 'start',
-              transitionDelay: `${200 + i * 80}ms`
-            }}
-          >
-            <div className="relative aspect-[3/4] bg-[#F8F6F3] mb-4 overflow-hidden">
-              <Image
-                src={product.src}
-                alt={product.name}
-                fill
-                className="object-contain p-6 transition-transform duration-500 group-hover:scale-105"
-                sizes="320px"
-              />
-            </div>
-            <p className="text-sm tracking-[0.1em] text-charcoal/70 group-hover:text-charcoal transition-colors">
-              {product.name}
-            </p>
-          </Link>
-        ))}
-      </div>
-    </section>
-  )
-}
-
-// ─── Work section ─────────────────────────────────────────────────────────────
-
-function WorkSection() {
-  const [isInView, setIsInView] = useState(false)
-  const ref = useRef<HTMLElement>(null)
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsInView(true)
-          observer.disconnect()
-        }
-      },
-      { threshold: 0.1 }
-    )
-    if (ref.current) observer.observe(ref.current)
-    return () => observer.disconnect()
-  }, [])
-
-  return (
-    <section ref={ref} className="py-32 lg:py-48 px-6 lg:px-12 bg-cream">
-      <div className="max-w-7xl mx-auto">
-
-        {/* Section heading */}
-        <div className="mb-20">
-          <div className="overflow-hidden">
-            <p
-              className={cn(
-                'text-xs uppercase tracking-[0.3em] text-charcoal/50 mb-4 transition-all duration-700',
-                isInView
-                  ? 'translate-y-0 opacity-100'
-                  : 'translate-y-full opacity-0'
-              )}
-            >
-              Selected Work
-            </p>
-          </div>
-          {['Imagined. Refined.', 'Crafted.'].map((line, i) => (
-            <div key={line} className="overflow-hidden">
-              <h2
-                className={cn(
-                  'font-display text-3xl md:text-4xl lg:text-5xl tracking-[0.2em] font-light uppercase text-charcoal transition-all duration-700',
-                  isInView
-                    ? 'translate-y-0 opacity-100'
-                    : 'translate-y-full opacity-0'
-                )}
-                style={{ transitionDelay: `${(i + 1) * 100}ms` }}
-              >
-                {line}
-              </h2>
-            </div>
-          ))}
-        </div>
-
-        {/* Project grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 lg:gap-6">
-          {PORTFOLIO_PROJECTS.map((project, i) => (
-            <ProjectCard
-              key={project.title}
-              project={project}
-              index={i}
-              isInView={isInView}
-              isLarge={i === 0}
+              className={cn(color, i >= 3 ? 'hidden md:block' : '')}
             />
           ))}
         </div>
 
-        {/* CTA */}
-        <div className="overflow-hidden mt-16 text-center">
-          <Link
-            href="/gallery"
-            className={cn(
-              'inline-flex items-center gap-3 text-sm uppercase tracking-[0.2em] text-charcoal hover:text-charcoal/70 transition-all duration-700 group',
-              isInView
-                ? 'translate-y-0 opacity-100'
-                : 'translate-y-8 opacity-0'
-            )}
-            style={{ transitionDelay: '800ms' }}
-          >
-            View All Projects
-            <span className="w-8 h-px bg-charcoal group-hover:w-12 transition-all duration-300" />
-          </Link>
-        </div>
-      </div>
-    </section>
-  )
-}
-
-function ProjectCard({
-  project,
-  index,
-  isInView,
-  isLarge,
-}: {
-  project: (typeof PORTFOLIO_PROJECTS)[0]
-  index: number
-  isInView: boolean
-  isLarge: boolean
-}) {
-  const [isHovered, setIsHovered] = useState(false)
-
-  return (
-    <Link
-      href="/gallery"
-      className={cn(
-        'group relative block overflow-hidden transition-all duration-1000',
-        isLarge ? 'md:col-span-2 aspect-[2/1]' : 'aspect-[4/3]',
-        isInView
-          ? 'opacity-100 translate-y-0'
-          : 'opacity-0 translate-y-12'
-      )}
-      style={{ transitionDelay: `${300 + index * 150}ms` }}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-    >
-      <Image
-        src={project.image}
-        alt={project.title}
-        fill
-        // FIX: sizes prop — tells Next.js the render size at each breakpoint
-        sizes={
-          isLarge
-            ? '(max-width: 768px) 100vw, 100vw'
-            : '(max-width: 768px) 100vw, 50vw'
-        }
-        className="object-cover transition-transform duration-700 group-hover:scale-105"
-      />
-      <div className="absolute inset-0 bg-charcoal/0 group-hover:bg-charcoal/50 transition-colors duration-500" />
-      <div className="absolute inset-0 flex flex-col justify-end p-6 lg:p-8">
-        <div className="overflow-hidden">
-          <p
-            className={cn(
-              'text-xs uppercase tracking-[0.2em] text-cream/70 mb-2 transition-all duration-500',
-              isHovered
-                ? 'translate-y-0 opacity-100'
-                : 'translate-y-full opacity-0'
-            )}
-          >
-            {project.planner}
-          </p>
-        </div>
-        <div className="overflow-hidden">
-          <h3 className="font-display text-xl lg:text-2xl tracking-[0.2em] font-light uppercase text-cream">
-            {project.title.toUpperCase().split('').map((char, i) => (
+        {/* Content */}
+        <div className="relative z-10 text-center">
+          {/* Wordmark */}
+          <h1 className="font-display text-5xl md:text-7xl lg:text-8xl tracking-tight font-light italic text-cream mb-4 overflow-hidden normal-case">
+            {'Eclectic Hive'.split('').map((char, i) => (
               <span
                 key={i}
                 className={cn(
-                  'inline-block transition-all duration-500',
-                  isHovered
-                    ? 'translate-y-0 opacity-100'
-                    : 'translate-y-full opacity-0'
+                  'inline-block transition-all duration-700',
+                  loaded ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'
                 )}
-                style={{ transitionDelay: `${i * 30}ms` }}
+                style={{ transitionDelay: `${400 + i * 40}ms` }}
               >
                 {char === ' ' ? '\u00A0' : char}
               </span>
             ))}
-          </h3>
-        </div>
-      </div>
-    </Link>
-  )
-}
-
-// ─── Studio section ───────────────────────────────────────────────────────────
-
-function StudioSection() {
-  const [isInView, setIsInView] = useState(false)
-  const ref = useRef<HTMLElement>(null)
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsInView(true)
-          observer.disconnect()
-        }
-      },
-      { threshold: 0.2 }
-    )
-    if (ref.current) observer.observe(ref.current)
-    return () => observer.disconnect()
-  }, [])
-
-  return (
-    <section ref={ref} className="bg-charcoal text-cream">
-      <div className="grid grid-cols-1 lg:grid-cols-2">
-
-        {/* Image */}
-        <div
-          className={cn(
-            'relative aspect-square lg:aspect-auto lg:h-full min-h-[500px] overflow-hidden transition-opacity duration-1000',
-            isInView ? 'opacity-100' : 'opacity-0'
-          )}
-        >
-          <Image
-            src="https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/cfa4c553-1dd4-42dd-8576-0bc47ec25447/Eclectic+Hive-Carrie+King+Photographer-199.jpg"
-            alt="Eclectic Hive studio"
-            fill
-            sizes="(max-width: 1024px) 100vw, 50vw"
+          </h1>
+          
+          {/* Tagline */}
+          <p 
             className={cn(
-              'object-cover transition-transform duration-1000',
-              isInView ? 'scale-100' : 'scale-110'
+              'text-xs md:text-sm uppercase tracking-[0.4em] text-cream/50 transition-all duration-700',
+              loaded ? 'opacity-100' : 'opacity-0'
             )}
-          />
-        </div>
-
-        {/* Copy */}
-        <div className="flex items-center px-8 lg:px-16 xl:px-24 py-24 lg:py-32">
-          <div className="max-w-lg">
-            <div className="overflow-hidden">
-              <p
-                className={cn(
-                  'text-xs uppercase tracking-[0.3em] text-cream/50 mb-6 transition-all duration-700',
-                  isInView
-                    ? 'translate-y-0 opacity-100'
-                    : 'translate-y-full opacity-0'
-                )}
-                style={{ transitionDelay: '200ms' }}
-              >
-                The Studio
-              </p>
-            </div>
-
-            <h2 className="font-display text-3xl md:text-4xl tracking-[0.2em] font-light uppercase mb-8">
-              {['Two parts luxe,', 'one part regal.'].map((line, i) => (
-                <span key={i} className="overflow-hidden block">
-                  <span
-                    className={cn(
-                      'inline-block transition-all duration-700',
-                      isInView
-                        ? 'translate-y-0 opacity-100'
-                        : 'translate-y-full opacity-0'
-                    )}
-                    style={{ transitionDelay: `${300 + i * 150}ms` }}
-                  >
-                    {line}
-                  </span>
-                </span>
-              ))}
-            </h2>
-
-            <p
-              className={cn(
-                'text-cream/70 leading-relaxed mb-8 transition-all duration-700',
-                isInView
-                  ? 'translate-y-0 opacity-100'
-                  : 'translate-y-4 opacity-0'
-              )}
-              style={{ transitionDelay: '500ms' }}
-            >
-              We are a full-service design and production house, taking our
-              clients&apos; vision and molding that with our approach to
-              cinematic and art-forward design. Predominantly a destination
-              design house, traveling wherever our clients and projects
-              take us.
-            </p>
-
-            <div
-              className={cn(
-                'flex flex-wrap gap-6 transition-all duration-700',
-                isInView
-                  ? 'translate-y-0 opacity-100'
-                  : 'translate-y-4 opacity-0'
-              )}
-              style={{ transitionDelay: '700ms' }}
-            >
-              {[
-                { href: '/atelier', label: 'The Atelier' },
-                { href: '/collection', label: 'Signature Collection' },
-              ].map(({ href, label }) => (
-                <Link
-                  key={href}
-                  href={href}
-                  className="text-sm uppercase tracking-[0.2em] text-cream/70 hover:text-cream transition-colors relative group"
-                >
-                  {label}
-                  <span className="absolute -bottom-1 left-0 w-full h-px bg-cream/30 origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300" />
-                </Link>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-    </section>
-  )
-}
-
-// ─── Inquiry CTA ────────────��─────────────────────────────────────────────────
-
-function InquirySection() {
-  const [isInView, setIsInView] = useState(false)
-  const ref = useRef<HTMLElement>(null)
-
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsInView(true)
-          observer.disconnect()
-        }
-      },
-      { threshold: 0.3 }
-    )
-    if (ref.current) observer.observe(ref.current)
-    return () => observer.disconnect()
-  }, [])
-
-  return (
-    <section
-      ref={ref}
-      className="py-32 lg:py-48 px-6 lg:px-12 bg-cream"
-    >
-      <div className="max-w-4xl mx-auto text-center">
-        <h2 className="font-display text-3xl md:text-4xl lg:text-5xl tracking-[0.2em] font-light uppercase text-charcoal mb-8">
-          {"LET'S CREATE SOMETHING UNFORGETTABLE"
-            .split(' ')
-            .map((word, i) => (
-              <span
-                key={i}
-                className="overflow-hidden inline-block mr-[0.25em]"
-              >
-                <span
-                  className={cn(
-                    'inline-block transition-all duration-700',
-                    isInView
-                      ? 'translate-y-0 opacity-100'
-                      : 'translate-y-full opacity-0'
-                  )}
-                  style={{ transitionDelay: `${i * 80}ms` }}
-                >
-                  {word}
-                </span>
-              </span>
-            ))}
-        </h2>
-
-        <div className="overflow-hidden">
-          <p
-            className={cn(
-              'text-charcoal/60 max-w-xl mx-auto mb-12 transition-all duration-700',
-              isInView
-                ? 'translate-y-0 opacity-100'
-                : 'translate-y-full opacity-0'
-            )}
-            style={{ transitionDelay: '400ms' }}
+            style={{ transitionDelay: '1000ms' }}
           >
-            Whether you&apos;re a planner with a vision or a couple
-            dreaming of the impossible, we&apos;d love to hear from you.
+            Design + Production
           </p>
         </div>
 
-        <div className="overflow-hidden">
+        {/* Scroll indicator */}
+        <div 
+          className={cn(
+            'absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3 transition-all duration-700',
+            loaded ? 'opacity-100' : 'opacity-0'
+          )}
+          style={{ transitionDelay: '1200ms' }}
+        >
+          <span className="text-[10px] uppercase tracking-[0.3em] text-cream/40">Explore</span>
+          <div className="w-px h-12 bg-gradient-to-b from-cream/40 to-transparent" />
+        </div>
+      </section>
+
+      {/* Navigation Cards */}
+      <section className="bg-cream py-24 lg:py-32">
+        <div className="max-w-7xl mx-auto px-6 lg:px-12">
+          {/* Section label */}
+          <div className="flex items-center gap-4 mb-16">
+            <span className="w-12 h-px bg-charcoal/20" />
+            <p className="text-xs uppercase tracking-[0.3em] text-charcoal/50">Choose Your Experience</p>
+          </div>
+
+          {/* Cards grid */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+            {DESTINATIONS.map((dest, i) => (
+              <Link
+                key={dest.href}
+                href={dest.href}
+                className={cn(
+                  'group relative block transition-all duration-700',
+                  loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+                )}
+                style={{ transitionDelay: `${200 + i * 100}ms` }}
+                onMouseEnter={() => setHoveredIndex(i)}
+                onMouseLeave={() => setHoveredIndex(null)}
+              >
+                {/* Image */}
+                <div className="relative aspect-[4/5] overflow-hidden bg-sand mb-6">
+                  <Image
+                    src={dest.image}
+                    alt={dest.title}
+                    fill
+                    className={cn(
+                      'object-cover transition-all duration-700',
+                      hoveredIndex === i ? 'scale-105' : 'scale-100',
+                      dest.href === '/collection' ? 'object-contain p-8 bg-white' : ''
+                    )}
+                    sizes="(max-width: 768px) 100vw, 33vw"
+                  />
+                  <div className={cn(
+                    'absolute inset-0 bg-charcoal/0 transition-colors duration-500',
+                    hoveredIndex === i ? 'bg-charcoal/20' : ''
+                  )} />
+                </div>
+
+                {/* Text */}
+                <div className="space-y-2">
+                  <p className="text-xs uppercase tracking-[0.2em] text-charcoal/50">{dest.subtitle}</p>
+                  <h2 className="font-display text-2xl lg:text-3xl tracking-[0.15em] font-light uppercase text-charcoal">
+                    {dest.title}
+                  </h2>
+                  <p className="text-sm text-charcoal/60 leading-relaxed">{dest.description}</p>
+                </div>
+
+                {/* Arrow */}
+                <div className={cn(
+                  'mt-6 flex items-center gap-3 text-charcoal/50 transition-all duration-300',
+                  hoveredIndex === i ? 'text-charcoal' : ''
+                )}>
+                  <span className="text-xs uppercase tracking-[0.2em]">Explore</span>
+                  <span className={cn(
+                    'w-6 h-px bg-current transition-all duration-300',
+                    hoveredIndex === i ? 'w-10' : ''
+                  )} />
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Press Strip */}
+      <section className="py-16 lg:py-20" style={{ backgroundColor: '#D5CDC3' }}>
+        <div className="flex items-center gap-3 mb-10 px-6 lg:px-16">
+          <span className="w-6 h-px bg-charcoal/15" />
+          <p className="text-[10px] tracking-[0.35em] uppercase text-charcoal/35">As featured in</p>
+        </div>
+        
+        <div className="px-6 lg:px-16">
+          <div className="flex flex-wrap items-center justify-center gap-0">
+            {PRESS_LOGOS.map((logo, i) => (
+              <div
+                key={i}
+                className="relative w-[120px] h-[120px] sm:w-[140px] sm:h-[140px] md:w-[160px] md:h-[160px] lg:w-[180px] lg:h-[180px]"
+              >
+                <Image
+                  src={logo.src}
+                  alt={logo.name}
+                  fill
+                  className="object-cover"
+                  sizes="180px"
+                />
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Contact CTA */}
+      <section className="bg-charcoal py-24 lg:py-32">
+        <div className="max-w-4xl mx-auto px-6 text-center">
+          <h2 className="font-display text-3xl md:text-4xl lg:text-5xl tracking-[0.15em] font-light uppercase text-cream mb-6">
+            Let&apos;s Create Together
+          </h2>
+          <p className="text-cream/50 mb-10 max-w-xl mx-auto">
+            Two parts luxe, one part regal, and a dash of edge. Tell us about your vision.
+          </p>
           <Link
             href="/contact"
-            className={cn(
-              'inline-block px-10 py-4 bg-charcoal text-cream text-sm uppercase tracking-[0.2em] hover:bg-charcoal/90 transition-all duration-500',
-              isInView
-                ? 'translate-y-0 opacity-100'
-                : 'translate-y-8 opacity-0'
-            )}
-            style={{ transitionDelay: '500ms' }}
+            className="inline-block px-10 py-4 border border-cream/30 text-sm uppercase tracking-[0.25em] text-cream hover:bg-cream hover:text-charcoal transition-all duration-300"
           >
             Start a Conversation
           </Link>
         </div>
-      </div>
-    </section>
+      </section>
+
+      {/* Minimal Footer */}
+      <footer className="bg-charcoal border-t border-cream/10 py-8">
+        <div className="max-w-7xl mx-auto px-6 lg:px-12 flex flex-col md:flex-row items-center justify-between gap-4">
+          <p className="text-xs text-cream/30">Denver, Colorado</p>
+          <Link href="/" className="font-display text-lg tracking-tight font-light italic text-cream/50 hover:text-cream transition-colors">
+            Eclectic Hive
+          </Link>
+          <p className="text-xs text-cream/30">&copy; {new Date().getFullYear()}</p>
+        </div>
+      </footer>
+    </main>
   )
 }
