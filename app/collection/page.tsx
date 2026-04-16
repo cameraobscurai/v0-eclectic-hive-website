@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, lazy, Suspense } from 'react'
+import { useState, useEffect, lazy, Suspense } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Navigation } from '@/components/navigation'
@@ -10,7 +10,7 @@ import { cn } from '@/lib/utils'
 // Lazy load 3D viewer for performance
 const InlineProductViewer = lazy(() => import('@/components/product-viewer-3d').then(mod => ({ default: mod.InlineProductViewer })))
 
-// New Collections carousel data
+// New Collections carousel data - expanded with more real products
 const NEW_COLLECTION_PRODUCTS = [
   { name: 'GEORGIA Sconce', src: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/GEORGIA%2BSconce%2B1-rnc4CfwUpYrddyEN1oZ9B2AK5yhfyz.webp' },
   { name: 'CRESSIDA Table Lamp', src: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/CRESSIDA%2BTable%2BLamp-7vpkT2QzVYlThgDRVshSk3XOLY5ja7.webp' },
@@ -18,8 +18,17 @@ const NEW_COLLECTION_PRODUCTS = [
   { name: 'AGATHA Duo', src: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/AGATHA%2BDuo-KYMnfwMmh4lt6l8yfhY7AuLhem533g.webp' },
   { name: 'CONCRETA Wall Sconce', src: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/CONCRETA%2BWall%2BSconce%2B0-49NNZi7tHXTuGuSL9ieNtbgm24eKPZ.webp' },
   { name: 'CULETTA Marble Lamp', src: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/CULETTA%2BMarble%2BCab%2BLamp-wy4XnS6P7WgnkozWwyGLs9QO2FmtNx.webp' },
-  { name: 'ARIA Table Lamp', src: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ARIA%2BTable%2BLamp-nhvPNq5xsdfkljh.webp' },
-  { name: 'MELA Marble Tray', src: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/MELA%2BMarble%2BTray-yb94PsfTghj.webp' },
+  // More featured pieces from inventory
+  { name: 'BROOKLYN Charcoal Sofa', src: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/1603393192804-GCYSRGVJ8BJOCF3G6AKM/BROOKLYN_Sofa_0.png' },
+  { name: 'INDIWIN Leather Sofa', src: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/1603393201962-4E4HKZNINTLTPTQE7Z8O/INDIWIN_Sofa_0.png' },
+  { name: 'COMMODORE Loveseat', src: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/1603393196196-R3Y8R06K2J5WA1U60A7L/COMMODORE_Loveseat_0.png' },
+  { name: 'LINDT Sofa', src: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/1603393204231-W79P4V24URXTZREUL8H6/LINDT_Sofa_0.png' },
+  { name: 'ROWNTREE Loveseat', src: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/1603393208199-T1PV7YUR0DLMIF03FSXK/ROWNTREE_Loveseat_0.png' },
+  { name: 'TALON Sofa', src: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/1603393210705-JO0E30UY5SYVT0UISJBN/TALON_Sofa_0.png' },
+  { name: 'AMUN Chair', src: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/1603392532843-ZQLQ3KY0IOG0JUSD8KER/AMUN_Chair_0.png' },
+  { name: 'FAWN Chair', src: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/1603392541345-5CG504FJQ6OW32LXPNWB/FAWN_Chair_0.png' },
+  { name: 'POE Chair', src: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/1603392562230-MGXXYP0I9K9CXM2HEXR5/POE_Chair_0.png' },
+  { name: 'JESAMAY Chair', src: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/0bf81375-08dc-4f07-b967-998d4eb24c6a/JESAMAY+Chair+1.png' },
 ]
 
 // Categories
@@ -85,11 +94,7 @@ export default function CollectionPage() {
   const [loaded, setLoaded] = useState(false)
   const [active3DProduct, setActive3DProduct] = useState<string | null>(null)
   const [hero3DReady, setHero3DReady] = useState(false)
-  
-  // New Collections carousel scroll
-  const scrollRef = useRef<HTMLDivElement>(null)
-  const [canScrollLeft, setCanScrollLeft] = useState(false)
-  const [canScrollRight, setCanScrollRight] = useState(true)
+  const [carouselPaused, setCarouselPaused] = useState(false)
 
   useEffect(() => {
     setLoaded(true)
@@ -97,28 +102,6 @@ export default function CollectionPage() {
     const timer = setTimeout(() => setHero3DReady(true), 500)
     return () => clearTimeout(timer)
   }, [])
-  
-  // Track scroll position for carousel
-  const checkScroll = () => {
-    if (!scrollRef.current) return
-    const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current
-    setCanScrollLeft(scrollLeft > 10)
-    setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10)
-  }
-  
-  useEffect(() => {
-    const el = scrollRef.current
-    if (!el) return
-    el.addEventListener('scroll', checkScroll)
-    checkScroll()
-    return () => el.removeEventListener('scroll', checkScroll)
-  }, [])
-  
-  const scroll = (direction: 'left' | 'right') => {
-    if (!scrollRef.current) return
-    const scrollAmount = scrollRef.current.clientWidth * 0.6
-    scrollRef.current.scrollBy({ left: direction === 'left' ? -scrollAmount : scrollAmount, behavior: 'smooth' })
-  }
 
   const toggle3DView = (productName: string) => {
     setActive3DProduct(active3DProduct === productName ? null : productName)
@@ -175,67 +158,77 @@ export default function CollectionPage() {
       </section>
       
       {/* ─────────────────────────────────────────────────────────────
-          New Collections Strip
+          New Collections Strip - Infinite Loop
       ───────────────────────────────────────────────────────────── */}
-      <section className="py-8 bg-white border-y border-charcoal/5">
-        <div className="flex items-center justify-between px-6 lg:px-12 mb-6">
+      <section className="py-8 bg-white border-y border-charcoal/5 overflow-hidden">
+        <div className="px-6 lg:px-12 mb-6">
           <h2 className="text-xs uppercase tracking-[0.2em] text-charcoal/60">New Arrivals</h2>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => scroll('left')}
-              disabled={!canScrollLeft}
-              className={cn(
-                "w-8 h-8 rounded-full border flex items-center justify-center transition-all",
-                canScrollLeft ? "border-charcoal/20 text-charcoal hover:bg-charcoal hover:text-cream" : "border-charcoal/10 text-charcoal/20 cursor-not-allowed"
-              )}
-              aria-label="Scroll left"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-              </svg>
-            </button>
-            <button
-              onClick={() => scroll('right')}
-              disabled={!canScrollRight}
-              className={cn(
-                "w-8 h-8 rounded-full border flex items-center justify-center transition-all",
-                canScrollRight ? "border-charcoal/20 text-charcoal hover:bg-charcoal hover:text-cream" : "border-charcoal/10 text-charcoal/20 cursor-not-allowed"
-              )}
-              aria-label="Scroll right"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-              </svg>
-            </button>
-          </div>
         </div>
         
+        {/* Infinite scroll container */}
         <div 
-          ref={scrollRef}
-          className="flex gap-3 overflow-x-auto scrollbar-hide px-6 lg:px-12"
-          style={{ scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch' }}
+          className="relative group"
+          onMouseEnter={() => setCarouselPaused(true)}
+          onMouseLeave={() => setCarouselPaused(false)}
         >
-          {NEW_COLLECTION_PRODUCTS.map((product) => (
-            <button
-              key={product.name}
-              onClick={() => setActiveCategory('New Arrivals')}
-              className="group flex-shrink-0 w-[160px] lg:w-[180px] text-left"
-              style={{ scrollSnapAlign: 'start' }}
-            >
-              <div className="relative aspect-[3/4] bg-[#F8F6F3] mb-2 overflow-hidden">
-                <Image
-                  src={product.src}
-                  alt={product.name}
-                  fill
-                  className="object-contain p-4 transition-transform duration-500 group-hover:scale-105"
-                  sizes="180px"
-                />
-              </div>
-              <p className="text-[10px] tracking-[0.1em] text-charcoal/60 group-hover:text-charcoal transition-colors truncate">
-                {product.name}
-              </p>
-            </button>
-          ))}
+          {/* Gradient fade edges */}
+          <div className="absolute left-0 top-0 bottom-0 w-16 bg-gradient-to-r from-white to-transparent z-10 pointer-events-none" />
+          <div className="absolute right-0 top-0 bottom-0 w-16 bg-gradient-to-l from-white to-transparent z-10 pointer-events-none" />
+          
+          {/* Scrolling track - duplicated for seamless loop */}
+          <div 
+            className={cn(
+              "flex gap-3",
+              carouselPaused ? "animate-none" : "animate-scroll"
+            )}
+            style={{
+              width: 'max-content',
+              animationPlayState: carouselPaused ? 'paused' : 'running'
+            }}
+          >
+            {/* First set */}
+            {NEW_COLLECTION_PRODUCTS.map((product, i) => (
+              <button
+                key={`a-${i}`}
+                onClick={() => setActiveCategory('New Arrivals')}
+                className="group/item flex-shrink-0 w-[140px] lg:w-[160px] text-left"
+              >
+                <div className="relative aspect-[3/4] bg-[#F8F6F3] mb-2 overflow-hidden">
+                  <Image
+                    src={product.src}
+                    alt={product.name}
+                    fill
+                    className="object-contain p-3 transition-transform duration-500 group-hover/item:scale-105"
+                    sizes="160px"
+                  />
+                </div>
+                <p className="text-[9px] tracking-[0.1em] text-charcoal/50 group-hover/item:text-charcoal transition-colors truncate">
+                  {product.name}
+                </p>
+              </button>
+            ))}
+            {/* Duplicate set for seamless loop */}
+            {NEW_COLLECTION_PRODUCTS.map((product, i) => (
+              <button
+                key={`b-${i}`}
+                onClick={() => setActiveCategory('New Arrivals')}
+                className="group/item flex-shrink-0 w-[140px] lg:w-[160px] text-left"
+              >
+                <div className="relative aspect-[3/4] bg-[#F8F6F3] mb-2 overflow-hidden">
+                  <Image
+                    src={product.src}
+                    alt={product.name}
+                    fill
+                    className="object-contain p-3 transition-transform duration-500 group-hover/item:scale-105"
+                    sizes="160px"
+                  />
+                </div>
+                <p className="text-[9px] tracking-[0.1em] text-charcoal/50 group-hover/item:text-charcoal transition-colors truncate">
+                  {product.name}
+                </p>
+              </button>
+            ))}
+          </div>
         </div>
       </section>
       
