@@ -72,7 +72,7 @@ export function HeroSection() {
       <div className="relative z-10 flex h-full flex-col items-center justify-center text-cream px-6">
 
         {/* Wordmark — each letter drops in independently */}
-        <h1 className="font-display text-5xl md:text-7xl lg:text-9xl tracking-tight font-light italic mb-8 overflow-hidden">
+        <h1 className="font-display text-5xl md:text-7xl lg:text-9xl tracking-tight font-light italic mb-8 overflow-hidden normal-case">
           {'Eclectic Hive'.split('').map((char, i) => (
             <span
               key={i}
