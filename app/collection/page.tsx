@@ -432,12 +432,12 @@ export default function CollectionPage() {
                 )}
                 style={{ transitionDelay: `${delay}ms` }}
               >
-                {/* Image container - mix-blend-mode hides light backgrounds */}
-                <div className="aspect-square bg-[#D4D0CB] overflow-hidden flex items-center justify-center">
+                {/* Image container - simple, clean */}
+                <div className="aspect-square bg-[#D4D0CB] overflow-hidden">
                   <img
                     src={product.image}
                     alt={product.name}
-                    className="w-full h-full object-contain mix-blend-multiply"
+                    className="w-full h-full object-cover"
                     loading="lazy"
                   />
                 </div>
