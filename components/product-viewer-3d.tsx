@@ -131,6 +131,14 @@ function Scene({ modelUrl, onModelLoaded }: { modelUrl: string; onModelLoaded: (
 export function InlineProductViewer({ modelUrl, className = '' }: InlineProductViewerProps) {
   const [isLoaded, setIsLoaded] = useState(false)
   const [showContent, setShowContent] = useState(false)
+  const [canvasReady, setCanvasReady] = useState(false)
+  const containerRef = useRef<HTMLDivElement>(null)
+  
+  // Defer canvas mounting to avoid WebGL context issues during hydration
+  useEffect(() => {
+    const timer = setTimeout(() => setCanvasReady(true), 100)
+    return () => clearTimeout(timer)
+  }, [])
   
   // Fade in after model loads
   useEffect(() => {
@@ -145,34 +153,47 @@ export function InlineProductViewer({ modelUrl, className = '' }: InlineProductV
   }
 
   return (
-    <div className={cn("relative w-full h-full overflow-hidden", className)} style={{ backgroundColor: BG_COLOR }}>
+    <div ref={containerRef} className={cn("relative w-full h-full overflow-hidden", className)} style={{ backgroundColor: BG_COLOR }}>
       {/* Loading state */}
       {!isLoaded && <LoadingSpinner />}
       
-      {/* Canvas with fade-in animation */}
-      <div 
-        className={cn(
-          "absolute inset-0 transition-opacity duration-700 ease-out",
-          showContent ? "opacity-100" : "opacity-0"
-        )}
-      >
-        <Canvas
-          shadows
-          camera={{ position: [2.5, 1.5, 2.5], fov: 40 }}
-          className="w-full h-full"
-          gl={{ 
-            antialias: true,
-            toneMapping: THREE.ACESFilmicToneMapping,
-            toneMappingExposure: 1.2,
-            powerPreference: 'high-performance'
-          }}
-          dpr={[1, 2]}
+      {/* Canvas with fade-in animation - only mount after ready */}
+      {canvasReady && (
+        <div 
+          className={cn(
+            "absolute inset-0 transition-opacity duration-700 ease-out",
+            showContent ? "opacity-100" : "opacity-0"
+          )}
         >
-          <color attach="background" args={[BG_COLOR]} />
-          <fog attach="fog" args={[BG_COLOR, 10, 25]} />
-          <Scene modelUrl={modelUrl} onModelLoaded={handleModelLoaded} />
-        </Canvas>
-      </div>
+          <Canvas
+            shadows
+            camera={{ position: [2.5, 1.5, 2.5], fov: 40 }}
+            className="w-full h-full"
+            gl={{ 
+              antialias: true,
+              toneMapping: THREE.ACESFilmicToneMapping,
+              toneMappingExposure: 1.2,
+              powerPreference: 'high-performance',
+              preserveDrawingBuffer: true
+            }}
+            dpr={[1, 1.5]}
+            onCreated={({ gl }) => {
+              // Handle context loss gracefully
+              gl.domElement.addEventListener('webglcontextlost', (e) => {
+                e.preventDefault()
+                console.log('[v0] WebGL context lost, will restore')
+              })
+              gl.domElement.addEventListener('webglcontextrestored', () => {
+                console.log('[v0] WebGL context restored')
+              })
+            }}
+          >
+            <color attach="background" args={[BG_COLOR]} />
+            <fog attach="fog" args={[BG_COLOR, 10, 25]} />
+            <Scene modelUrl={modelUrl} onModelLoaded={handleModelLoaded} />
+          </Canvas>
+        </div>
+      )}
       
       {/* Interaction hint - only show after loaded */}
       <div 
