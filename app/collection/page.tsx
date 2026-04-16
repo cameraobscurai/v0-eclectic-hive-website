@@ -191,7 +191,7 @@ export default function CollectionPage() {
         </div>
       </section>
       
-      {/* ────────────────────────────────────────────────────�����────────
+      {/* ────────────────────────────────────────────────────������────────
           Filter & Search Bar
       ───────────────────────────────────────────────────────────── */}
       <section className="py-4 px-6 lg:px-12 bg-cream border-y border-charcoal/10">
@@ -432,12 +432,13 @@ export default function CollectionPage() {
                 )}
                 style={{ transitionDelay: `${delay}ms` }}
               >
-                {/* Image container - matches Squarespace PNG background */}
-                <div className="aspect-square bg-[#D4D0CB] overflow-hidden flex items-center justify-center">
+                {/* Image container - transparent PNG with drop shadow */}
+                <div className="aspect-square bg-[#E8E4E0] overflow-hidden flex items-center justify-center p-4">
                   <img
-                    src={product.image}
+                    src={`/api/process-image?url=${encodeURIComponent(product.image)}`}
                     alt={product.name}
-                    className="w-full h-full object-contain"
+                    className="max-w-full max-h-full object-contain"
+                    style={{ filter: 'drop-shadow(0 6px 12px rgba(0,0,0,0.15))' }}
                     loading="lazy"
                   />
                 </div>
