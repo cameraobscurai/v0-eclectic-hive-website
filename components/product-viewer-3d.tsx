@@ -132,11 +132,12 @@ export function InlineProductViewer({ modelUrl, className = '' }: InlineProductV
   const [isLoaded, setIsLoaded] = useState(false)
   const [showContent, setShowContent] = useState(false)
   const [canvasReady, setCanvasReady] = useState(false)
+  const [hasError, setHasError] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
   
   // Defer canvas mounting to avoid WebGL context issues during hydration
   useEffect(() => {
-    const timer = setTimeout(() => setCanvasReady(true), 100)
+    const timer = setTimeout(() => setCanvasReady(true), 300)
     return () => clearTimeout(timer)
   }, [])
   
@@ -152,13 +153,29 @@ export function InlineProductViewer({ modelUrl, className = '' }: InlineProductV
     setIsLoaded(true)
   }
 
+  // Show fallback if WebGL fails
+  if (hasError) {
+    return (
+      <div className={cn("relative w-full h-full overflow-hidden flex items-center justify-center", className)} style={{ backgroundColor: BG_COLOR }}>
+        <div className="text-center p-8">
+          <div className="w-16 h-16 mx-auto mb-4 border border-charcoal/20 rounded-full flex items-center justify-center">
+            <svg className="w-8 h-8 text-charcoal/30" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M21 7.5l-2.25-1.313M21 7.5v2.25m0-2.25l-2.25 1.313M3 7.5l2.25-1.313M3 7.5l2.25 1.313M3 7.5v2.25m9 3l2.25-1.313M12 12.75l-2.25-1.313M12 12.75V15m0 6.75l2.25-1.313M12 21.75V19.5m0 2.25l-2.25-1.313m0-16.875L12 2.25l2.25 1.313M21 14.25v2.25l-2.25 1.313m-13.5 0L3 16.5v-2.25" />
+            </svg>
+          </div>
+          <p className="text-xs text-charcoal/50 uppercase tracking-[0.15em]">3D Preview Unavailable</p>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div ref={containerRef} className={cn("relative w-full h-full overflow-hidden", className)} style={{ backgroundColor: BG_COLOR }}>
       {/* Loading state */}
-      {!isLoaded && <LoadingSpinner />}
+      {!isLoaded && !hasError && <LoadingSpinner />}
       
       {/* Canvas with fade-in animation - only mount after ready */}
-      {canvasReady && (
+      {canvasReady && !hasError && (
         <div 
           className={cn(
             "absolute inset-0 transition-opacity duration-700 ease-out",
@@ -174,19 +191,17 @@ export function InlineProductViewer({ modelUrl, className = '' }: InlineProductV
               toneMapping: THREE.ACESFilmicToneMapping,
               toneMappingExposure: 1.2,
               powerPreference: 'high-performance',
-              preserveDrawingBuffer: true
+              preserveDrawingBuffer: true,
+              failIfMajorPerformanceCaveat: false
             }}
             dpr={[1, 1.5]}
             onCreated={({ gl }) => {
-              // Handle context loss gracefully
               gl.domElement.addEventListener('webglcontextlost', (e) => {
                 e.preventDefault()
-                console.log('[v0] WebGL context lost, will restore')
-              })
-              gl.domElement.addEventListener('webglcontextrestored', () => {
-                console.log('[v0] WebGL context restored')
+                setHasError(true)
               })
             }}
+            onError={() => setHasError(true)}
           >
             <color attach="background" args={[BG_COLOR]} />
             <fog attach="fog" args={[BG_COLOR, 10, 25]} />
