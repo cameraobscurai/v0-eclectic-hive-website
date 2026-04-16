@@ -12,8 +12,8 @@ const InlineProductViewer = lazy(() =>
   import('@/components/product-viewer-3d').then(mod => ({ default: mod.InlineProductViewer }))
 )
 
-// 3D Models available
-const HERO_MODEL = 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/lindt_sofa-UVDdyUrLv6B2aJXqMx4xqVwcvv1TBw.glb'
+// 3D Model - using the working model from the project
+const HERO_MODEL = 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/04c9d9d2b5314e5a-8y7OUV6nPxO85ZCzkdZjwpAlALyBeF.glb'
 
 export default function CollectionPage() {
   const [activeCategory, setActiveCategory] = useState<Category>('All')
