@@ -1,18 +1,34 @@
 'use client'
 
-import { useState, useCallback } from 'react'
+import { useState, useCallback, useEffect } from 'react'
 import { cn } from '@/lib/utils'
 
 const CATEGORIES = ['seating', 'tables', 'lighting', 'decor'] as const
 type Category = typeof CATEGORIES[number]
+
+type UploadedFile = { name: string; url: string; pathname: string }
+type BlobInfo = { pathname: string; url: string; uploadedAt: string }
 
 export default function UploadPage() {
   const [category, setCategory] = useState<Category>('seating')
   const [files, setFiles] = useState<File[]>([])
   const [uploading, setUploading] = useState(false)
   const [progress, setProgress] = useState(0)
-  const [results, setResults] = useState<{ name: string; url: string }[]>([])
+  const [results, setResults] = useState<UploadedFile[]>([])
   const [error, setError] = useState<string | null>(null)
+  const [existingFiles, setExistingFiles] = useState<Record<string, BlobInfo[]>>({})
+  const [loadingExisting, setLoadingExisting] = useState(true)
+
+  // Load existing files on mount
+  useEffect(() => {
+    fetch('/api/upload-inventory')
+      .then(res => res.json())
+      .then(data => {
+        setExistingFiles(data.byCategory || {})
+        setLoadingExisting(false)
+      })
+      .catch(() => setLoadingExisting(false))
+  }, [results])
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault()
@@ -211,7 +227,11 @@ export default function UploadPage() {
             <div className="grid grid-cols-4 gap-2">
               {results.slice(0, 20).map((r, i) => (
                 <div key={i} className="aspect-square bg-[#D4D0CB] overflow-hidden">
-                  <img src={r.url} alt={r.name} className="w-full h-full object-contain" />
+                  <img 
+                    src={`/api/inventory-image?pathname=${encodeURIComponent(r.pathname)}`} 
+                    alt={r.name} 
+                    className="w-full h-full object-contain" 
+                  />
                 </div>
               ))}
             </div>
@@ -222,6 +242,52 @@ export default function UploadPage() {
             )}
           </div>
         )}
+
+        {/* Existing Files in Blob */}
+        <div className="mt-12 pt-8 border-t border-charcoal/10">
+          <h2 className="font-display text-xl tracking-[0.1em] text-charcoal mb-6">
+            Stored in Blob
+          </h2>
+          
+          {loadingExisting ? (
+            <p className="text-sm text-charcoal/40">Loading...</p>
+          ) : (
+            <div className="space-y-8">
+              {CATEGORIES.map(cat => {
+                const catFiles = existingFiles[cat] || []
+                if (catFiles.length === 0) return null
+                
+                return (
+                  <div key={cat}>
+                    <h3 className="text-xs uppercase tracking-[0.15em] text-charcoal/60 mb-3">
+                      {cat} ({catFiles.length} images)
+                    </h3>
+                    <div className="grid grid-cols-6 gap-2">
+                      {catFiles.slice(0, 12).map((blob, i) => (
+                        <div key={i} className="aspect-square bg-[#D4D0CB] overflow-hidden">
+                          <img 
+                            src={`/api/inventory-image?pathname=${encodeURIComponent(blob.pathname)}`} 
+                            alt={blob.pathname.split('/').pop() || ''} 
+                            className="w-full h-full object-contain"
+                          />
+                        </div>
+                      ))}
+                    </div>
+                    {catFiles.length > 12 && (
+                      <p className="text-xs text-charcoal/40 mt-2">
+                        + {catFiles.length - 12} more
+                      </p>
+                    )}
+                  </div>
+                )
+              })}
+              
+              {Object.keys(existingFiles).length === 0 && (
+                <p className="text-sm text-charcoal/40">No images uploaded yet.</p>
+              )}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   )
