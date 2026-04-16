@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import Image from 'next/image'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 
@@ -29,20 +28,21 @@ export function WarehouseSection() {
     <section ref={ref} className="bg-cream py-24 lg:py-40">
       <div className="px-6 lg:px-12 max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-          {/* Image */}
+          {/* Image Placeholder */}
           <div 
             className={cn(
-              'relative aspect-[4/3] overflow-hidden transition-all duration-1000',
+              'relative aspect-[4/3] overflow-hidden transition-all duration-1000 bg-sand',
               isInView ? 'opacity-100 scale-100' : 'opacity-0 scale-105'
             )}
           >
-            <Image
-              src="https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/cfa4c553-1dd4-42dd-8576-0bc47ec25447/Eclectic+Hive-Carrie+King+Photographer-199.jpg"
-              alt="Eclectic Hive Warehouse"
-              fill
-              className="object-cover"
-              sizes="(max-width: 1024px) 100vw, 50vw"
-            />
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <div className="w-16 h-16 border border-charcoal/20 rounded-sm flex items-center justify-center mb-4">
+                <svg className="w-8 h-8 text-charcoal/30" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 21v-4.875c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125V21m0 0h4.5V3.545M12.75 21h7.5V10.75M2.25 21h1.5m18 0h-18M2.25 9l4.5-1.636M18.75 3l-1.5.545m0 6.205l3 1m1.5.5l-1.5-.5M6.75 7.364V3h-3v18m3-13.636l10.5-3.819" />
+                </svg>
+              </div>
+              <p className="text-xs uppercase tracking-[0.2em] text-charcoal/40">Warehouse</p>
+            </div>
           </div>
 
           {/* Content */}

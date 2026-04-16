@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
-import Image from 'next/image'
 import { cn } from '@/lib/utils'
 
 export function StudioSection() {
@@ -28,20 +27,21 @@ export function StudioSection() {
     <section ref={ref} className="bg-cream py-24 lg:py-40">
       <div className="px-6 lg:px-12 max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-          {/* Image */}
+          {/* Image Placeholder */}
           <div 
             className={cn(
-              'relative aspect-[4/3] overflow-hidden transition-all duration-1000',
+              'relative aspect-[4/3] overflow-hidden transition-all duration-1000 bg-sand',
               isInView ? 'opacity-100 scale-100' : 'opacity-0 scale-105'
             )}
           >
-            <Image
-              src="https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/cfa4c553-1dd4-42dd-8576-0bc47ec25447/Eclectic+Hive-Carrie+King+Photographer-199.jpg"
-              alt="Eclectic Hive Design Studio"
-              fill
-              className="object-cover"
-              sizes="(max-width: 1024px) 100vw, 50vw"
-            />
+            <div className="absolute inset-0 flex flex-col items-center justify-center">
+              <div className="w-16 h-16 border border-charcoal/20 rounded-sm flex items-center justify-center mb-4">
+                <svg className="w-8 h-8 text-charcoal/30" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" />
+                </svg>
+              </div>
+              <p className="text-xs uppercase tracking-[0.2em] text-charcoal/40">Design Studio</p>
+            </div>
           </div>
 
           {/* Content */}
