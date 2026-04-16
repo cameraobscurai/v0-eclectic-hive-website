@@ -415,9 +415,9 @@ export default function CollectionPage() {
       {/* ─────────────────────────────────────────────────────────────
           Product Grid
       ───────────────────────────────────────────────────────────── */}
-      <section className="px-6 lg:px-12 py-8">
+      <section className="px-5 lg:px-10 py-8 bg-cream">
         {filteredProducts.length > 0 ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-[2px]">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
             {filteredProducts.map((product, i) => (
               <div
                 key={`${product.name}-${i}`}
@@ -427,23 +427,28 @@ export default function CollectionPage() {
                 )}
                 style={{ transitionDelay: `${Math.min(i * 30, 300)}ms` }}
               >
-                {/* Image */}
-                <div className="relative aspect-square bg-[#E8E4DF] overflow-hidden">
-                  <Image
-                    src={product.image}
-                    alt={product.name}
-                    fill
-                    className="object-contain p-4 transition-transform duration-700 group-hover:scale-105"
-                    sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                  />
+                {/* Image container - products anchored at bottom with drop shadow */}
+                <div className="relative aspect-square bg-[#D5D0C9] overflow-hidden">
+                  {/* Product image - anchored at bottom */}
+                  <div className="absolute inset-x-0 bottom-0 h-[85%] flex items-end justify-center px-4 pb-4">
+                    <div className="relative w-full h-full">
+                      <Image
+                        src={product.image}
+                        alt={product.name}
+                        fill
+                        className="object-contain object-bottom transition-transform duration-700 group-hover:scale-105 drop-shadow-[0_8px_16px_rgba(0,0,0,0.15)]"
+                        sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                      />
+                    </div>
+                  </div>
                 </div>
                 
                 {/* Info */}
-                <div className="py-3">
-                  <h3 className="text-[11px] tracking-[0.1em] text-charcoal font-medium uppercase">
+                <div className="py-3 px-1">
+                  <h3 className="text-[11px] tracking-[0.1em] text-charcoal font-medium uppercase leading-tight">
                     {product.name}
                   </h3>
-                  <p className="text-[10px] tracking-[0.05em] text-charcoal/40 uppercase mt-0.5">
+                  <p className="text-[10px] tracking-[0.05em] text-charcoal/40 uppercase mt-1">
                     {product.category}
                   </p>
                 </div>
