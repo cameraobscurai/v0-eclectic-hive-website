@@ -432,14 +432,14 @@ export default function CollectionPage() {
                 )}
                 style={{ transitionDelay: `${delay}ms` }}
               >
-                {/* Image container - light taupe like reference */}
-                <div className="relative aspect-square bg-[#E5E1DC] overflow-hidden">
-                  <Image
+                {/* Image container - flexbox centers the image */}
+                <div className="aspect-square bg-[#E5E1DC] overflow-hidden flex items-center justify-center p-5">
+                  <img
                     src={product.image}
                     alt={product.name}
-                    fill
-                    className="object-contain p-5 transition-transform duration-700 group-hover:scale-105 [filter:drop-shadow(0_8px_20px_rgba(0,0,0,0.18))]"
-                    sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                    className="max-w-full max-h-full object-contain transition-transform duration-700 group-hover:scale-105"
+                    style={{ filter: 'drop-shadow(0 8px 20px rgba(0,0,0,0.18))' }}
+                    loading="lazy"
                   />
                 </div>
                 
