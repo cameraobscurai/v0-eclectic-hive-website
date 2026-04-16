@@ -137,14 +137,20 @@ export default function CollectionPage() {
   const [loaded, setLoaded] = useState(false)
   // Track which product has 3D view active (by name, or null for none)
   // Auto-activate first product with 3D model on load
-  const [active3DProduct, setActive3DProduct] = useState<string | null>(() => {
-    // Find the first product that has a 3D model
-    const firstWith3D = Object.keys(MODEL_3D_MAP)[0]
-    return firstWith3D || null
-  })
+  // Start with no 3D active - activate after component is fully mounted
+  const [active3DProduct, setActive3DProduct] = useState<string | null>(null)
 
   useEffect(() => {
     setLoaded(true)
+    
+    // Delay 3D viewer activation to avoid WebGL context issues during hydration
+    const firstWith3D = Object.keys(MODEL_3D_MAP)[0]
+    if (firstWith3D) {
+      const timer = setTimeout(() => {
+        setActive3DProduct(firstWith3D)
+      }, 800) // Wait for page animations to settle
+      return () => clearTimeout(timer)
+    }
   }, [])
 
   const toggle3DView = (productName: string) => {
