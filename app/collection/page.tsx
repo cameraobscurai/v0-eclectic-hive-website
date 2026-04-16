@@ -191,7 +191,7 @@ export default function CollectionPage() {
         </div>
       </section>
       
-      {/* ────────────────────────────────────────────────────���────────
+      {/* ────────────────────────────────────────────────────����────────
           Filter & Search Bar
       ───────────────────────────────────────────────────────────── */}
       <section className="py-4 px-6 lg:px-12 bg-cream border-y border-charcoal/10">
@@ -434,20 +434,13 @@ export default function CollectionPage() {
               >
                 {/* Image container - light taupe like reference */}
                 <div className="relative aspect-square bg-[#E5E1DC] overflow-hidden">
-                  <div className="absolute inset-0 p-5">
-                    <div 
-                      className="relative w-full h-full"
-                      style={{ filter: 'drop-shadow(0 8px 16px rgba(0,0,0,0.15))' }}
-                    >
-                      <Image
-                        src={product.image}
-                        alt={product.name}
-                        fill
-                        className="object-contain transition-transform duration-700 group-hover:scale-105"
-                        sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                      />
-                    </div>
-                  </div>
+                  <Image
+                    src={product.image}
+                    alt={product.name}
+                    fill
+                    className="object-contain p-5 transition-transform duration-700 group-hover:scale-105 [filter:drop-shadow(0_8px_20px_rgba(0,0,0,0.18))]"
+                    sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                  />
                 </div>
                 
                 {/* Info */}

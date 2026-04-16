@@ -181,15 +181,14 @@ export function InlineProductViewer({ modelUrl, className = '' }: InlineProductV
           )}
         >
           <Canvas
-            shadows
             camera={{ position: [2.5, 1.5, 2.5], fov: 40 }}
             className="w-full h-full"
             gl={{ 
               antialias: true,
               toneMapping: THREE.ACESFilmicToneMapping,
               toneMappingExposure: 1.2,
-              powerPreference: 'high-performance',
-              preserveDrawingBuffer: true,
+              powerPreference: 'low-power',
+              preserveDrawingBuffer: false,
               failIfMajorPerformanceCaveat: false
             }}
             dpr={[1, 1.5]}
