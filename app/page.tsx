@@ -2,29 +2,25 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { Navigation } from '@/components/navigation'
 import { cn } from '@/lib/utils'
 
-// Navigation destinations - edge to edge triptych
+// Navigation destinations
 const DESTINATIONS = [
   {
     href: '/atelier',
     label: 'Design + Fabrication',
     title: 'Atelier',
-    image: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/1710309793584-V7I937AO0B569QLUFQPA/Welcome+Party+Fireside.jpg',
   },
   {
     href: '/collection',
     label: 'Signature Inventory',
     title: 'Collection',
-    image: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/1710384808225-7LX3MKZOXMSOCNP9DIG8/Main+Banner8.jpg',
   },
   {
     href: '/gallery',
     label: 'Selected Work',
     title: 'Gallery',
-    image: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/2db573b8-41e3-4083-9bbb-8c1f0238705e/Reception+4.jpg',
   },
 ]
 
@@ -76,78 +72,67 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Triptych Navigation - Edge to edge, minimal gaps */}
-      <section className="bg-charcoal">
-        {/* Mobile: Stacked | Desktop: Three columns with 2px gaps */}
-        <div className="flex flex-col md:flex-row md:gap-[2px]">
-          {DESTINATIONS.map((dest, i) => (
-            <Link
-              key={dest.href}
-              href={dest.href}
-              className={cn(
-                'group relative flex-1 transition-all duration-700',
-                loaded ? 'opacity-100' : 'opacity-0'
-              )}
-              style={{ transitionDelay: `${600 + i * 150}ms` }}
-              onMouseEnter={() => setHoveredIndex(i)}
-              onMouseLeave={() => setHoveredIndex(null)}
-            >
-              {/* Image Container */}
-              <div className="relative h-[40vh] md:h-[50vh] overflow-hidden">
-                <Image
-                  src={dest.image}
-                  alt={dest.title}
-                  fill
-                  className={cn(
-                    'object-cover transition-all duration-700 ease-out',
-                    hoveredIndex === i ? 'scale-105' : 'scale-100'
-                  )}
-                  sizes="(max-width: 768px) 100vw, 33vw"
-                  priority={i < 3}
-                />
-                
-                {/* Overlay - darker on non-hovered, lighter on hover */}
+      {/* Navigation Cards - Glassmorphic buttons */}
+      <section className="bg-charcoal pb-24 lg:pb-32">
+        <div className="max-w-4xl mx-auto px-6">
+          {/* Three glassmorphic nav buttons */}
+          <div className="flex flex-col gap-4">
+            {DESTINATIONS.map((dest, i) => (
+              <Link
+                key={dest.href}
+                href={dest.href}
+                className={cn(
+                  'group relative transition-all duration-700',
+                  loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+                )}
+                style={{ transitionDelay: `${600 + i * 100}ms` }}
+                onMouseEnter={() => setHoveredIndex(i)}
+                onMouseLeave={() => setHoveredIndex(null)}
+              >
+                {/* Glassmorphic container */}
                 <div className={cn(
-                  'absolute inset-0 transition-all duration-500',
-                  hoveredIndex === null 
-                    ? 'bg-charcoal/40' 
-                    : hoveredIndex === i 
-                      ? 'bg-charcoal/20' 
-                      : 'bg-charcoal/60'
-                )} />
-
-                {/* Content - always visible, emphasized on hover */}
-                <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6">
-                  {/* Label */}
-                  <p className={cn(
-                    'text-[10px] uppercase tracking-[0.3em] mb-3 transition-all duration-300',
-                    hoveredIndex === i ? 'text-cream/70' : 'text-cream/40'
-                  )}>
-                    {dest.label}
-                  </p>
-                  
-                  {/* Title */}
-                  <h2 className={cn(
-                    'font-display text-3xl md:text-4xl lg:text-5xl tracking-[0.15em] font-light uppercase transition-all duration-300',
-                    hoveredIndex === i ? 'text-cream' : 'text-cream/80'
-                  )}>
-                    {dest.title}
-                  </h2>
-                  
-                  {/* Arrow indicator */}
-                  <div className={cn(
-                    'mt-6 flex items-center gap-2 transition-all duration-300',
-                    hoveredIndex === i ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
-                  )}>
-                    <span className="w-8 h-px bg-cream/60" />
-                    <svg className="w-4 h-4 text-cream/60" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-                    </svg>
+                  'relative py-8 px-8 md:py-10 md:px-12 border transition-all duration-300',
+                  'bg-white/[0.03] backdrop-blur-sm',
+                  hoveredIndex === i 
+                    ? 'border-cream/20 bg-white/[0.06]' 
+                    : 'border-cream/[0.08]'
+                )}>
+                  {/* Content row */}
+                  <div className="flex items-center justify-between">
+                    {/* Left: Title + Label */}
+                    <div className="flex flex-col md:flex-row md:items-baseline md:gap-6">
+                      <h2 className={cn(
+                        'font-display text-2xl md:text-3xl lg:text-4xl tracking-[0.15em] font-light uppercase transition-colors duration-300',
+                        hoveredIndex === i ? 'text-cream' : 'text-cream/70'
+                      )}>
+                        {dest.title}
+                      </h2>
+                      <p className={cn(
+                        'text-[10px] md:text-xs uppercase tracking-[0.25em] transition-colors duration-300 mt-1 md:mt-0',
+                        hoveredIndex === i ? 'text-cream/50' : 'text-cream/30'
+                      )}>
+                        {dest.label}
+                      </p>
+                    </div>
+                    
+                    {/* Right: Arrow */}
+                    <div className={cn(
+                      'flex items-center gap-3 transition-all duration-300',
+                      hoveredIndex === i ? 'opacity-100 translate-x-0' : 'opacity-40 -translate-x-2'
+                    )}>
+                      <span className={cn(
+                        'hidden md:block h-px bg-cream/40 transition-all duration-300',
+                        hoveredIndex === i ? 'w-12' : 'w-6'
+                      )} />
+                      <svg className="w-5 h-5 text-cream/60" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                      </svg>
+                    </div>
                   </div>
                 </div>
-              </div>
-            </Link>
-          ))}
+              </Link>
+            ))}
+          </div>
         </div>
       </section>
 
