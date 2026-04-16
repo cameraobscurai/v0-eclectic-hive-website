@@ -19,7 +19,7 @@ export async function POST(request: NextRequest) {
       const pathname = `inventory/${category}/${file.name}`
       
       const blob = await put(pathname, file, {
-        access: 'public',
+        access: 'private',
         addRandomSuffix: false, // Keep clean names for mapping to CSV
       })
       
