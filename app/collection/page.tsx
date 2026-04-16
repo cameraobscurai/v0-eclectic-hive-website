@@ -191,7 +191,7 @@ export default function CollectionPage() {
         </div>
       </section>
       
-      {/* ─────────────────────────────────────────────────────────────
+      {/* ────────────────────────────────────────────────────��────────
           Filter & Search Bar
       ───────────────────────────────────────────────────────────── */}
       <section className="py-4 px-6 lg:px-12 bg-cream border-y border-charcoal/10">
@@ -415,9 +415,9 @@ export default function CollectionPage() {
       {/* ─────────────────────────────────────────────────────────────
           Product Grid
       ───────────────────────────────────────────────────────────── */}
-      <section className="px-5 lg:px-10 py-8 bg-cream">
+      <section className="px-4 lg:px-6 py-6 bg-white">
         {filteredProducts.length > 0 ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-[3px]">
             {filteredProducts.map((product, i) => (
               <div
                 key={`${product.name}-${i}`}
@@ -427,28 +427,24 @@ export default function CollectionPage() {
                 )}
                 style={{ transitionDelay: `${Math.min(i * 30, 300)}ms` }}
               >
-                {/* Image container - products anchored at bottom with drop shadow */}
-                <div className="relative aspect-square bg-[#D5D0C9] overflow-hidden">
-                  {/* Product image - anchored at bottom */}
-                  <div className="absolute inset-x-0 bottom-0 h-[85%] flex items-end justify-center px-4 pb-4">
-                    <div className="relative w-full h-full">
-                      <Image
-                        src={product.image}
-                        alt={product.name}
-                        fill
-                        className="object-contain object-bottom transition-transform duration-700 group-hover:scale-105 drop-shadow-[0_8px_16px_rgba(0,0,0,0.15)]"
-                        sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                      />
-                    </div>
-                  </div>
+                {/* Image container - light taupe like reference */}
+                <div className="relative aspect-square bg-[#E5E1DC] overflow-hidden">
+                  <Image
+                    src={product.image}
+                    alt={product.name}
+                    fill
+                    className="object-contain p-6 transition-transform duration-700 group-hover:scale-105"
+                    sizes="(max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                    style={{ filter: 'drop-shadow(0 6px 12px rgba(0,0,0,0.12))' }}
+                  />
                 </div>
                 
                 {/* Info */}
-                <div className="py-3 px-1">
+                <div className="py-3">
                   <h3 className="text-[11px] tracking-[0.1em] text-charcoal font-medium uppercase leading-tight">
                     {product.name}
                   </h3>
-                  <p className="text-[10px] tracking-[0.05em] text-charcoal/40 uppercase mt-1">
+                  <p className="text-[10px] tracking-[0.05em] text-charcoal/40 uppercase mt-0.5">
                     {product.category}
                   </p>
                 </div>
