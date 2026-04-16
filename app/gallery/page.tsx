@@ -476,7 +476,7 @@ export default function GalleryPage() {
               <p className="text-cream/40 text-xs uppercase tracking-[0.3em] mb-4">
                 The Gallery
               </p>
-              <h1 className="font-display text-3xl md:text-4xl lg:text-5xl xl:text-6xl text-cream font-semibold uppercase tracking-[0.12em]">
+              <h1 className="font-display text-3xl md:text-4xl lg:text-5xl xl:text-6xl text-cream font-light uppercase tracking-[0.2em]">
                 {filteredProjects.length} Environments
               </h1>
             </div>
@@ -637,7 +637,7 @@ export default function GalleryPage() {
             <p className="text-cream/40 text-xs uppercase tracking-[0.3em] mb-6">
               Your Project
             </p>
-            <h2 className="font-display text-2xl md:text-3xl lg:text-4xl text-cream font-semibold uppercase tracking-[0.12em] leading-[1.15]">
+            <h2 className="font-display text-2xl md:text-3xl lg:text-4xl text-cream font-light uppercase tracking-[0.2em] leading-[1.15]">
               Ready to add your environment to our archive?
             </h2>
             <p className="mt-6 text-cream/50 leading-relaxed max-w-xl">

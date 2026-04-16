@@ -181,7 +181,7 @@ export default function CollectionPage() {
           </p>
           <h1 
             className={cn(
-              'font-display text-4xl md:text-5xl lg:text-6xl tracking-[0.12em] font-semibold uppercase text-charcoal transition-all duration-700',
+              'font-display text-4xl md:text-5xl lg:text-6xl tracking-[0.12em] font-light uppercase text-charcoal transition-all duration-700',
               loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
             )}
             style={{ transitionDelay: '100ms' }}
@@ -326,7 +326,7 @@ export default function CollectionPage() {
       {/* CTA */}
       <section className="px-6 lg:px-12 py-24 bg-charcoal text-cream">
         <div className="max-w-4xl mx-auto text-center">
-          <h2 className="font-display text-3xl md:text-4xl tracking-[0.12em] font-semibold uppercase mb-6">
+          <h2 className="font-display text-3xl md:text-4xl tracking-[0.12em] font-light uppercase mb-6">
             Looking For Something Specific?
           </h2>
           <p className="text-cream/60 mb-8 max-w-xl mx-auto">

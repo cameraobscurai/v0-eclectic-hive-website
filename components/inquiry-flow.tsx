@@ -36,7 +36,7 @@ const TOTAL_STEPS = 7
 
 function Question({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="font-display text-2xl md:text-3xl lg:text-4xl font-semibold uppercase tracking-[0.1em] text-charcoal mb-10 leading-tight text-balance">
+    <h2 className="font-display text-2xl md:text-3xl lg:text-4xl font-light uppercase tracking-[0.2em] text-charcoal mb-10 leading-tight text-balance">
       {children}
     </h2>
   )
@@ -284,7 +284,7 @@ export function InquiryFlow({ onSuccess }: { onSuccess?: () => void }) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center text-center px-6">
         <div className="w-px h-16 bg-charcoal/20 mb-12" />
-        <h2 className="font-display text-3xl md:text-4xl font-semibold uppercase tracking-[0.1em] text-charcoal mb-6">
+        <h2 className="font-display text-3xl md:text-4xl font-light uppercase tracking-[0.2em] text-charcoal mb-6">
           We&apos;ll Be In Touch
         </h2>
         <p className="text-charcoal/60 max-w-md mb-4">

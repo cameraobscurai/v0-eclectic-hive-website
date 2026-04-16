@@ -129,10 +129,10 @@
     @apply bg-background text-foreground;
   }
   
-  /* Brand typography - Saol Display: SEMIBOLD CAPS for titles */
+  /* Brand typography - Saol Display: LIGHT CAPS with wide tracking for titles */
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-display);
-    @apply tracking-[0.1em] font-semibold uppercase;
+    @apply tracking-[0.2em] font-light uppercase;
   }
   
   /* Smooth scrolling */

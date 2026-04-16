@@ -141,7 +141,7 @@ export default function StudioPage() {
             Design Studio
           </p>
           <h1 className={cn(
-            'font-display text-3xl md:text-4xl lg:text-5xl tracking-[0.1em] font-semibold uppercase text-charcoal transition-all duration-700',
+            'font-display text-3xl md:text-4xl lg:text-5xl tracking-[0.2em] font-light uppercase text-charcoal transition-all duration-700',
             loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
           )} style={{ transitionDelay: '100ms' }}>
             Style Guide Builder
