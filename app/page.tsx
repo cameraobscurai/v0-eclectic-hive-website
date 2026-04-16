@@ -74,15 +74,15 @@ export default function HomePage() {
 
       {/* Navigation Cards - Glassmorphic buttons */}
       <section className="bg-charcoal pb-24 lg:pb-32">
-        <div className="max-w-4xl mx-auto px-6">
-          {/* Three glassmorphic nav buttons */}
-          <div className="flex flex-col gap-4">
+        <div className="max-w-6xl mx-auto px-6">
+          {/* Mobile: stacked | Desktop: side by side */}
+          <div className="flex flex-col lg:flex-row gap-3 lg:gap-2">
             {DESTINATIONS.map((dest, i) => (
               <Link
                 key={dest.href}
                 href={dest.href}
                 className={cn(
-                  'group relative transition-all duration-700',
+                  'group relative flex-1 transition-all duration-700',
                   loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
                 )}
                 style={{ transitionDelay: `${600 + i * 100}ms` }}
@@ -91,40 +91,40 @@ export default function HomePage() {
               >
                 {/* Glassmorphic container */}
                 <div className={cn(
-                  'relative py-8 px-8 md:py-10 md:px-12 border transition-all duration-300',
+                  'relative h-full py-8 px-6 lg:py-12 lg:px-8 border transition-all duration-300',
                   'bg-white/[0.03] backdrop-blur-sm',
                   hoveredIndex === i 
                     ? 'border-cream/20 bg-white/[0.06]' 
                     : 'border-cream/[0.08]'
                 )}>
-                  {/* Content row */}
-                  <div className="flex items-center justify-between">
-                    {/* Left: Title + Label */}
-                    <div className="flex flex-col md:flex-row md:items-baseline md:gap-6">
+                  {/* Mobile: row layout | Desktop: centered column */}
+                  <div className="flex items-center justify-between lg:flex-col lg:items-center lg:justify-center lg:text-center lg:min-h-[140px]">
+                    {/* Title + Label */}
+                    <div className="lg:flex lg:flex-col lg:items-center">
                       <h2 className={cn(
-                        'font-display text-2xl md:text-3xl lg:text-4xl tracking-[0.15em] font-light uppercase transition-colors duration-300',
+                        'font-display text-2xl lg:text-3xl tracking-[0.15em] font-light uppercase transition-colors duration-300',
                         hoveredIndex === i ? 'text-cream' : 'text-cream/70'
                       )}>
                         {dest.title}
                       </h2>
                       <p className={cn(
-                        'text-[10px] md:text-xs uppercase tracking-[0.25em] transition-colors duration-300 mt-1 md:mt-0',
+                        'text-[10px] uppercase tracking-[0.2em] transition-colors duration-300 mt-1 lg:mt-3',
                         hoveredIndex === i ? 'text-cream/50' : 'text-cream/30'
                       )}>
                         {dest.label}
                       </p>
                     </div>
                     
-                    {/* Right: Arrow */}
+                    {/* Arrow - shows on mobile right side, desktop below text */}
                     <div className={cn(
-                      'flex items-center gap-3 transition-all duration-300',
-                      hoveredIndex === i ? 'opacity-100 translate-x-0' : 'opacity-40 -translate-x-2'
+                      'flex items-center gap-2 transition-all duration-300 lg:mt-6',
+                      hoveredIndex === i ? 'opacity-100' : 'opacity-40'
                     )}>
                       <span className={cn(
-                        'hidden md:block h-px bg-cream/40 transition-all duration-300',
-                        hoveredIndex === i ? 'w-12' : 'w-6'
+                        'h-px bg-cream/40 transition-all duration-300',
+                        hoveredIndex === i ? 'w-8' : 'w-4'
                       )} />
-                      <svg className="w-5 h-5 text-cream/60" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+                      <svg className="w-4 h-4 text-cream/60" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
                       </svg>
                     </div>
