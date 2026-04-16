@@ -374,7 +374,7 @@ function WorkSection() {
             <div key={line} className="overflow-hidden">
               <h2
                 className={cn(
-                  'font-display text-4xl md:text-5xl lg:text-6xl tracking-tight font-light italic text-charcoal transition-all duration-700',
+                  'font-display text-3xl md:text-4xl lg:text-5xl tracking-[0.12em] font-semibold uppercase text-charcoal transition-all duration-700',
                   isInView
                     ? 'translate-y-0 opacity-100'
                     : 'translate-y-full opacity-0'
@@ -475,8 +475,8 @@ function ProjectCard({
           </p>
         </div>
         <div className="overflow-hidden">
-          <h3 className="font-display text-2xl lg:text-3xl tracking-tight font-light italic text-cream">
-            {project.title.split('').map((char, i) => (
+          <h3 className="font-display text-xl lg:text-2xl tracking-[0.12em] font-semibold uppercase text-cream">
+            {project.title.toUpperCase().split('').map((char, i) => (
               <span
                 key={i}
                 className={cn(
@@ -557,7 +557,7 @@ function StudioSection() {
               </p>
             </div>
 
-            <h2 className="font-display text-4xl md:text-5xl tracking-tight font-light italic mb-8">
+            <h2 className="font-display text-3xl md:text-4xl tracking-[0.12em] font-semibold uppercase mb-8">
               {['Two parts luxe,', 'one part regal.'].map((line, i) => (
                 <span key={i} className="overflow-hidden block">
                   <span
@@ -647,8 +647,8 @@ function InquirySection() {
       className="py-32 lg:py-48 px-6 lg:px-12 bg-cream"
     >
       <div className="max-w-4xl mx-auto text-center">
-        <h2 className="font-display text-4xl md:text-5xl lg:text-6xl tracking-tight font-light italic text-charcoal mb-8">
-          {"Let's create something unforgettable"
+        <h2 className="font-display text-3xl md:text-4xl lg:text-5xl tracking-[0.12em] font-semibold uppercase text-charcoal mb-8">
+          {"LET'S CREATE SOMETHING UNFORGETTABLE"
             .split(' ')
             .map((word, i) => (
               <span

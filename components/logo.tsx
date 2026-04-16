@@ -92,7 +92,7 @@ export function NavLogo({ className, variant = 'dark' }: Omit<LogoProps, 'showTa
   return (
     <span 
       className={cn(
-        'font-display text-xl tracking-tight font-light italic',
+        'font-display text-lg tracking-[0.15em] font-semibold uppercase',
         color,
         className
       )}

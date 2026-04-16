@@ -20,8 +20,8 @@ export default function ContactPage() {
           <p className="text-xs uppercase tracking-[0.3em] text-charcoal/50 mb-4">
             Let&apos;s talk
           </p>
-          <h1 className="font-display text-5xl md:text-6xl lg:text-7xl tracking-tight font-light italic text-charcoal mb-6">
-            Start a conversation.
+          <h1 className="font-display text-4xl md:text-5xl lg:text-6xl tracking-[0.12em] font-semibold uppercase text-charcoal mb-6">
+            Start a Conversation
           </h1>
           <p className="text-charcoal/60 max-w-lg leading-relaxed">
             We review every inquiry personally. A few questions help us

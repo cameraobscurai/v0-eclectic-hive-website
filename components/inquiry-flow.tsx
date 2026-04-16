@@ -36,7 +36,7 @@ const TOTAL_STEPS = 7
 
 function Question({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="font-display text-3xl md:text-4xl lg:text-5xl font-light italic text-charcoal mb-10 leading-tight text-balance">
+    <h2 className="font-display text-2xl md:text-3xl lg:text-4xl font-semibold uppercase tracking-[0.1em] text-charcoal mb-10 leading-tight text-balance">
       {children}
     </h2>
   )
@@ -100,7 +100,7 @@ function LineInput({
       autoFocus={autoFocus}
       className={cn(
         'w-full bg-transparent border-b border-charcoal/30 pb-3',
-        'font-display text-2xl font-light italic text-charcoal placeholder:text-charcoal/30',
+        'font-display text-xl font-normal text-charcoal placeholder:text-charcoal/30',
         'focus:outline-none focus:border-charcoal transition-colors duration-300'
       )}
     />
@@ -284,8 +284,8 @@ export function InquiryFlow({ onSuccess }: { onSuccess?: () => void }) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center text-center px-6">
         <div className="w-px h-16 bg-charcoal/20 mb-12" />
-        <h2 className="font-display text-4xl md:text-5xl font-light italic text-charcoal mb-6">
-          We&apos;ll be in touch.
+        <h2 className="font-display text-3xl md:text-4xl font-semibold uppercase tracking-[0.1em] text-charcoal mb-6">
+          We&apos;ll Be In Touch
         </h2>
         <p className="text-charcoal/60 max-w-md mb-4">
           Thank you, {state.name.split(' ')[0]}. We review every inquiry

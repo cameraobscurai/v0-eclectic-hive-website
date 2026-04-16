@@ -149,7 +149,7 @@ export function Home3DShowcase() {
             </p>
             <h2 
               className={cn(
-                "font-display text-3xl md:text-4xl tracking-tight font-light italic text-charcoal transition-all duration-700 delay-100",
+                "font-display text-2xl md:text-3xl tracking-[0.12em] font-semibold uppercase text-charcoal transition-all duration-700 delay-100",
                 isInView ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
               )}
             >

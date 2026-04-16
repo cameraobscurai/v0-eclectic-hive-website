@@ -217,7 +217,7 @@ export function ProductViewer3D({
       <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-6 py-5">
         <div>
           <p className="text-[10px] uppercase tracking-[0.2em] text-charcoal/40 mb-1">3D Preview</p>
-          <h2 className="font-display text-xl tracking-tight font-light italic text-charcoal">
+          <h2 className="font-display text-lg tracking-[0.1em] font-semibold uppercase text-charcoal">
             {productName}
           </h2>
         </div>

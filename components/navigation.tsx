@@ -89,7 +89,7 @@ export function Navigation() {
           {/* Logo */}
           <Link href="/" className="relative group" aria-label="Eclectic Hive — home">
             <span className={cn(
-              "font-display text-xl tracking-tight font-light italic transition-colors duration-300",
+              "font-display text-lg tracking-[0.15em] font-semibold uppercase transition-colors duration-300",
               scrolled || !isLightPage ? 'text-cream' : 'text-charcoal'
             )}>
               Eclectic Hive
@@ -193,7 +193,7 @@ export function Navigation() {
               )}
               style={{ transitionDelay: isOpen ? '100ms' : '0ms' }}
             >
-              <span className="text-cream font-display text-4xl md:text-5xl tracking-tight font-light italic hover:text-sand transition-colors">
+              <span className="text-cream font-display text-3xl md:text-4xl tracking-[0.15em] font-semibold uppercase hover:text-sand transition-colors">
                 Home
               </span>
             </Link>
@@ -214,7 +214,7 @@ export function Navigation() {
               >
                 <span
                   className={cn(
-                    'font-display text-4xl md:text-5xl tracking-tight font-light italic transition-colors',
+                    'font-display text-3xl md:text-4xl tracking-[0.15em] font-semibold uppercase transition-colors',
                     pathname === link.href
                       ? 'text-cream'
                       : 'text-cream/70 hover:text-cream'

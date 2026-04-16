@@ -1,19 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import Image from 'next/image'
 import { cn } from '@/lib/utils'
-
-// TODO: Replace these with your own images uploaded to Vercel Blob.
-// Squarespace CDN hotlinking is fragile — migrate these before launch.
-// Upload: npx vercel blob upload image.jpg --token $BLOB_READ_WRITE_TOKEN
-const HERO_IMAGES = [
-  'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/1710309793584-V7I937AO0B569QLUFQPA/Welcome+Party+Fireside.jpg',
-  'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/1710309985795-PTFDFO4WGSM8T1VVYNJP/Beach+Day+Island.jpg',
-  'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/1710384808225-7LX3MKZOXMSOCNP9DIG8/Main+Banner8.jpg',
-  'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/705fc6dd-e54a-462b-b0ab-3c32792e9848/Ceremony.jpg',
-  'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/7a238894-ee5c-4c2b-8dbf-d9ce53adf674/Tent+Detail.jpg',
-]
 
 // Monochromatic charcoal shades — staggered so the wipe feels organic
 const BAR_COLORS = [
@@ -43,31 +31,18 @@ export function HeroSection() {
       className="relative h-screen w-full overflow-hidden bg-[#0d0d0d]"
       aria-label="Hero"
     >
-      {/* ── Background image grid ── */}
+      {/* ── Background - solid charcoal panels ── */}
       <div className="absolute inset-0 grid grid-cols-3 md:grid-cols-5">
-        {HERO_IMAGES.map((src, i) => (
+        {BAR_COLORS.map((color, i) => (
           <div
             key={i}
             className={cn(
-              'relative overflow-hidden',
+              color,
               i >= 3 ? 'hidden md:block' : ''
             )}
-          >
-            <Image
-              src={src}
-              alt=""
-              fill
-              sizes="(max-width: 768px) 33vw, 20vw"
-              className="object-cover"
-              priority={i < 3}
-            />
-            <div className="absolute inset-0 bg-charcoal/30" />
-          </div>
+          />
         ))}
       </div>
-
-      {/* Consistent overlay so text stays readable regardless of image content */}
-      <div className="absolute inset-0 bg-charcoal/20" aria-hidden="true" />
 
       {/* ── Wipe reveal bars ── */}
       {/* Each bar is a solid charcoal column that translates upward on load,
@@ -97,8 +72,8 @@ export function HeroSection() {
       <div className="relative z-10 flex h-full flex-col items-center justify-center text-cream px-6">
 
         {/* Wordmark — each letter drops in independently */}
-        <h1 className="font-display text-5xl md:text-7xl lg:text-9xl tracking-tight font-light italic mb-8 overflow-hidden">
-          {'Eclectic Hive'.split('').map((char, i) => (
+        <h1 className="font-display text-4xl md:text-6xl lg:text-8xl tracking-[0.15em] font-semibold uppercase mb-8 overflow-hidden">
+          {'ECLECTIC HIVE'.split('').map((char, i) => (
             <span
               key={i}
               className={cn(

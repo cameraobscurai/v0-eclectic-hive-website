@@ -12,8 +12,8 @@ export default function NotFound() {
           <p className="text-xs uppercase tracking-[0.3em] text-charcoal/50 mb-4">
             404
           </p>
-          <h1 className="font-display text-4xl md:text-5xl lg:text-6xl tracking-tight font-light italic text-charcoal mb-6">
-            Page not found
+          <h1 className="font-display text-3xl md:text-4xl lg:text-5xl tracking-[0.12em] font-semibold uppercase text-charcoal mb-6">
+            Page Not Found
           </h1>
           <p className="text-charcoal/60 mb-10">
             The page you&apos;re looking for doesn&apos;t exist or has been moved.
