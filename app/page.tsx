@@ -6,37 +6,24 @@ import Image from 'next/image'
 import { Navigation } from '@/components/navigation'
 import { cn } from '@/lib/utils'
 
-// Press logos
-const PRESS_LOGOS = [
-  { name: 'Elle', src: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Elle%2BLogo%2Bw%2B2-OVQNlm5PY1I9dKvM2JblVMgBvFfYj7.webp' },
-  { name: "Harper's Bazaar", src: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Bazaar%2BLogo%2BW-Y41iLCo3Nck09LLPlG974WK0B927jI.webp' },
-  { name: 'The Knot', src: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-h11ekHP7Chbg2IvGhPvl5IEqwDAW78.png' },
-  { name: 'Vogue', src: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Vogue%2Blogo%2Bw-NfImu5uR2feTV0gVZLpDgb3izl9xAO.webp' },
-  { name: 'Martha Stewart', src: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/MS%2Blogo%2Bw-qJWRNbqp0fnELXYBwPDut01f5GbAXE.webp' },
-  { name: 'Brides', src: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Brides%2Blogo%2BW-mt7R82vdgFSNJzMdkravKAHEO77igK.webp' },
-]
-
-// Navigation destinations
+// Navigation destinations - edge to edge triptych
 const DESTINATIONS = [
   {
     href: '/atelier',
+    label: 'Design + Fabrication',
     title: 'Atelier',
-    subtitle: 'Design + Fabrication',
-    description: 'Full-service event design from concept to installation',
     image: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/1710309793584-V7I937AO0B569QLUFQPA/Welcome+Party+Fireside.jpg',
   },
   {
     href: '/collection',
+    label: 'Signature Inventory',
     title: 'Collection',
-    subtitle: 'Signature Inventory',
-    description: 'Curated furniture and decor for exceptional events',
-    image: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/1603393204231-W79P4V24URXTZREUL8H6/LINDT_Sofa_0.png',
+    image: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/1710384808225-7LX3MKZOXMSOCNP9DIG8/Main+Banner8.jpg',
   },
   {
     href: '/gallery',
+    label: 'Selected Work',
     title: 'Gallery',
-    subtitle: 'Selected Work',
-    description: 'A portfolio of our most memorable collaborations',
     image: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/2db573b8-41e3-4083-9bbb-8c1f0238705e/Reception+4.jpg',
   },
 ]
@@ -54,16 +41,9 @@ export default function HomePage() {
       <Navigation />
       
       {/* Hero - Full viewport with centered logo */}
-      <section className="relative h-screen flex flex-col items-center justify-center px-6">
-        {/* Animated background panels */}
-        <div className="absolute inset-0 grid grid-cols-3 md:grid-cols-5">
-          {['bg-[#0d0d0d]', 'bg-[#1a1a1a]', 'bg-[#262626]', 'bg-[#1a1a1a]', 'bg-[#0d0d0d]'].map((color, i) => (
-            <div
-              key={i}
-              className={cn(color, i >= 3 ? 'hidden md:block' : '')}
-            />
-          ))}
-        </div>
+      <section className="relative h-[60vh] md:h-[70vh] flex flex-col items-center justify-center">
+        {/* Subtle gradient background */}
+        <div className="absolute inset-0 bg-gradient-to-b from-charcoal via-[#1a1a1a] to-charcoal" />
 
         {/* Content */}
         <div className="relative z-10 text-center">
@@ -76,7 +56,7 @@ export default function HomePage() {
                   'inline-block transition-all duration-700',
                   loaded ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'
                 )}
-                style={{ transitionDelay: `${400 + i * 40}ms` }}
+                style={{ transitionDelay: `${300 + i * 35}ms` }}
               >
                 {char === ' ' ? '\u00A0' : char}
               </span>
@@ -86,149 +66,117 @@ export default function HomePage() {
           {/* Tagline */}
           <p 
             className={cn(
-              'text-xs md:text-sm uppercase tracking-[0.4em] text-cream/50 transition-all duration-700',
+              'text-xs md:text-sm uppercase tracking-[0.4em] text-cream/40 transition-all duration-700',
               loaded ? 'opacity-100' : 'opacity-0'
             )}
-            style={{ transitionDelay: '1000ms' }}
+            style={{ transitionDelay: '900ms' }}
           >
             Design + Production
           </p>
         </div>
-
-        {/* Scroll indicator */}
-        <div 
-          className={cn(
-            'absolute bottom-12 left-1/2 -translate-x-1/2 flex flex-col items-center gap-3 transition-all duration-700',
-            loaded ? 'opacity-100' : 'opacity-0'
-          )}
-          style={{ transitionDelay: '1200ms' }}
-        >
-          <span className="text-[10px] uppercase tracking-[0.3em] text-cream/40">Explore</span>
-          <div className="w-px h-12 bg-gradient-to-b from-cream/40 to-transparent" />
-        </div>
       </section>
 
-      {/* Navigation Cards */}
-      <section className="bg-cream py-24 lg:py-32">
-        <div className="max-w-7xl mx-auto px-6 lg:px-12">
-          {/* Section label */}
-          <div className="flex items-center gap-4 mb-16">
-            <span className="w-12 h-px bg-charcoal/20" />
-            <p className="text-xs uppercase tracking-[0.3em] text-charcoal/50">Choose Your Experience</p>
-          </div>
+      {/* Triptych Navigation - Edge to edge, minimal gaps */}
+      <section className="bg-charcoal">
+        {/* Mobile: Stacked | Desktop: Three columns with 2px gaps */}
+        <div className="flex flex-col md:flex-row md:gap-[2px]">
+          {DESTINATIONS.map((dest, i) => (
+            <Link
+              key={dest.href}
+              href={dest.href}
+              className={cn(
+                'group relative flex-1 transition-all duration-700',
+                loaded ? 'opacity-100' : 'opacity-0'
+              )}
+              style={{ transitionDelay: `${600 + i * 150}ms` }}
+              onMouseEnter={() => setHoveredIndex(i)}
+              onMouseLeave={() => setHoveredIndex(null)}
+            >
+              {/* Image Container */}
+              <div className="relative h-[40vh] md:h-[50vh] overflow-hidden">
+                <Image
+                  src={dest.image}
+                  alt={dest.title}
+                  fill
+                  className={cn(
+                    'object-cover transition-all duration-700 ease-out',
+                    hoveredIndex === i ? 'scale-105' : 'scale-100'
+                  )}
+                  sizes="(max-width: 768px) 100vw, 33vw"
+                  priority={i < 3}
+                />
+                
+                {/* Overlay - darker on non-hovered, lighter on hover */}
+                <div className={cn(
+                  'absolute inset-0 transition-all duration-500',
+                  hoveredIndex === null 
+                    ? 'bg-charcoal/40' 
+                    : hoveredIndex === i 
+                      ? 'bg-charcoal/20' 
+                      : 'bg-charcoal/60'
+                )} />
 
-          {/* Cards grid */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
-            {DESTINATIONS.map((dest, i) => (
-              <Link
-                key={dest.href}
-                href={dest.href}
-                className={cn(
-                  'group relative block transition-all duration-700',
-                  loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-                )}
-                style={{ transitionDelay: `${200 + i * 100}ms` }}
-                onMouseEnter={() => setHoveredIndex(i)}
-                onMouseLeave={() => setHoveredIndex(null)}
-              >
-                {/* Image */}
-                <div className="relative aspect-[4/5] overflow-hidden bg-sand mb-6">
-                  <Image
-                    src={dest.image}
-                    alt={dest.title}
-                    fill
-                    className={cn(
-                      'object-cover transition-all duration-700',
-                      hoveredIndex === i ? 'scale-105' : 'scale-100',
-                      dest.href === '/collection' ? 'object-contain p-8 bg-white' : ''
-                    )}
-                    sizes="(max-width: 768px) 100vw, 33vw"
-                  />
-                  <div className={cn(
-                    'absolute inset-0 bg-charcoal/0 transition-colors duration-500',
-                    hoveredIndex === i ? 'bg-charcoal/20' : ''
-                  )} />
-                </div>
-
-                {/* Text */}
-                <div className="space-y-2">
-                  <p className="text-xs uppercase tracking-[0.2em] text-charcoal/50">{dest.subtitle}</p>
-                  <h2 className="font-display text-2xl lg:text-3xl tracking-[0.15em] font-light uppercase text-charcoal">
+                {/* Content - always visible, emphasized on hover */}
+                <div className="absolute inset-0 flex flex-col items-center justify-center text-center p-6">
+                  {/* Label */}
+                  <p className={cn(
+                    'text-[10px] uppercase tracking-[0.3em] mb-3 transition-all duration-300',
+                    hoveredIndex === i ? 'text-cream/70' : 'text-cream/40'
+                  )}>
+                    {dest.label}
+                  </p>
+                  
+                  {/* Title */}
+                  <h2 className={cn(
+                    'font-display text-3xl md:text-4xl lg:text-5xl tracking-[0.15em] font-light uppercase transition-all duration-300',
+                    hoveredIndex === i ? 'text-cream' : 'text-cream/80'
+                  )}>
                     {dest.title}
                   </h2>
-                  <p className="text-sm text-charcoal/60 leading-relaxed">{dest.description}</p>
+                  
+                  {/* Arrow indicator */}
+                  <div className={cn(
+                    'mt-6 flex items-center gap-2 transition-all duration-300',
+                    hoveredIndex === i ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-2'
+                  )}>
+                    <span className="w-8 h-px bg-cream/60" />
+                    <svg className="w-4 h-4 text-cream/60" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                    </svg>
+                  </div>
                 </div>
-
-                {/* Arrow */}
-                <div className={cn(
-                  'mt-6 flex items-center gap-3 text-charcoal/50 transition-all duration-300',
-                  hoveredIndex === i ? 'text-charcoal' : ''
-                )}>
-                  <span className="text-xs uppercase tracking-[0.2em]">Explore</span>
-                  <span className={cn(
-                    'w-6 h-px bg-current transition-all duration-300',
-                    hoveredIndex === i ? 'w-10' : ''
-                  )} />
-                </div>
-              </Link>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Press Strip */}
-      <section className="py-16 lg:py-20" style={{ backgroundColor: '#D5CDC3' }}>
-        <div className="flex items-center gap-3 mb-10 px-6 lg:px-16">
-          <span className="w-6 h-px bg-charcoal/15" />
-          <p className="text-[10px] tracking-[0.35em] uppercase text-charcoal/35">As featured in</p>
-        </div>
-        
-        <div className="px-6 lg:px-16">
-          <div className="flex flex-wrap items-center justify-center gap-0">
-            {PRESS_LOGOS.map((logo, i) => (
-              <div
-                key={i}
-                className="relative w-[120px] h-[120px] sm:w-[140px] sm:h-[140px] md:w-[160px] md:h-[160px] lg:w-[180px] lg:h-[180px]"
-              >
-                <Image
-                  src={logo.src}
-                  alt={logo.name}
-                  fill
-                  className="object-cover"
-                  sizes="180px"
-                />
               </div>
-            ))}
-          </div>
+            </Link>
+          ))}
         </div>
       </section>
 
-      {/* Contact CTA */}
-      <section className="bg-charcoal py-24 lg:py-32">
-        <div className="max-w-4xl mx-auto px-6 text-center">
-          <h2 className="font-display text-3xl md:text-4xl lg:text-5xl tracking-[0.15em] font-light uppercase text-cream mb-6">
-            Let&apos;s Create Together
-          </h2>
-          <p className="text-cream/50 mb-10 max-w-xl mx-auto">
-            Two parts luxe, one part regal, and a dash of edge. Tell us about your vision.
+      {/* Contact CTA - Minimal */}
+      <section className="bg-cream py-20 lg:py-24">
+        <div className="max-w-3xl mx-auto px-6 text-center">
+          <p className="text-charcoal/40 text-sm mb-4 tracking-wide">
+            Two parts luxe, one part regal, and a dash of edge.
           </p>
           <Link
             href="/contact"
-            className="inline-block px-10 py-4 border border-cream/30 text-sm uppercase tracking-[0.25em] text-cream hover:bg-cream hover:text-charcoal transition-all duration-300"
+            className="inline-flex items-center gap-4 group"
           >
-            Start a Conversation
+            <span className="font-display text-2xl md:text-3xl tracking-[0.1em] font-light uppercase text-charcoal group-hover:text-charcoal/70 transition-colors">
+              Start a Conversation
+            </span>
+            <span className="w-8 h-px bg-charcoal/30 group-hover:w-12 transition-all duration-300" />
           </Link>
         </div>
       </section>
 
       {/* Minimal Footer */}
-      <footer className="bg-charcoal border-t border-cream/10 py-8">
-        <div className="max-w-7xl mx-auto px-6 lg:px-12 flex flex-col md:flex-row items-center justify-between gap-4">
-          <p className="text-xs text-cream/30">Denver, Colorado</p>
-          <Link href="/" className="font-display text-lg tracking-tight font-light italic text-cream/50 hover:text-cream transition-colors">
+      <footer className="bg-charcoal py-10">
+        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
+          <p className="text-xs text-cream/25 tracking-wide">Denver, Colorado</p>
+          <Link href="/" className="font-display text-xl tracking-tight font-light italic text-cream/40 hover:text-cream/70 transition-colors normal-case">
             Eclectic Hive
           </Link>
-          <p className="text-xs text-cream/30">&copy; {new Date().getFullYear()}</p>
+          <p className="text-xs text-cream/25">&copy; {new Date().getFullYear()}</p>
         </div>
       </footer>
     </main>

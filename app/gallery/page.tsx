@@ -168,6 +168,16 @@ const projects = [
 // Extract unique planners for filtering
 const allPlanners = ['All', ...Array.from(new Set(projects.map(p => p.planner)))]
 
+// Press logos - where their work has been featured
+const PRESS_LOGOS = [
+  { name: 'Elle', src: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Elle%2BLogo%2Bw%2B2-OVQNlm5PY1I9dKvM2JblVMgBvFfYj7.webp' },
+  { name: "Harper's Bazaar", src: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Bazaar%2BLogo%2BW-Y41iLCo3Nck09LLPlG974WK0B927jI.webp' },
+  { name: 'The Knot', src: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/image-h11ekHP7Chbg2IvGhPvl5IEqwDAW78.png' },
+  { name: 'Vogue', src: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Vogue%2Blogo%2Bw-NfImu5uR2feTV0gVZLpDgb3izl9xAO.webp' },
+  { name: 'Martha Stewart', src: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/MS%2Blogo%2Bw-qJWRNbqp0fnELXYBwPDut01f5GbAXE.webp' },
+  { name: 'Brides', src: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Brides%2Blogo%2BW-mt7R82vdgFSNJzMdkravKAHEO77igK.webp' },
+]
+
 // ─────────────────────────────────────────────────────────────
 // Project Card Component
 // ─────────────────────────────────────────────────────────────
@@ -654,6 +664,33 @@ export default function GalleryPage() {
                 <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
               </Link>
             </div>
+          </div>
+        </div>
+      </section>
+      
+      {/* ─────────────────────────────────────────────────────────────
+          As Featured In
+      ───────────────────────────────────────────────────────────── */}
+      <section className="py-16 border-t border-cream/10">
+        <div className="px-6 lg:px-12">
+          <p className="text-[10px] tracking-[0.35em] uppercase text-cream/30 text-center mb-10">
+            As Featured In
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-8 lg:gap-12">
+            {PRESS_LOGOS.map((logo, i) => (
+              <div
+                key={i}
+                className="relative w-20 h-8 md:w-24 md:h-10 opacity-40 hover:opacity-70 transition-opacity"
+              >
+                <Image
+                  src={logo.src}
+                  alt={logo.name}
+                  fill
+                  className="object-contain"
+                  sizes="100px"
+                />
+              </div>
+            ))}
           </div>
         </div>
       </section>
