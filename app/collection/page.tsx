@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, lazy, Suspense } from 'react'
+import { useState, useEffect, useRef, lazy, Suspense } from 'react'
 import Image from 'next/image'
 import Link from 'next/link'
 import { Navigation } from '@/components/navigation'
@@ -9,6 +9,18 @@ import { cn } from '@/lib/utils'
 
 // Lazy load 3D viewer for performance
 const InlineProductViewer = lazy(() => import('@/components/product-viewer-3d').then(mod => ({ default: mod.InlineProductViewer })))
+
+// New Collections carousel data
+const NEW_COLLECTION_PRODUCTS = [
+  { name: 'GEORGIA Sconce', src: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/GEORGIA%2BSconce%2B1-rnc4CfwUpYrddyEN1oZ9B2AK5yhfyz.webp' },
+  { name: 'CRESSIDA Table Lamp', src: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/CRESSIDA%2BTable%2BLamp-7vpkT2QzVYlThgDRVshSk3XOLY5ja7.webp' },
+  { name: 'JINA Duo', src: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/JINA%2BDuo-j7eLEUai1yqDNA6NSfIq4Nj5UJZoX4.webp' },
+  { name: 'AGATHA Duo', src: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/AGATHA%2BDuo-KYMnfwMmh4lt6l8yfhY7AuLhem533g.webp' },
+  { name: 'CONCRETA Wall Sconce', src: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/CONCRETA%2BWall%2BSconce%2B0-49NNZi7tHXTuGuSL9ieNtbgm24eKPZ.webp' },
+  { name: 'CULETTA Marble Lamp', src: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/CULETTA%2BMarble%2BCab%2BLamp-wy4XnS6P7WgnkozWwyGLs9QO2FmtNx.webp' },
+  { name: 'ARIA Table Lamp', src: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ARIA%2BTable%2BLamp-nhvPNq5xsdfkljh.webp' },
+  { name: 'MELA Marble Tray', src: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/MELA%2BMarble%2BTray-yb94PsfTghj.webp' },
+]
 
 // Categories
 const categories = ['All', 'Sofas & Loveseats', 'Chairs', 'Ottomans', 'Benches', 'New Arrivals'] as const
@@ -73,6 +85,11 @@ export default function CollectionPage() {
   const [loaded, setLoaded] = useState(false)
   const [active3DProduct, setActive3DProduct] = useState<string | null>(null)
   const [hero3DReady, setHero3DReady] = useState(false)
+  
+  // New Collections carousel scroll
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const [canScrollLeft, setCanScrollLeft] = useState(false)
+  const [canScrollRight, setCanScrollRight] = useState(true)
 
   useEffect(() => {
     setLoaded(true)
@@ -80,6 +97,28 @@ export default function CollectionPage() {
     const timer = setTimeout(() => setHero3DReady(true), 500)
     return () => clearTimeout(timer)
   }, [])
+  
+  // Track scroll position for carousel
+  const checkScroll = () => {
+    if (!scrollRef.current) return
+    const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current
+    setCanScrollLeft(scrollLeft > 10)
+    setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10)
+  }
+  
+  useEffect(() => {
+    const el = scrollRef.current
+    if (!el) return
+    el.addEventListener('scroll', checkScroll)
+    checkScroll()
+    return () => el.removeEventListener('scroll', checkScroll)
+  }, [])
+  
+  const scroll = (direction: 'left' | 'right') => {
+    if (!scrollRef.current) return
+    const scrollAmount = scrollRef.current.clientWidth * 0.6
+    scrollRef.current.scrollBy({ left: direction === 'left' ? -scrollAmount : scrollAmount, behavior: 'smooth' })
+  }
 
   const toggle3DView = (productName: string) => {
     setActive3DProduct(active3DProduct === productName ? null : productName)
@@ -132,6 +171,71 @@ export default function CollectionPage() {
               {FEATURED_3D.category}
             </p>
           </div>
+        </div>
+      </section>
+      
+      {/* ─────────────────────────────────────────────────────────────
+          New Collections Strip
+      ───────────────────────────────────────────────────────────── */}
+      <section className="py-8 bg-white border-y border-charcoal/5">
+        <div className="flex items-center justify-between px-6 lg:px-12 mb-6">
+          <h2 className="text-xs uppercase tracking-[0.2em] text-charcoal/60">New Arrivals</h2>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => scroll('left')}
+              disabled={!canScrollLeft}
+              className={cn(
+                "w-8 h-8 rounded-full border flex items-center justify-center transition-all",
+                canScrollLeft ? "border-charcoal/20 text-charcoal hover:bg-charcoal hover:text-cream" : "border-charcoal/10 text-charcoal/20 cursor-not-allowed"
+              )}
+              aria-label="Scroll left"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+              </svg>
+            </button>
+            <button
+              onClick={() => scroll('right')}
+              disabled={!canScrollRight}
+              className={cn(
+                "w-8 h-8 rounded-full border flex items-center justify-center transition-all",
+                canScrollRight ? "border-charcoal/20 text-charcoal hover:bg-charcoal hover:text-cream" : "border-charcoal/10 text-charcoal/20 cursor-not-allowed"
+              )}
+              aria-label="Scroll right"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+              </svg>
+            </button>
+          </div>
+        </div>
+        
+        <div 
+          ref={scrollRef}
+          className="flex gap-3 overflow-x-auto scrollbar-hide px-6 lg:px-12"
+          style={{ scrollSnapType: 'x mandatory', WebkitOverflowScrolling: 'touch' }}
+        >
+          {NEW_COLLECTION_PRODUCTS.map((product) => (
+            <button
+              key={product.name}
+              onClick={() => setActiveCategory('New Arrivals')}
+              className="group flex-shrink-0 w-[160px] lg:w-[180px] text-left"
+              style={{ scrollSnapAlign: 'start' }}
+            >
+              <div className="relative aspect-[3/4] bg-[#F8F6F3] mb-2 overflow-hidden">
+                <Image
+                  src={product.src}
+                  alt={product.name}
+                  fill
+                  className="object-contain p-4 transition-transform duration-500 group-hover:scale-105"
+                  sizes="180px"
+                />
+              </div>
+              <p className="text-[10px] tracking-[0.1em] text-charcoal/60 group-hover:text-charcoal transition-colors truncate">
+                {product.name}
+              </p>
+            </button>
+          ))}
         </div>
       </section>
       
@@ -252,7 +356,7 @@ export default function CollectionPage() {
       
       {/* ─────────────────────────────────────────────────────────────
           Minimal CTA
-      ───────────────────────────────────────────────────────────── */}
+      ───────────────────────────────────────────────────���───────── */}
       <section className="px-6 lg:px-12 py-16 border-t border-charcoal/10">
         <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
           <div>
