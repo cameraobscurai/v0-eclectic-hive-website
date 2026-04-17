@@ -472,12 +472,12 @@ export default function CollectionPage() {
                 )}
                 style={{ transitionDelay: `${delay}ms` }}
               >
-                {/* Image container - 90% size centered */}
-                <div className="aspect-square bg-white overflow-hidden flex items-center justify-center">
+                {/* Image container - full white bg, furniture scaled to 90% inside */}
+                <div className="aspect-square bg-white overflow-hidden flex items-center justify-center p-[5%]">
                   <img
                     src={getImageUrl(product)}
                     alt={product.name}
-                    className="w-[90%] h-[90%] object-contain"
+                    className="w-full h-full object-contain"
                     loading="lazy"
                   />
                 </div>
