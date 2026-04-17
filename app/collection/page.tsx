@@ -453,59 +453,58 @@ export default function CollectionPage() {
       </section>
       
       {/* ─────────────────────────────────────────────────────────────
-          Product Grid
+          Product Grid - Editorial Gallery Layout
       ───────────────────────────────────────────────────────────── */}
-      <section className="px-4 lg:px-6 py-6 bg-cream">
+      <section className="bg-[#E8E4E0]">
         {filteredProducts.length > 0 ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-px">
+          <div className="grid grid-cols-2 lg:grid-cols-4">
             {filteredProducts.map((product, i) => {
-              // Stagger by row (4 columns) for clean top-down reveal
+              // Stagger by row for clean top-down reveal
               const row = Math.floor(i / 4)
-              const delay = Math.min(row * 80, 400)
+              const delay = Math.min(row * 60, 300)
               
               return (
               <div
                 key={`${product.name}-${i}`}
                 className={cn(
-                  "group cursor-pointer transition-all duration-500 ease-out",
-                  loaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3"
+                  "group relative cursor-pointer transition-all duration-700 ease-out",
+                  loaded ? "opacity-100" : "opacity-0"
                 )}
                 style={{ transitionDelay: `${delay}ms` }}
               >
-                {/* Image container - normalized images from Blob have consistent padding */}
-                <div className="aspect-square bg-[#D4D0CB] overflow-hidden">
+                {/* Image container with consistent background */}
+                <div className="relative aspect-square bg-[#D4D0CB] overflow-hidden">
                   <img
                     src={getImageUrl(product)}
                     alt={product.name}
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-[1.03]"
                     loading="lazy"
                   />
-                </div>
-                
-                {/* Info */}
-                <div className="py-3">
-                  <h3 className="text-[11px] tracking-[0.1em] text-charcoal font-medium uppercase leading-tight">
-                    {product.name}
-                  </h3>
-                  <p className="text-[10px] tracking-[0.05em] text-charcoal/40 uppercase mt-0.5">
-                    {product.category}
-                  </p>
+                  
+                  {/* Hover overlay with info */}
+                  <div className="absolute inset-0 bg-charcoal/0 group-hover:bg-charcoal/60 transition-all duration-500 flex items-end justify-start p-6 opacity-0 group-hover:opacity-100">
+                    <div className="translate-y-4 group-hover:translate-y-0 transition-transform duration-500 ease-out">
+                      <h3 className="text-cream text-sm tracking-[0.05em] font-light leading-tight">
+                        {product.name}
+                      </h3>
+                      <p className="text-cream/60 text-[10px] tracking-[0.1em] uppercase mt-1">
+                        {product.category}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               </div>
               )
             })}
           </div>
         ) : (
-          <div className="py-20 text-center">
-            <p className="text-sm text-charcoal/50 mb-4">No pieces found matching your search.</p>
+          <div className="py-24 text-center bg-cream">
+            <p className="text-sm text-charcoal/40 mb-6">No pieces match your criteria</p>
             <button
-              onClick={() => {
-                setSearchQuery('')
-                setActiveCategory('All')
-              }}
-              className="text-xs uppercase tracking-[0.15em] text-charcoal underline underline-offset-4 hover:no-underline"
+              onClick={clearAllFilters}
+              className="px-6 py-2.5 border border-charcoal/20 text-xs uppercase tracking-[0.15em] text-charcoal hover:bg-charcoal hover:text-cream transition-all duration-300"
             >
-              Clear filters
+              Reset Filters
             </button>
           </div>
         )}
