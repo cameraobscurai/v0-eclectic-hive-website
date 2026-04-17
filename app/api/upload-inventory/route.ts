@@ -267,34 +267,45 @@ export async function POST(request: NextRequest) {
     const results = []
     
     for (const file of files) {
-      // Convert file to buffer
-      const arrayBuffer = await file.arrayBuffer()
-      const buffer = Buffer.from(arrayBuffer)
-      
-      // Normalize the image
-      let processedBuffer: Buffer
       try {
-        processedBuffer = await normalizeImage(buffer)
+        // Convert file to buffer
+        const arrayBuffer = await file.arrayBuffer()
+        const buffer = Buffer.from(arrayBuffer)
+        
+        // Normalize the image
+        let processedBuffer: Buffer
+        try {
+          processedBuffer = await normalizeImage(buffer)
+        } catch (err) {
+          console.error(`[v0] Failed to normalize ${file.name}:`, err)
+          // Fall back to original if normalization fails
+          processedBuffer = buffer
+        }
+        
+        // Store in category folder: inventory/seating/item-name.png
+        const pathname = `inventory/${category}/${file.name}`
+        
+        const blob = await put(pathname, processedBuffer, {
+          access: 'private',
+          addRandomSuffix: false, // Keep clean names for mapping to CSV
+          allowOverwrite: true,
+          contentType: 'image/png',
+        })
+        
+        results.push({
+          name: file.name,
+          url: blob.url,
+          pathname: blob.pathname,
+          success: true,
+        })
       } catch (err) {
-        console.error(`Failed to normalize ${file.name}:`, err)
-        // Fall back to original if normalization fails
-        processedBuffer = buffer
+        console.error(`[v0] Failed to upload ${file.name}:`, err)
+        results.push({
+          name: file.name,
+          success: false,
+          error: err instanceof Error ? err.message : 'Unknown error',
+        })
       }
-      
-      // Store in category folder: inventory/seating/item-name.png
-      const pathname = `inventory/${category}/${file.name}`
-      
-      const blob = await put(pathname, processedBuffer, {
-        access: 'private',
-        addRandomSuffix: false, // Keep clean names for mapping to CSV
-        contentType: 'image/png',
-      })
-      
-      results.push({
-        name: file.name,
-        url: blob.url,
-        pathname: blob.pathname,
-      })
     }
 
     return NextResponse.json({ 
