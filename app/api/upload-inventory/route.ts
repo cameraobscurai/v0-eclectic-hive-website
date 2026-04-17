@@ -2,14 +2,37 @@ import { put, list, del } from '@vercel/blob'
 import { type NextRequest, NextResponse } from 'next/server'
 import sharp from 'sharp'
 
-// Padding percentage to add around content (12% on each side = 24% total)
-const PADDING_PERCENT = 0.12
 // Target canvas size (square)
 const CANVAS_SIZE = 1200
 // Alpha threshold to detect content (0-255)
 const ALPHA_THRESHOLD = 10
 // Color difference threshold to detect background vs content
 const COLOR_DIFF_THRESHOLD = 30
+
+/**
+ * Smart sizing based on aspect ratio detection
+ * Wide items (sofas): 80% width
+ * Square items (chairs): 65%
+ * Tall items (stools): 70% height
+ * Minimum: 55% for small items
+ */
+function getTargetFillPercent(contentWidth: number, contentHeight: number): number {
+  const aspectRatio = contentWidth / contentHeight
+  
+  // Wide items (sofas, benches) - width > height * 1.5
+  if (aspectRatio > 1.5) {
+    return 0.80
+  }
+  
+  // Tall items (stools, floor lamps) - height > width * 1.3
+  if (aspectRatio < 0.77) {
+    return 0.70
+  }
+  
+  // Square-ish items (chairs, poufs)
+  // Larger items get slightly more fill, smaller get less
+  return 0.65
+}
 
 /**
  * Check if a pixel color is similar to the background color
@@ -128,39 +151,68 @@ async function normalizeImage(buffer: Buffer): Promise<Buffer> {
   const marginRatioX = marginX / info.width
   const marginRatioY = marginY / info.height
   
-  console.log('[v0] Content size:', { contentWidth, contentHeight, marginRatioX, marginRatioY })
+  // Determine optimal fill percentage based on aspect ratio
+  const aspectRatio = contentWidth / contentHeight
+  const fillPercent = getTargetFillPercent(contentWidth, contentHeight)
+  
+  console.log('[v0] Content analysis:', { 
+    contentWidth, 
+    contentHeight, 
+    aspectRatio: aspectRatio.toFixed(2),
+    fillPercent: `${(fillPercent * 100).toFixed(0)}%`
+  })
 
-  // ALWAYS enforce padding by scaling the entire original image
-  // This is simpler and more reliable than content extraction
-  const originalWidth = info.width
-  const originalHeight = info.height
-  const maxDimension = Math.max(originalWidth, originalHeight)
+  // Calculate target dimensions based on fill percentage
+  // For wide items, we size by width; for tall items, by height
+  let targetWidth: number
+  let targetHeight: number
   
-  // Target size for the image content (76% of canvas = 12% padding each side)
-  const targetSize = Math.floor(CANVAS_SIZE * (1 - PADDING_PERCENT * 2))
+  if (aspectRatio > 1) {
+    // Wide item - fit to width
+    targetWidth = Math.floor(CANVAS_SIZE * fillPercent)
+    targetHeight = Math.floor(targetWidth / aspectRatio)
+  } else {
+    // Tall or square item - fit to height
+    targetHeight = Math.floor(CANVAS_SIZE * fillPercent)
+    targetWidth = Math.floor(targetHeight * aspectRatio)
+  }
   
-  // Scale the entire image to fit in targetSize
-  const scale = targetSize / maxDimension
-  const scaledWidth = Math.round(originalWidth * scale)
-  const scaledHeight = Math.round(originalHeight * scale)
+  // Ensure minimum size (55% of canvas)
+  const minSize = Math.floor(CANVAS_SIZE * 0.55)
+  if (targetWidth < minSize && targetHeight < minSize) {
+    const smallScale = minSize / Math.max(contentWidth, contentHeight)
+    targetWidth = Math.floor(contentWidth * smallScale)
+    targetHeight = Math.floor(contentHeight * smallScale)
+  }
   
-  console.log('[v0] Scaling:', { originalWidth, originalHeight, targetSize, scale, scaledWidth, scaledHeight })
+  console.log('[v0] Target size:', { targetWidth, targetHeight })
   
-  // Resize the entire original image
-  const resized = await sharp(buffer)
+  // Extract just the content area and resize
+  const extracted = await sharp(buffer)
+    .extract({
+      left: minX,
+      top: minY,
+      width: contentWidth,
+      height: contentHeight,
+    })
     .resize({
-      width: scaledWidth,
-      height: scaledHeight,
+      width: targetWidth,
+      height: targetHeight,
       fit: 'contain',
-      background: { r: 212, g: 208, b: 203, alpha: 255 }, // Match canvas bg
+      background: { r: 212, g: 208, b: 203, alpha: 255 },
     })
     .toBuffer()
 
-  // Calculate position to center on canvas
-  const left = Math.floor((CANVAS_SIZE - scaledWidth) / 2)
-  const top = Math.floor((CANVAS_SIZE - scaledHeight) / 2)
+  // Get actual resized dimensions
+  const extractedMeta = await sharp(extracted).metadata()
+  const finalWidth = extractedMeta.width || targetWidth
+  const finalHeight = extractedMeta.height || targetHeight
   
-  console.log('[v0] Centering at:', { left, top })
+  // Calculate position to center on canvas
+  const left = Math.floor((CANVAS_SIZE - finalWidth) / 2)
+  const top = Math.floor((CANVAS_SIZE - finalHeight) / 2)
+  
+  console.log('[v0] Centering at:', { left, top, finalWidth, finalHeight })
 
   // Create final canvas with centered content
   // Use the taupe background color #D4D0CB
@@ -174,7 +226,7 @@ async function normalizeImage(buffer: Buffer): Promise<Buffer> {
   })
     .composite([
       {
-        input: resized,
+        input: extracted,
         left,
         top,
       },
