@@ -6,9 +6,9 @@ import Konva from 'konva'
 import { cn } from '@/lib/utils'
 
 // Canvas settings
-const CANVAS_SIZE = 600 // Display size
-const EXPORT_SIZE = 1200 // Export resolution
-const BG_COLOR = '#D4D0CB' // Taupe background
+const CANVAS_SIZE = 600
+const EXPORT_SIZE = 1200
+const BG_COLOR = '#D4D0CB'
 
 interface ImageEditorProps {
   imageUrl: string
@@ -17,7 +17,6 @@ interface ImageEditorProps {
   onClose: () => void
 }
 
-// Custom hook to load image for Konva
 function useKonvaImage(url: string): [HTMLImageElement | null, boolean] {
   const [image, setImage] = useState<HTMLImageElement | null>(null)
   const [loading, setLoading] = useState(true)
@@ -29,9 +28,7 @@ function useKonvaImage(url: string): [HTMLImageElement | null, boolean] {
       setImage(img)
       setLoading(false)
     }
-    img.onerror = () => {
-      setLoading(false)
-    }
+    img.onerror = () => setLoading(false)
     img.src = url
   }, [url])
 
@@ -45,34 +42,24 @@ export function ImageEditor({ imageUrl, pathname, onSave, onClose }: ImageEditor
   
   const [image, loading] = useKonvaImage(imageUrl)
   const [saving, setSaving] = useState(false)
-  const [scale, setScale] = useState(1)
   const [position, setPosition] = useState({ x: CANVAS_SIZE / 2, y: CANVAS_SIZE / 2 })
   const [imageScale, setImageScale] = useState({ x: 1, y: 1 })
   
-  // History for undo/redo
   const [history, setHistory] = useState<Array<{ position: typeof position; scale: typeof imageScale }>>([])
   const [historyIndex, setHistoryIndex] = useState(-1)
 
-  // Initialize image position and scale when loaded
   useEffect(() => {
     if (image && imageRef.current) {
-      const imgWidth = image.width
-      const imgHeight = image.height
-      const maxDim = Math.max(imgWidth, imgHeight)
-      
-      // Scale to fit 70% of canvas initially (leaves room for adjustments)
+      const maxDim = Math.max(image.width, image.height)
       const fitScale = (CANVAS_SIZE * 0.7) / maxDim
       
       setImageScale({ x: fitScale, y: fitScale })
       setPosition({ x: CANVAS_SIZE / 2, y: CANVAS_SIZE / 2 })
-      
-      // Save initial state to history
       setHistory([{ position: { x: CANVAS_SIZE / 2, y: CANVAS_SIZE / 2 }, scale: { x: fitScale, y: fitScale } }])
       setHistoryIndex(0)
     }
   }, [image])
 
-  // Attach transformer when image is ready
   useEffect(() => {
     if (imageRef.current && transformerRef.current) {
       transformerRef.current.nodes([imageRef.current])
@@ -80,28 +67,20 @@ export function ImageEditor({ imageUrl, pathname, onSave, onClose }: ImageEditor
     }
   }, [image])
 
-  // Save current state to history
   const saveToHistory = useCallback(() => {
     if (!imageRef.current) return
-    
     const node = imageRef.current
     const newState = {
       position: { x: node.x(), y: node.y() },
       scale: { x: node.scaleX(), y: node.scaleY() }
     }
-    
-    // Remove any future states if we're not at the end
     const newHistory = history.slice(0, historyIndex + 1)
     newHistory.push(newState)
-    
-    // Keep only last 20 states
     if (newHistory.length > 20) newHistory.shift()
-    
     setHistory(newHistory)
     setHistoryIndex(newHistory.length - 1)
   }, [history, historyIndex])
 
-  // Undo
   const undo = useCallback(() => {
     if (historyIndex > 0 && imageRef.current) {
       const prevState = history[historyIndex - 1]
@@ -113,7 +92,6 @@ export function ImageEditor({ imageUrl, pathname, onSave, onClose }: ImageEditor
     }
   }, [history, historyIndex])
 
-  // Redo
   const redo = useCallback(() => {
     if (historyIndex < history.length - 1 && imageRef.current) {
       const nextState = history[historyIndex + 1]
@@ -125,64 +103,36 @@ export function ImageEditor({ imageUrl, pathname, onSave, onClose }: ImageEditor
     }
   }, [history, historyIndex])
 
-  // Zoom controls
-  const handleZoom = (direction: 'in' | 'out') => {
-    const newScale = direction === 'in' ? scale * 1.2 : scale / 1.2
-    setScale(Math.max(0.5, Math.min(3, newScale)))
-  }
-
-  // Fit to canvas with specific padding
   const fitToCanvas = (padding: number) => {
     if (!image || !imageRef.current) return
-    
     const targetSize = CANVAS_SIZE * (1 - padding * 2)
     const maxDim = Math.max(image.width, image.height)
     const newScale = targetSize / maxDim
     
     imageRef.current.scale({ x: newScale, y: newScale })
     imageRef.current.position({ x: CANVAS_SIZE / 2, y: CANVAS_SIZE / 2 })
-    
     setImageScale({ x: newScale, y: newScale })
     setPosition({ x: CANVAS_SIZE / 2, y: CANVAS_SIZE / 2 })
     saveToHistory()
   }
 
-  // Reset to center
-  const resetPosition = () => {
-    if (!imageRef.current) return
-    imageRef.current.position({ x: CANVAS_SIZE / 2, y: CANVAS_SIZE / 2 })
-    setPosition({ x: CANVAS_SIZE / 2, y: CANVAS_SIZE / 2 })
-    saveToHistory()
-  }
-
-  // Export and save
   const handleSave = async () => {
     if (!stageRef.current) return
-    
     setSaving(true)
     
     try {
-      // Hide transformer for export
-      if (transformerRef.current) {
-        transformerRef.current.visible(false)
-      }
+      if (transformerRef.current) transformerRef.current.visible(false)
       
-      // Export at higher resolution
       const dataUrl = stageRef.current.toDataURL({
         pixelRatio: EXPORT_SIZE / CANVAS_SIZE,
         mimeType: 'image/png',
       })
       
-      // Show transformer again
-      if (transformerRef.current) {
-        transformerRef.current.visible(true)
-      }
+      if (transformerRef.current) transformerRef.current.visible(true)
       
-      // Convert data URL to blob
       const response = await fetch(dataUrl)
       const blob = await response.blob()
       
-      // Upload to Blob storage (overwrite)
       const formData = new FormData()
       formData.append('file', blob, pathname.split('/').pop() || 'image.png')
       formData.append('pathname', pathname)
@@ -193,24 +143,20 @@ export function ImageEditor({ imageUrl, pathname, onSave, onClose }: ImageEditor
       })
       
       if (!uploadRes.ok) throw new Error('Save failed')
-      
       onSave(pathname)
     } catch (err) {
       console.error('Save error:', err)
       alert('Failed to save image')
     }
-    
     setSaving(false)
   }
 
-  // Handle drag end
   const handleDragEnd = () => {
     if (!imageRef.current) return
     setPosition({ x: imageRef.current.x(), y: imageRef.current.y() })
     saveToHistory()
   }
 
-  // Handle transform end
   const handleTransformEnd = () => {
     if (!imageRef.current) return
     setImageScale({ x: imageRef.current.scaleX(), y: imageRef.current.scaleY() })
@@ -218,24 +164,17 @@ export function ImageEditor({ imageUrl, pathname, onSave, onClose }: ImageEditor
     saveToHistory()
   }
 
-  // Keyboard shortcuts
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape') {
-        onClose()
-      } else if (e.key === 'z' && (e.metaKey || e.ctrlKey)) {
-        if (e.shiftKey) {
-          redo()
-        } else {
-          undo()
-        }
+      if (e.key === 'Escape') onClose()
+      else if (e.key === 'z' && (e.metaKey || e.ctrlKey)) {
+        e.shiftKey ? redo() : undo()
         e.preventDefault()
       } else if (e.key === 's' && (e.metaKey || e.ctrlKey)) {
         e.preventDefault()
         handleSave()
       }
     }
-    
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [onClose, undo, redo])
@@ -243,58 +182,46 @@ export function ImageEditor({ imageUrl, pathname, onSave, onClose }: ImageEditor
   const filename = pathname.split('/').pop()?.replace('.png', '').replace(/-/g, ' ') || 'Image'
 
   return (
-    <div className="fixed inset-0 z-[100] bg-charcoal overflow-hidden flex flex-col">
-      {/* Header */}
-      <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
-        <div className="flex items-center gap-4">
-          <button
-            onClick={onClose}
-            className="text-cream/60 hover:text-cream transition-colors"
-          >
-            <svg className="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          </button>
-          <h2 className="font-display text-lg text-cream tracking-wide capitalize">
-            {filename}
-          </h2>
-        </div>
+    <div className="fixed inset-0 z-[100] bg-[#1a1a1a] overflow-hidden">
+      {/* Minimal floating header */}
+      <div className="absolute top-0 left-0 right-0 z-10 flex items-center justify-between px-6 py-4">
+        <button
+          onClick={onClose}
+          className="w-10 h-10 flex items-center justify-center rounded-full bg-white/5 hover:bg-white/10 backdrop-blur-sm transition-all"
+        >
+          <svg className="w-5 h-5 text-white/70" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
         
-        <div className="flex items-center gap-3">
-          <button
-            onClick={handleSave}
-            disabled={saving}
-            className={cn(
-              "px-5 py-2 text-xs uppercase tracking-[0.15em] transition-colors",
-              saving 
-                ? "bg-cream/20 text-cream/40 cursor-wait"
-                : "bg-cream text-charcoal hover:bg-cream/90"
-            )}
-          >
-            {saving ? 'Saving...' : 'Save'}
-          </button>
-        </div>
+        <p className="text-white/40 text-sm font-light tracking-wide capitalize">{filename}</p>
+        
+        <button
+          onClick={handleSave}
+          disabled={saving}
+          className={cn(
+            "px-5 py-2.5 rounded-full text-xs font-medium tracking-wide transition-all",
+            saving 
+              ? "bg-white/10 text-white/30"
+              : "bg-white text-[#1a1a1a] hover:bg-white/90 hover:scale-105"
+          )}
+        >
+          {saving ? 'Saving...' : 'Save'}
+        </button>
       </div>
 
-      {/* Main editor area */}
-      <div className="flex-1 flex min-h-0">
-        {/* Canvas */}
-        <div className="flex-1 flex items-center justify-center p-8 overflow-hidden min-w-0">
-          <div 
-            className="relative shadow-2xl"
-            style={{ 
-              transform: `scale(${scale})`,
-              transition: 'transform 0.2s ease-out'
-            }}
-          >
-            {loading ? (
-              <div 
-                className="flex items-center justify-center"
-                style={{ width: CANVAS_SIZE, height: CANVAS_SIZE, backgroundColor: BG_COLOR }}
-              >
-                <p className="text-charcoal/40 text-sm">Loading...</p>
-              </div>
-            ) : (
+      {/* Canvas - centered */}
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div className="relative">
+          {loading ? (
+            <div 
+              className="flex items-center justify-center rounded-lg"
+              style={{ width: CANVAS_SIZE, height: CANVAS_SIZE, backgroundColor: BG_COLOR }}
+            >
+              <div className="w-8 h-8 border-2 border-white/20 border-t-white/60 rounded-full animate-spin" />
+            </div>
+          ) : (
+            <div className="rounded-lg overflow-hidden shadow-2xl shadow-black/50">
               <Stage
                 ref={stageRef}
                 width={CANVAS_SIZE}
@@ -302,16 +229,8 @@ export function ImageEditor({ imageUrl, pathname, onSave, onClose }: ImageEditor
                 style={{ backgroundColor: BG_COLOR }}
               >
                 <Layer>
-                  {/* Background */}
-                  <Rect
-                    x={0}
-                    y={0}
-                    width={CANVAS_SIZE}
-                    height={CANVAS_SIZE}
-                    fill={BG_COLOR}
-                  />
+                  <Rect x={0} y={0} width={CANVAS_SIZE} height={CANVAS_SIZE} fill={BG_COLOR} />
                   
-                  {/* Image */}
                   {image && (
                     <KonvaImage
                       ref={imageRef}
@@ -328,167 +247,85 @@ export function ImageEditor({ imageUrl, pathname, onSave, onClose }: ImageEditor
                     />
                   )}
                   
-                  {/* Transformer */}
                   <Transformer
                     ref={transformerRef}
                     boundBoxFunc={(oldBox, newBox) => {
-                      // Limit minimum size
-                      if (newBox.width < 50 || newBox.height < 50) {
-                        return oldBox
-                      }
+                      if (newBox.width < 50 || newBox.height < 50) return oldBox
                       return newBox
                     }}
-                    anchorSize={12}
-                    anchorCornerRadius={2}
+                    anchorSize={10}
+                    anchorCornerRadius={5}
                     anchorFill="#fff"
-                    anchorStroke="#333"
-                    anchorStrokeWidth={1}
-                    borderStroke="#333"
+                    anchorStroke="transparent"
+                    anchorStrokeWidth={0}
+                    borderStroke="rgba(255,255,255,0.4)"
                     borderStrokeWidth={1}
-                    borderDash={[4, 4]}
+                    borderDash={[]}
                     rotateEnabled={false}
                     keepRatio={true}
+                    enabledAnchors={['top-left', 'top-right', 'bottom-left', 'bottom-right']}
                   />
                 </Layer>
               </Stage>
-            )}
-          </div>
+            </div>
+          )}
         </div>
+      </div>
 
-        {/* Controls sidebar */}
-        <div className="w-64 shrink-0 bg-charcoal border-l border-white/10 p-6 flex flex-col gap-6 overflow-y-auto">
-          {/* Zoom */}
-          <div>
-            <label className="block text-[10px] uppercase tracking-[0.2em] text-cream/40 mb-3">
-              Canvas Zoom
-            </label>
-            <div className="flex items-center gap-2">
-              <button
-                onClick={() => handleZoom('out')}
-                className="w-10 h-10 flex items-center justify-center border border-white/20 text-cream/60 hover:text-cream hover:border-white/40 transition-colors"
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M20 12H4" />
-                </svg>
-              </button>
-              <div className="flex-1 text-center text-sm text-cream/60">
-                {Math.round(scale * 100)}%
-              </div>
-              <button
-                onClick={() => handleZoom('in')}
-                className="w-10 h-10 flex items-center justify-center border border-white/20 text-cream/60 hover:text-cream hover:border-white/40 transition-colors"
-              >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-                </svg>
-              </button>
-            </div>
-          </div>
-
-          {/* Quick fit presets */}
-          <div>
-            <label className="block text-[10px] uppercase tracking-[0.2em] text-cream/40 mb-3">
-              Fit Presets
-            </label>
-            <div className="grid grid-cols-2 gap-2">
-              <button
-                onClick={() => fitToCanvas(0.05)}
-                className="px-3 py-2 border border-white/20 text-cream/60 text-xs hover:text-cream hover:border-white/40 transition-colors"
-              >
-                90%
-              </button>
-              <button
-                onClick={() => fitToCanvas(0.10)}
-                className="px-3 py-2 border border-white/20 text-cream/60 text-xs hover:text-cream hover:border-white/40 transition-colors"
-              >
-                80%
-              </button>
-              <button
-                onClick={() => fitToCanvas(0.15)}
-                className="px-3 py-2 border border-white/20 text-cream/60 text-xs hover:text-cream hover:border-white/40 transition-colors"
-              >
-                70%
-              </button>
-              <button
-                onClick={() => fitToCanvas(0.20)}
-                className="px-3 py-2 border border-white/20 text-cream/60 text-xs hover:text-cream hover:border-white/40 transition-colors"
-              >
-                60%
-              </button>
-            </div>
-          </div>
-
-          {/* Position controls */}
-          <div>
-            <label className="block text-[10px] uppercase tracking-[0.2em] text-cream/40 mb-3">
-              Position
-            </label>
+      {/* Floating bottom toolbar */}
+      <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-10">
+        <div className="flex items-center gap-1 px-2 py-2 rounded-full bg-white/5 backdrop-blur-xl border border-white/10">
+          {/* Fit presets */}
+          {[
+            { label: '90', padding: 0.05 },
+            { label: '80', padding: 0.10 },
+            { label: '70', padding: 0.15 },
+            { label: '60', padding: 0.20 },
+          ].map((preset) => (
             <button
-              onClick={resetPosition}
-              className="w-full px-3 py-2 border border-white/20 text-cream/60 text-xs hover:text-cream hover:border-white/40 transition-colors"
+              key={preset.label}
+              onClick={() => fitToCanvas(preset.padding)}
+              className="px-4 py-2 rounded-full text-xs text-white/60 hover:text-white hover:bg-white/10 transition-all"
             >
-              Center
+              {preset.label}%
             </button>
-          </div>
-
-          {/* History */}
-          <div>
-            <label className="block text-[10px] uppercase tracking-[0.2em] text-cream/40 mb-3">
-              History
-            </label>
-            <div className="flex gap-2">
-              <button
-                onClick={undo}
-                disabled={historyIndex <= 0}
-                className={cn(
-                  "flex-1 px-3 py-2 border text-xs transition-colors",
-                  historyIndex <= 0
-                    ? "border-white/10 text-cream/20 cursor-not-allowed"
-                    : "border-white/20 text-cream/60 hover:text-cream hover:border-white/40"
-                )}
-              >
-                Undo
-              </button>
-              <button
-                onClick={redo}
-                disabled={historyIndex >= history.length - 1}
-                className={cn(
-                  "flex-1 px-3 py-2 border text-xs transition-colors",
-                  historyIndex >= history.length - 1
-                    ? "border-white/10 text-cream/20 cursor-not-allowed"
-                    : "border-white/20 text-cream/60 hover:text-cream hover:border-white/40"
-                )}
-              >
-                Redo
-              </button>
-            </div>
-          </div>
-
-          {/* Keyboard shortcuts */}
-          <div className="mt-auto pt-6 border-t border-white/10">
-            <label className="block text-[10px] uppercase tracking-[0.2em] text-cream/40 mb-3">
-              Shortcuts
-            </label>
-            <div className="space-y-2 text-xs text-cream/40">
-              <div className="flex justify-between">
-                <span>Save</span>
-                <span className="text-cream/60">Cmd+S</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Undo</span>
-                <span className="text-cream/60">Cmd+Z</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Redo</span>
-                <span className="text-cream/60">Cmd+Shift+Z</span>
-              </div>
-              <div className="flex justify-between">
-                <span>Close</span>
-                <span className="text-cream/60">Esc</span>
-              </div>
-            </div>
-          </div>
+          ))}
+          
+          <div className="w-px h-6 bg-white/10 mx-2" />
+          
+          {/* Undo/Redo */}
+          <button
+            onClick={undo}
+            disabled={historyIndex <= 0}
+            className={cn(
+              "w-9 h-9 flex items-center justify-center rounded-full transition-all",
+              historyIndex <= 0 ? "text-white/20" : "text-white/60 hover:text-white hover:bg-white/10"
+            )}
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
+            </svg>
+          </button>
+          <button
+            onClick={redo}
+            disabled={historyIndex >= history.length - 1}
+            className={cn(
+              "w-9 h-9 flex items-center justify-center rounded-full transition-all",
+              historyIndex >= history.length - 1 ? "text-white/20" : "text-white/60 hover:text-white hover:bg-white/10"
+            )}
+          >
+            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M15 15l6-6m0 0l-6-6m6 6H9a6 6 0 000 12h3" />
+            </svg>
+          </button>
         </div>
+      </div>
+
+      {/* Keyboard hints - subtle, bottom right */}
+      <div className="absolute bottom-8 right-8 z-10 flex items-center gap-4 text-[10px] text-white/20">
+        <span>⌘S save</span>
+        <span>⌘Z undo</span>
+        <span>esc close</span>
       </div>
     </div>
   )
