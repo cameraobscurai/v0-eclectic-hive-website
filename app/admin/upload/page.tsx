@@ -1,7 +1,14 @@
 'use client'
 
 import { useState, useCallback, useEffect } from 'react'
+import dynamic from 'next/dynamic'
 import { cn } from '@/lib/utils'
+
+// Lazy load Konva editor (it's heavy)
+const ImageEditor = dynamic(
+  () => import('@/components/studio/konva-editor/image-editor').then(mod => ({ default: mod.ImageEditor })),
+  { ssr: false, loading: () => null }
+)
 
 const CATEGORIES = ['seating', 'tables', 'lighting', 'decor'] as const
 type Category = typeof CATEGORIES[number]
@@ -21,6 +28,7 @@ export default function UploadPage() {
   const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set())
   const [downloading, setDownloading] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [editingImage, setEditingImage] = useState<{ url: string; pathname: string } | null>(null)
 
   // Delete all files (clean slate)
   const deleteAll = async () => {
@@ -77,6 +85,23 @@ export default function UploadPage() {
       })
       .catch(() => setLoadingExisting(false))
   }, [results])
+
+  // Open image in editor
+  const openEditor = (pathname: string) => {
+    const imageUrl = `/api/inventory-image?pathname=${encodeURIComponent(pathname)}`
+    setEditingImage({ url: imageUrl, pathname })
+  }
+
+  // Handle save from editor
+  const handleEditorSave = (pathname: string) => {
+    // Refresh the file list to show updated image
+    fetch('/api/upload-inventory')
+      .then(res => res.json())
+      .then(data => {
+        setExistingFiles(data.byCategory || {})
+      })
+    setEditingImage(null)
+  }
 
   const toggleFileSelection = (pathname: string) => {
     setSelectedFiles(prev => {
@@ -431,9 +456,8 @@ export default function UploadPage() {
                         return (
                           <div 
                             key={i} 
-                            onClick={() => toggleFileSelection(blob.pathname)}
                             className={cn(
-                              "relative aspect-square bg-[#D4D0CB] overflow-hidden cursor-pointer transition-all",
+                              "group relative aspect-square bg-[#D4D0CB] overflow-hidden transition-all",
                               isSelected && "ring-2 ring-charcoal ring-offset-2"
                             )}
                             title={filename}
@@ -441,8 +465,22 @@ export default function UploadPage() {
                             <img 
                               src={`/api/inventory-image?pathname=${encodeURIComponent(blob.pathname)}`} 
                               alt={filename} 
-                              className="w-full h-full object-contain"
+                              className="w-full h-full object-contain cursor-pointer"
+                              onClick={() => toggleFileSelection(blob.pathname)}
                             />
+                            {/* Edit button - appears on hover */}
+                            <button
+                              onClick={(e) => {
+                                e.stopPropagation()
+                                openEditor(blob.pathname)
+                              }}
+                              className="absolute bottom-1 right-1 w-7 h-7 bg-charcoal/80 hover:bg-charcoal text-cream rounded flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
+                              title="Edit image"
+                            >
+                              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                                <path strokeLinecap="round" strokeLinejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                              </svg>
+                            </button>
                             {isSelected && (
                               <div className="absolute top-1 right-1 w-5 h-5 bg-charcoal rounded-full flex items-center justify-center">
                                 <svg className="w-3 h-3 text-cream" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
@@ -465,6 +503,16 @@ export default function UploadPage() {
           )}
         </div>
       </div>
+
+      {/* Image Editor Modal */}
+      {editingImage && (
+        <ImageEditor
+          imageUrl={editingImage.url}
+          pathname={editingImage.pathname}
+          onSave={handleEditorSave}
+          onClose={() => setEditingImage(null)}
+        />
+      )}
     </div>
   )
 }
