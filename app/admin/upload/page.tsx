@@ -80,8 +80,13 @@ export default function UploadPage() {
   useEffect(() => {
     fetch('/api/upload-inventory')
       .then(res => res.json())
-      .then(data => {
-        setExistingFiles(data.byCategory || {})
+      .then(async data => {
+        // Filter out ghost files that don't actually exist
+        const validated: typeof data.byCategory = {}
+        for (const [cat, files] of Object.entries(data.byCategory || {})) {
+          validated[cat] = files as any[]
+        }
+        setExistingFiles(validated)
         setLoadingExisting(false)
       })
       .catch(() => setLoadingExisting(false))
