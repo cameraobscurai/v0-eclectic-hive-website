@@ -1,4 +1,4 @@
-import { put, list } from '@vercel/blob'
+import { put, list, del } from '@vercel/blob'
 import { type NextRequest, NextResponse } from 'next/server'
 import sharp from 'sharp'
 
@@ -193,5 +193,32 @@ export async function GET() {
   } catch (error) {
     console.error('List error:', error)
     return NextResponse.json({ error: 'Failed to list files' }, { status: 500 })
+  }
+}
+
+// Delete inventory images
+export async function DELETE(request: NextRequest) {
+  try {
+    const { category } = await request.json()
+    
+    // Get all blobs to delete
+    const prefix = category ? `inventory/${category}/` : 'inventory/'
+    const { blobs } = await list({ prefix })
+    
+    if (blobs.length === 0) {
+      return NextResponse.json({ deleted: 0, message: 'No files to delete' })
+    }
+    
+    // Delete all matching blobs
+    const urls = blobs.map(blob => blob.url)
+    await del(urls)
+    
+    return NextResponse.json({ 
+      deleted: blobs.length,
+      message: `Deleted ${blobs.length} files${category ? ` from ${category}` : ''}` 
+    })
+  } catch (error) {
+    console.error('Delete error:', error)
+    return NextResponse.json({ error: 'Failed to delete files' }, { status: 500 })
   }
 }

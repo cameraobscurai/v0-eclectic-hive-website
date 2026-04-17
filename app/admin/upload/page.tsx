@@ -20,6 +20,52 @@ export default function UploadPage() {
   const [loadingExisting, setLoadingExisting] = useState(true)
   const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set())
   const [downloading, setDownloading] = useState(false)
+  const [deleting, setDeleting] = useState(false)
+
+  // Delete all files (clean slate)
+  const deleteAll = async () => {
+    if (!confirm('Delete ALL inventory images? This cannot be undone.')) return
+    
+    setDeleting(true)
+    try {
+      const res = await fetch('/api/upload-inventory', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({}), // Empty = delete all
+      })
+      const data = await res.json()
+      alert(data.message || `Deleted ${data.deleted} files`)
+      setExistingFiles({})
+      setSelectedFiles(new Set())
+    } catch (err) {
+      alert('Failed to delete files')
+    }
+    setDeleting(false)
+  }
+
+  // Delete files in a specific category
+  const deleteCategory = async (cat: string) => {
+    if (!confirm(`Delete all ${cat} images? This cannot be undone.`)) return
+    
+    setDeleting(true)
+    try {
+      const res = await fetch('/api/upload-inventory', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ category: cat }),
+      })
+      const data = await res.json()
+      alert(data.message || `Deleted ${data.deleted} files`)
+      setExistingFiles(prev => {
+        const next = { ...prev }
+        delete next[cat]
+        return next
+      })
+    } catch (err) {
+      alert('Failed to delete files')
+    }
+    setDeleting(false)
+  }
 
   // Load existing files on mount
   useEffect(() => {
@@ -303,26 +349,35 @@ export default function UploadPage() {
             <h2 className="font-display text-xl tracking-[0.1em] text-charcoal">
               Stored in Blob
             </h2>
-            {selectedFiles.size > 0 && (
-              <div className="flex items-center gap-4">
-                <span className="text-xs text-charcoal/60">
-                  {selectedFiles.size} selected
-                </span>
-                <button
-                  onClick={() => setSelectedFiles(new Set())}
-                  className="text-xs text-charcoal/40 hover:text-charcoal underline"
-                >
-                  Clear
-                </button>
-                <button
-                  onClick={downloadSelected}
-                  disabled={downloading}
-                  className="px-4 py-2 bg-charcoal text-cream text-xs uppercase tracking-[0.1em] hover:bg-charcoal/90 transition-colors disabled:opacity-50"
-                >
-                  {downloading ? 'Downloading...' : 'Download Selected'}
-                </button>
-              </div>
-            )}
+            <div className="flex items-center gap-4">
+              {selectedFiles.size > 0 && (
+                <>
+                  <span className="text-xs text-charcoal/60">
+                    {selectedFiles.size} selected
+                  </span>
+                  <button
+                    onClick={() => setSelectedFiles(new Set())}
+                    className="text-xs text-charcoal/40 hover:text-charcoal underline"
+                  >
+                    Clear
+                  </button>
+                  <button
+                    onClick={downloadSelected}
+                    disabled={downloading}
+                    className="px-4 py-2 bg-charcoal text-cream text-xs uppercase tracking-[0.1em] hover:bg-charcoal/90 transition-colors disabled:opacity-50"
+                  >
+                    {downloading ? 'Downloading...' : 'Download Selected'}
+                  </button>
+                </>
+              )}
+              <button
+                onClick={deleteAll}
+                disabled={deleting}
+                className="px-4 py-2 bg-red-600 text-white text-xs uppercase tracking-[0.1em] hover:bg-red-700 transition-colors disabled:opacity-50"
+              >
+                {deleting ? 'Deleting...' : 'Delete All'}
+              </button>
+            </div>
           </div>
           
           {loadingExisting ? (
@@ -338,27 +393,36 @@ export default function UploadPage() {
                 
                 return (
                   <div key={cat}>
-                    <div className="flex items-center gap-3 mb-3">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-3">
+                        <button
+                          onClick={() => selectAllInCategory(cat)}
+                          className={cn(
+                            "w-5 h-5 border flex items-center justify-center transition-colors",
+                            allSelected 
+                              ? "bg-charcoal border-charcoal" 
+                              : someSelected 
+                                ? "bg-charcoal/30 border-charcoal/30" 
+                                : "border-charcoal/30 hover:border-charcoal/50"
+                          )}
+                        >
+                          {(allSelected || someSelected) && (
+                            <svg className="w-3 h-3 text-cream" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                            </svg>
+                          )}
+                        </button>
+                        <h3 className="text-xs uppercase tracking-[0.15em] text-charcoal/60">
+                          {cat} ({catFiles.length} images)
+                        </h3>
+                      </div>
                       <button
-                        onClick={() => selectAllInCategory(cat)}
-                        className={cn(
-                          "w-5 h-5 border flex items-center justify-center transition-colors",
-                          allSelected 
-                            ? "bg-charcoal border-charcoal" 
-                            : someSelected 
-                              ? "bg-charcoal/30 border-charcoal/30" 
-                              : "border-charcoal/30 hover:border-charcoal/50"
-                        )}
+                        onClick={() => deleteCategory(cat)}
+                        disabled={deleting}
+                        className="text-xs text-red-600 hover:text-red-700 underline disabled:opacity-50"
                       >
-                        {(allSelected || someSelected) && (
-                          <svg className="w-3 h-3 text-cream" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                          </svg>
-                        )}
+                        Delete {cat}
                       </button>
-                      <h3 className="text-xs uppercase tracking-[0.15em] text-charcoal/60">
-                        {cat} ({catFiles.length} images)
-                      </h3>
                     </div>
                     <div className="grid grid-cols-6 lg:grid-cols-8 gap-2">
                       {catFiles.map((blob, i) => {
