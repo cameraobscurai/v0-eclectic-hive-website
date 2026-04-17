@@ -2,7 +2,6 @@
 
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
-import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { cn } from '@/lib/utils'
 
@@ -87,19 +86,16 @@ export function Navigation() {
             scrolled ? 'py-4 lg:py-5' : 'py-6 lg:py-8'
           )}
         >
-          {/* Logo */}
+          {/* Wordmark */}
           <Link href="/" className="relative group" aria-label="Eclectic Hive — home">
-            <Image
-              src="/images/logo.png"
-              alt="Eclectic Hive"
-              width={140}
-              height={50}
+            <span
               className={cn(
-                "h-10 lg:h-12 w-auto transition-all duration-300",
-                scrolled ? "brightness-0 invert" : isLightPage ? "" : "brightness-0 invert"
+                "font-display text-2xl lg:text-3xl tracking-tight font-light italic transition-colors duration-300",
+                scrolled ? "text-cream" : isLightPage ? "text-charcoal" : "text-cream"
               )}
-              priority
-            />
+            >
+              Eclectic Hive
+            </span>
           </Link>
 
           {/* Desktop links */}
