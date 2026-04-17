@@ -66,7 +66,11 @@ function extractColorsFromImage(imageSrc: string): ExtractedColor[] {
 
 export default function StudioPage() {
   const [loaded, setLoaded] = useState(false)
-  const [activeTab, setActiveTab] = useState<'inspiration' | 'palette' | 'inventory' | 'preview'>('inspiration')
+  const [activeTab, setActiveTab] = useState<'inspiration' | 'palette' | 'inventory' | 'resources' | 'preview'>('inspiration')
+  
+  // Resources state (Blob storage)
+  const [resourceFiles, setResourceFiles] = useState<Record<string, { pathname: string; url: string }[]>>({})
+  const [loadingResources, setLoadingResources] = useState(false)
   
   // Project state
   const [projectName, setProjectName] = useState('')
@@ -80,6 +84,20 @@ export default function StudioPage() {
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => { setLoaded(true) }, [])
+  
+  // Load resources when tab is selected
+  useEffect(() => {
+    if (activeTab === 'resources' && Object.keys(resourceFiles).length === 0) {
+      setLoadingResources(true)
+      fetch('/api/upload-inventory')
+        .then(res => res.json())
+        .then(data => {
+          setResourceFiles(data.byCategory || {})
+          setLoadingResources(false)
+        })
+        .catch(() => setLoadingResources(false))
+    }
+  }, [activeTab, resourceFiles])
 
   // Handle image upload
   const handleImageUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -195,6 +213,7 @@ export default function StudioPage() {
               { id: 'inspiration', label: 'Inspiration' },
               { id: 'palette', label: 'Color Palette' },
               { id: 'inventory', label: 'Inventory' },
+              { id: 'resources', label: 'Resources' },
               { id: 'preview', label: 'Preview' },
             ].map((tab) => (
               <button
@@ -358,6 +377,80 @@ export default function StudioPage() {
                   </div>
                 ))}
               </div>
+            </div>
+          )}
+
+          {/* Resources Tab - Blob Storage Gallery */}
+          {activeTab === 'resources' && (
+            <div className="space-y-8">
+              <div className="flex items-center justify-between">
+                <p className="text-xs uppercase tracking-[0.15em] text-charcoal/60">
+                  Image Resources from Blob Storage
+                </p>
+                <a 
+                  href="/admin/upload" 
+                  className="text-xs uppercase tracking-[0.1em] text-charcoal/60 hover:text-charcoal underline underline-offset-4"
+                >
+                  Manage Uploads
+                </a>
+              </div>
+              
+              {loadingResources ? (
+                <div className="text-center py-16">
+                  <p className="text-charcoal/40">Loading resources...</p>
+                </div>
+              ) : Object.keys(resourceFiles).length === 0 ? (
+                <div className="text-center py-16">
+                  <p className="text-charcoal/40 mb-4">No resources uploaded yet</p>
+                  <a 
+                    href="/admin/upload"
+                    className="inline-block px-6 py-2 bg-charcoal text-cream text-xs uppercase tracking-[0.1em] hover:bg-charcoal/90 transition-colors"
+                  >
+                    Upload Images
+                  </a>
+                </div>
+              ) : (
+                <div className="space-y-10">
+                  {(['seating', 'tables', 'lighting', 'decor'] as const).map(cat => {
+                    const catFiles = resourceFiles[cat] || []
+                    if (catFiles.length === 0) return null
+                    
+                    return (
+                      <div key={cat}>
+                        <h3 className="text-sm uppercase tracking-[0.15em] text-charcoal mb-4 flex items-center gap-3">
+                          {cat}
+                          <span className="text-xs text-charcoal/40 font-normal">
+                            {catFiles.length} images
+                          </span>
+                        </h3>
+                        <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
+                          {catFiles.map((blob, i) => {
+                            const filename = blob.pathname.split('/').pop() || ''
+                            return (
+                              <div 
+                                key={i} 
+                                className="group relative aspect-square bg-[#D4D0CB] overflow-hidden cursor-pointer"
+                                title={filename}
+                              >
+                                <img 
+                                  src={`/api/inventory-image?pathname=${encodeURIComponent(blob.pathname)}`} 
+                                  alt={filename} 
+                                  className="w-full h-full object-contain"
+                                />
+                                <div className="absolute inset-0 bg-charcoal/0 group-hover:bg-charcoal/60 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
+                                  <p className="text-cream text-[10px] px-2 text-center truncate max-w-full">
+                                    {filename.replace('.png', '').replace(/-/g, ' ')}
+                                  </p>
+                                </div>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
             </div>
           )}
 

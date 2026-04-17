@@ -18,6 +18,8 @@ export default function UploadPage() {
   const [error, setError] = useState<string | null>(null)
   const [existingFiles, setExistingFiles] = useState<Record<string, BlobInfo[]>>({})
   const [loadingExisting, setLoadingExisting] = useState(true)
+  const [selectedFiles, setSelectedFiles] = useState<Set<string>>(new Set())
+  const [downloading, setDownloading] = useState(false)
 
   // Load existing files on mount
   useEffect(() => {
@@ -29,6 +31,58 @@ export default function UploadPage() {
       })
       .catch(() => setLoadingExisting(false))
   }, [results])
+
+  const toggleFileSelection = (pathname: string) => {
+    setSelectedFiles(prev => {
+      const next = new Set(prev)
+      if (next.has(pathname)) {
+        next.delete(pathname)
+      } else {
+        next.add(pathname)
+      }
+      return next
+    })
+  }
+
+  const selectAllInCategory = (cat: string) => {
+    const catFiles = existingFiles[cat] || []
+    setSelectedFiles(prev => {
+      const next = new Set(prev)
+      const allSelected = catFiles.every(f => prev.has(f.pathname))
+      if (allSelected) {
+        catFiles.forEach(f => next.delete(f.pathname))
+      } else {
+        catFiles.forEach(f => next.add(f.pathname))
+      }
+      return next
+    })
+  }
+
+  const downloadSelected = async () => {
+    if (selectedFiles.size === 0) return
+    setDownloading(true)
+    
+    for (const pathname of selectedFiles) {
+      try {
+        const response = await fetch(`/api/inventory-image?pathname=${encodeURIComponent(pathname)}`)
+        const blob = await response.blob()
+        const url = URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = pathname.split('/').pop() || 'image.png'
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        URL.revokeObjectURL(url)
+        // Small delay between downloads
+        await new Promise(r => setTimeout(r, 200))
+      } catch (err) {
+        console.error('Download failed:', err)
+      }
+    }
+    
+    setDownloading(false)
+  }
 
   const handleDrop = useCallback((e: React.DragEvent) => {
     e.preventDefault()
@@ -245,9 +299,31 @@ export default function UploadPage() {
 
         {/* Existing Files in Blob */}
         <div className="mt-12 pt-8 border-t border-charcoal/10">
-          <h2 className="font-display text-xl tracking-[0.1em] text-charcoal mb-6">
-            Stored in Blob
-          </h2>
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="font-display text-xl tracking-[0.1em] text-charcoal">
+              Stored in Blob
+            </h2>
+            {selectedFiles.size > 0 && (
+              <div className="flex items-center gap-4">
+                <span className="text-xs text-charcoal/60">
+                  {selectedFiles.size} selected
+                </span>
+                <button
+                  onClick={() => setSelectedFiles(new Set())}
+                  className="text-xs text-charcoal/40 hover:text-charcoal underline"
+                >
+                  Clear
+                </button>
+                <button
+                  onClick={downloadSelected}
+                  disabled={downloading}
+                  className="px-4 py-2 bg-charcoal text-cream text-xs uppercase tracking-[0.1em] hover:bg-charcoal/90 transition-colors disabled:opacity-50"
+                >
+                  {downloading ? 'Downloading...' : 'Download Selected'}
+                </button>
+              </div>
+            )}
+          </div>
           
           {loadingExisting ? (
             <p className="text-sm text-charcoal/40">Loading...</p>
@@ -257,27 +333,63 @@ export default function UploadPage() {
                 const catFiles = existingFiles[cat] || []
                 if (catFiles.length === 0) return null
                 
+                const allSelected = catFiles.every(f => selectedFiles.has(f.pathname))
+                const someSelected = catFiles.some(f => selectedFiles.has(f.pathname))
+                
                 return (
                   <div key={cat}>
-                    <h3 className="text-xs uppercase tracking-[0.15em] text-charcoal/60 mb-3">
-                      {cat} ({catFiles.length} images)
-                    </h3>
-                    <div className="grid grid-cols-6 gap-2">
-                      {catFiles.slice(0, 12).map((blob, i) => (
-                        <div key={i} className="aspect-square bg-[#D4D0CB] overflow-hidden">
-                          <img 
-                            src={`/api/inventory-image?pathname=${encodeURIComponent(blob.pathname)}`} 
-                            alt={blob.pathname.split('/').pop() || ''} 
-                            className="w-full h-full object-contain"
-                          />
-                        </div>
-                      ))}
+                    <div className="flex items-center gap-3 mb-3">
+                      <button
+                        onClick={() => selectAllInCategory(cat)}
+                        className={cn(
+                          "w-5 h-5 border flex items-center justify-center transition-colors",
+                          allSelected 
+                            ? "bg-charcoal border-charcoal" 
+                            : someSelected 
+                              ? "bg-charcoal/30 border-charcoal/30" 
+                              : "border-charcoal/30 hover:border-charcoal/50"
+                        )}
+                      >
+                        {(allSelected || someSelected) && (
+                          <svg className="w-3 h-3 text-cream" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                          </svg>
+                        )}
+                      </button>
+                      <h3 className="text-xs uppercase tracking-[0.15em] text-charcoal/60">
+                        {cat} ({catFiles.length} images)
+                      </h3>
                     </div>
-                    {catFiles.length > 12 && (
-                      <p className="text-xs text-charcoal/40 mt-2">
-                        + {catFiles.length - 12} more
-                      </p>
-                    )}
+                    <div className="grid grid-cols-6 lg:grid-cols-8 gap-2">
+                      {catFiles.map((blob, i) => {
+                        const isSelected = selectedFiles.has(blob.pathname)
+                        const filename = blob.pathname.split('/').pop() || ''
+                        return (
+                          <div 
+                            key={i} 
+                            onClick={() => toggleFileSelection(blob.pathname)}
+                            className={cn(
+                              "relative aspect-square bg-[#D4D0CB] overflow-hidden cursor-pointer transition-all",
+                              isSelected && "ring-2 ring-charcoal ring-offset-2"
+                            )}
+                            title={filename}
+                          >
+                            <img 
+                              src={`/api/inventory-image?pathname=${encodeURIComponent(blob.pathname)}`} 
+                              alt={filename} 
+                              className="w-full h-full object-contain"
+                            />
+                            {isSelected && (
+                              <div className="absolute top-1 right-1 w-5 h-5 bg-charcoal rounded-full flex items-center justify-center">
+                                <svg className="w-3 h-3 text-cream" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                </svg>
+                              </div>
+                            )}
+                          </div>
+                        )
+                      })}
+                    </div>
                   </div>
                 )
               })}
