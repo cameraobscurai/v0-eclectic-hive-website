@@ -66,7 +66,7 @@ function extractColorsFromImage(imageSrc: string): ExtractedColor[] {
 
 export default function StudioPage() {
   const [loaded, setLoaded] = useState(false)
-  const [activeTab, setActiveTab] = useState<'inspiration' | 'palette' | 'inventory' | 'resources' | 'preview'>('inspiration')
+  const [activeTab, setActiveTab] = useState<'inspiration' | 'palette' | 'inventory' | 'preview'>('inspiration')
   
   // Resources state (Blob storage)
   const [resourceFiles, setResourceFiles] = useState<Record<string, { pathname: string; url: string }[]>>({})
@@ -85,9 +85,9 @@ export default function StudioPage() {
 
   useEffect(() => { setLoaded(true) }, [])
   
-  // Load resources when tab is selected
+  // Load resources when inventory tab is selected
   useEffect(() => {
-    if (activeTab === 'resources' && Object.keys(resourceFiles).length === 0) {
+    if (activeTab === 'inventory' && Object.keys(resourceFiles).length === 0) {
       setLoadingResources(true)
       fetch('/api/upload-inventory')
         .then(res => res.json())
@@ -213,7 +213,6 @@ export default function StudioPage() {
               { id: 'inspiration', label: 'Inspiration' },
               { id: 'palette', label: 'Color Palette' },
               { id: 'inventory', label: 'Inventory' },
-              { id: 'resources', label: 'Resources' },
               { id: 'preview', label: 'Preview' },
             ].map((tab) => (
               <button
@@ -343,49 +342,13 @@ export default function StudioPage() {
             </div>
           )}
 
-          {/* Inventory Tab */}
+          {/* Inventory Tab - Combined with Blob Resources */}
           {activeTab === 'inventory' && (
-            <div className="space-y-8">
-              <p className="text-xs uppercase tracking-[0.15em] text-charcoal/60">Select pieces for this project</p>
-              <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                {SAMPLE_INVENTORY.map((item) => (
-                  <div 
-                    key={item.id}
-                    onClick={() => toggleInventory(item.id)}
-                    className={cn(
-                      'cursor-pointer transition-all',
-                      selectedInventory.includes(item.id) && 'ring-2 ring-charcoal'
-                    )}
-                  >
-                    <div className="relative aspect-square bg-white">
-                      <Image
-                        src={item.image}
-                        alt={item.name}
-                        fill
-                        className="object-contain p-4"
-                      />
-                      {selectedInventory.includes(item.id) && (
-                        <div className="absolute top-2 right-2 w-6 h-6 bg-charcoal text-cream rounded-full flex items-center justify-center">
-                          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                          </svg>
-                        </div>
-                      )}
-                    </div>
-                    <p className="text-sm text-charcoal mt-2">{item.name}</p>
-                    <p className="text-xs text-charcoal/50">{item.category}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Resources Tab - Blob Storage Gallery */}
-          {activeTab === 'resources' && (
-            <div className="space-y-8">
+            <div className="space-y-10">
+              {/* Header with link to admin */}
               <div className="flex items-center justify-between">
                 <p className="text-xs uppercase tracking-[0.15em] text-charcoal/60">
-                  Image Resources from Blob Storage
+                  Browse & select pieces for this project
                 </p>
                 <a 
                   href="/admin/upload" 
@@ -395,13 +358,14 @@ export default function StudioPage() {
                 </a>
               </div>
               
+              {/* Blob Resources by Category */}
               {loadingResources ? (
                 <div className="text-center py-16">
-                  <p className="text-charcoal/40">Loading resources...</p>
+                  <p className="text-charcoal/40">Loading inventory...</p>
                 </div>
               ) : Object.keys(resourceFiles).length === 0 ? (
                 <div className="text-center py-16">
-                  <p className="text-charcoal/40 mb-4">No resources uploaded yet</p>
+                  <p className="text-charcoal/40 mb-4">No inventory items uploaded yet</p>
                   <a 
                     href="/admin/upload"
                     className="inline-block px-6 py-2 bg-charcoal text-cream text-xs uppercase tracking-[0.1em] hover:bg-charcoal/90 transition-colors"
@@ -420,24 +384,36 @@ export default function StudioPage() {
                         <h3 className="text-sm uppercase tracking-[0.15em] text-charcoal mb-4 flex items-center gap-3">
                           {cat}
                           <span className="text-xs text-charcoal/40 font-normal">
-                            {catFiles.length} images
+                            {catFiles.length} items
                           </span>
                         </h3>
-                        <div className="grid grid-cols-4 md:grid-cols-6 lg:grid-cols-8 gap-2">
+                        <div className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-3">
                           {catFiles.map((blob, i) => {
                             const filename = blob.pathname.split('/').pop() || ''
+                            const isSelected = selectedInventory.includes(blob.pathname)
                             return (
                               <div 
                                 key={i} 
-                                className="group relative aspect-square bg-[#D4D0CB] overflow-hidden cursor-pointer"
-                                title={filename}
+                                onClick={() => toggleInventory(blob.pathname)}
+                                className={cn(
+                                  "group relative aspect-square bg-[#D4D0CB] overflow-hidden cursor-pointer transition-all",
+                                  isSelected && "ring-2 ring-charcoal ring-offset-2"
+                                )}
+                                title={filename.replace('.png', '').replace(/-/g, ' ')}
                               >
                                 <img 
                                   src={`/api/inventory-image?pathname=${encodeURIComponent(blob.pathname)}`} 
                                   alt={filename} 
                                   className="w-full h-full object-contain"
                                 />
-                                <div className="absolute inset-0 bg-charcoal/0 group-hover:bg-charcoal/60 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
+                                {isSelected && (
+                                  <div className="absolute top-1 right-1 w-5 h-5 bg-charcoal text-cream rounded-full flex items-center justify-center">
+                                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                                    </svg>
+                                  </div>
+                                )}
+                                <div className="absolute inset-0 bg-charcoal/0 group-hover:bg-charcoal/40 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
                                   <p className="text-cream text-[10px] px-2 text-center truncate max-w-full">
                                     {filename.replace('.png', '').replace(/-/g, ' ')}
                                   </p>

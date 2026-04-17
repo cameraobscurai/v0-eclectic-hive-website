@@ -74,9 +74,9 @@ export default function HomePage() {
 
       {/* Navigation Cards - Glassmorphic buttons */}
       <section className="bg-charcoal pb-24 lg:pb-32">
-        <div className="max-w-6xl mx-auto px-6">
-          {/* Mobile: stacked | Desktop: side by side */}
-          <div className="flex flex-col lg:flex-row gap-3 lg:gap-2">
+        <div className="max-w-4xl mx-auto px-6">
+          {/* Mobile: stacked | Desktop: side by side - tightened spacing */}
+          <div className="flex flex-col lg:flex-row gap-3 lg:gap-3">
             {DESTINATIONS.map((dest, i) => (
               <Link
                 key={dest.href}

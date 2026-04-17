@@ -1,13 +1,14 @@
 'use client'
 
-import { Suspense, useRef, useState, useEffect } from 'react'
-import { Canvas, useFrame } from '@react-three/fiber'
+import { Suspense, useRef, useState, useEffect, useCallback } from 'react'
+import { Canvas, useFrame, useThree } from '@react-three/fiber'
 import { 
   OrbitControls, 
   Environment, 
   useGLTF, 
   ContactShadows,
-  Center
+  Center,
+  useProgress
 } from '@react-three/drei'
 import * as THREE from 'three'
 import { cn } from '@/lib/utils'
@@ -20,17 +21,45 @@ interface InlineProductViewerProps {
 // Warm beige background matching the product photography style
 const BG_COLOR = '#d5cdc5'
 
+// Preload the model in background using Drei's caching
+function usePreloadModel(url: string) {
+  useEffect(() => {
+    // Preload in the background after a small delay to not block initial render
+    const timer = setTimeout(() => {
+      useGLTF.preload(url)
+    }, 100)
+    return () => clearTimeout(timer)
+  }, [url])
+}
+
 function Model({ url, onLoaded }: { url: string; onLoaded: () => void }) {
   const { scene } = useGLTF(url)
   const modelRef = useRef<THREE.Group>(null)
+  const loadedRef = useRef(false)
   
   useEffect(() => {
-    // Signal that model has loaded
-    onLoaded()
+    // Signal that model has loaded - only once
+    if (!loadedRef.current && scene) {
+      loadedRef.current = true
+      onLoaded()
+    }
   }, [scene, onLoaded])
   
   // Clone the scene to avoid issues with reusing the same scene
   const clonedScene = scene.clone()
+  
+  // Optimize materials for performance
+  clonedScene.traverse((child) => {
+    if (child instanceof THREE.Mesh) {
+      child.frustumCulled = true
+      if (child.material) {
+        // Reduce texture quality for faster loading
+        if (child.material.map) {
+          child.material.map.minFilter = THREE.LinearFilter
+        }
+      }
+    }
+  })
   
   // Auto-rotation via useFrame for smoother control
   useFrame((state, delta) => {
@@ -48,6 +77,46 @@ function Model({ url, onLoaded }: { url: string; onLoaded: () => void }) {
         />
       </group>
     </Center>
+  )
+}
+
+function LoadingProgress() {
+  const { progress } = useProgress()
+  
+  return (
+    <div className="absolute inset-0 flex items-center justify-center" style={{ backgroundColor: BG_COLOR }}>
+      <div className="flex flex-col items-center gap-3">
+        {/* Progress ring */}
+        <div className="relative w-12 h-12">
+          <svg className="w-12 h-12 transform -rotate-90" viewBox="0 0 48 48">
+            <circle
+              cx="24"
+              cy="24"
+              r="20"
+              fill="none"
+              stroke="rgba(0,0,0,0.1)"
+              strokeWidth="2"
+            />
+            <circle
+              cx="24"
+              cy="24"
+              r="20"
+              fill="none"
+              stroke="rgba(0,0,0,0.4)"
+              strokeWidth="2"
+              strokeDasharray={`${2 * Math.PI * 20}`}
+              strokeDashoffset={`${2 * Math.PI * 20 * (1 - progress / 100)}`}
+              strokeLinecap="round"
+              className="transition-all duration-300"
+            />
+          </svg>
+          <span className="absolute inset-0 flex items-center justify-center text-[10px] text-charcoal/60 font-mono">
+            {Math.round(progress)}%
+          </span>
+        </div>
+        <p className="text-[10px] text-charcoal/50 uppercase tracking-[0.15em] font-light">Loading 3D</p>
+      </div>
+    </div>
   )
 }
 
@@ -131,13 +200,37 @@ export function InlineProductViewer({ modelUrl, className = '' }: InlineProductV
   const [showContent, setShowContent] = useState(false)
   const [canvasReady, setCanvasReady] = useState(false)
   const [hasError, setHasError] = useState(false)
+  const [isInView, setIsInView] = useState(false)
   const containerRef = useRef<HTMLDivElement>(null)
+  
+  // Preload model when component mounts (but don't render Canvas yet)
+  usePreloadModel(modelUrl)
+  
+  // Lazy load: Only mount Canvas when in viewport
+  useEffect(() => {
+    const container = containerRef.current
+    if (!container) return
+    
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setIsInView(true)
+          observer.disconnect() // Only need to trigger once
+        }
+      },
+      { rootMargin: '100px', threshold: 0.1 }
+    )
+    
+    observer.observe(container)
+    return () => observer.disconnect()
+  }, [])
   
   // Defer canvas mounting to avoid WebGL context issues during hydration
   useEffect(() => {
-    const timer = setTimeout(() => setCanvasReady(true), 300)
+    if (!isInView) return
+    const timer = setTimeout(() => setCanvasReady(true), 100)
     return () => clearTimeout(timer)
-  }, [])
+  }, [isInView])
   
   // Fade in after model loads
   useEffect(() => {
@@ -169,8 +262,8 @@ export function InlineProductViewer({ modelUrl, className = '' }: InlineProductV
 
   return (
     <div ref={containerRef} className={cn("relative w-full h-full overflow-hidden", className)} style={{ backgroundColor: BG_COLOR }}>
-      {/* Loading state */}
-      {!isLoaded && !hasError && <LoadingSpinner />}
+      {/* Loading state - show spinner until in view, then progress */}
+      {!isLoaded && !hasError && (isInView ? <LoadingProgress /> : <LoadingSpinner />)}
       
       {/* Canvas with fade-in animation - only mount after ready */}
       {canvasReady && !hasError && (
