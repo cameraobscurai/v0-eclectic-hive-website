@@ -27,10 +27,11 @@ export async function PUT(request: NextRequest) {
     const arrayBuffer = await file.arrayBuffer()
     const buffer = Buffer.from(arrayBuffer)
 
-    // Upload new version (overwrites existing due to same pathname + no random suffix)
+    // Upload new version, overwriting existing file
     const blob = await put(pathname, buffer, {
       access: 'private',
       addRandomSuffix: false,
+      allowOverwrite: true,
       contentType: 'image/png',
     })
 

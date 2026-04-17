@@ -243,7 +243,7 @@ export function ImageEditor({ imageUrl, pathname, onSave, onClose }: ImageEditor
   const filename = pathname.split('/').pop()?.replace('.png', '').replace(/-/g, ' ') || 'Image'
 
   return (
-    <div className="fixed inset-0 z-50 bg-charcoal/95 flex flex-col">
+    <div className="fixed inset-0 z-[100] bg-charcoal overflow-hidden flex flex-col">
       {/* Header */}
       <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
         <div className="flex items-center gap-4">
@@ -277,9 +277,9 @@ export function ImageEditor({ imageUrl, pathname, onSave, onClose }: ImageEditor
       </div>
 
       {/* Main editor area */}
-      <div className="flex-1 flex">
+      <div className="flex-1 flex min-h-0">
         {/* Canvas */}
-        <div className="flex-1 flex items-center justify-center p-8 overflow-hidden">
+        <div className="flex-1 flex items-center justify-center p-8 overflow-hidden min-w-0">
           <div 
             className="relative shadow-2xl"
             style={{ 
@@ -356,7 +356,7 @@ export function ImageEditor({ imageUrl, pathname, onSave, onClose }: ImageEditor
         </div>
 
         {/* Controls sidebar */}
-        <div className="w-64 bg-charcoal border-l border-white/10 p-6 flex flex-col gap-6">
+        <div className="w-64 shrink-0 bg-charcoal border-l border-white/10 p-6 flex flex-col gap-6 overflow-y-auto">
           {/* Zoom */}
           <div>
             <label className="block text-[10px] uppercase tracking-[0.2em] text-cream/40 mb-3">
