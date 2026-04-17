@@ -11,26 +11,40 @@ const COLOR_DIFF_THRESHOLD = 30
 
 /**
  * Smart sizing based on aspect ratio detection
- * Wide items (sofas): 80% width
- * Square items (chairs): 65%
- * Tall items (stools): 70% height
- * Minimum: 55% for small items
+ * 
+ * Aspect Ratio Tiers:
+ * > 1.5  (very wide)   → 80%   Sofas, long benches
+ * 1.2-1.5 (wide)       → 75%   Loveseats, settees  
+ * 0.85-1.2 (square)    → 70%   Accent chairs, club chairs
+ * 0.65-0.85 (tall)     → 68%   Dining chairs, side chairs
+ * < 0.65 (very tall)   → 65%   Bar stools, tall items
+ * 
+ * Minimum fill: 58%
  */
 function getTargetFillPercent(contentWidth: number, contentHeight: number): number {
   const aspectRatio = contentWidth / contentHeight
   
-  // Wide items (sofas, benches) - width > height * 1.5
+  // Very wide (sofas, long benches)
   if (aspectRatio > 1.5) {
     return 0.80
   }
   
-  // Tall items (stools, floor lamps) - height > width * 1.3
-  if (aspectRatio < 0.77) {
+  // Wide (loveseats, settees)
+  if (aspectRatio > 1.2) {
+    return 0.75
+  }
+  
+  // Square-ish (accent chairs, club chairs, poufs)
+  if (aspectRatio > 0.85) {
     return 0.70
   }
   
-  // Square-ish items (chairs, poufs)
-  // Larger items get slightly more fill, smaller get less
+  // Tall (dining chairs, side chairs)
+  if (aspectRatio > 0.65) {
+    return 0.68
+  }
+  
+  // Very tall (bar stools, floor items)
   return 0.65
 }
 
@@ -177,8 +191,8 @@ async function normalizeImage(buffer: Buffer): Promise<Buffer> {
     targetWidth = Math.floor(targetHeight * aspectRatio)
   }
   
-  // Ensure minimum size (55% of canvas)
-  const minSize = Math.floor(CANVAS_SIZE * 0.55)
+  // Ensure minimum size (58% of canvas)
+  const minSize = Math.floor(CANVAS_SIZE * 0.58)
   if (targetWidth < minSize && targetHeight < minSize) {
     const smallScale = minSize / Math.max(contentWidth, contentHeight)
     targetWidth = Math.floor(contentWidth * smallScale)
