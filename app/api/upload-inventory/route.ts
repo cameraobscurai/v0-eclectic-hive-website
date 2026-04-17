@@ -130,39 +130,37 @@ async function normalizeImage(buffer: Buffer): Promise<Buffer> {
   
   console.log('[v0] Content size:', { contentWidth, contentHeight, marginRatioX, marginRatioY })
 
-  // Calculate content size (max dimension)
-  const contentSize = Math.max(contentWidth, contentHeight)
-
-  // Calculate target content size with padding
-  const targetContentSize = Math.floor(CANVAS_SIZE * (1 - PADDING_PERCENT * 2))
+  // ALWAYS enforce padding by scaling the entire original image
+  // This is simpler and more reliable than content extraction
+  const originalWidth = info.width
+  const originalHeight = info.height
+  const maxDimension = Math.max(originalWidth, originalHeight)
   
-  // Calculate scale to fit content in target area
-  const scale = targetContentSize / contentSize
-
-  // Extract and resize the content area
-  const extracted = await sharp(buffer)
-    .extract({
-      left: minX,
-      top: minY,
-      width: contentWidth,
-      height: contentHeight,
-    })
+  // Target size for the image content (76% of canvas = 12% padding each side)
+  const targetSize = Math.floor(CANVAS_SIZE * (1 - PADDING_PERCENT * 2))
+  
+  // Scale the entire image to fit in targetSize
+  const scale = targetSize / maxDimension
+  const scaledWidth = Math.round(originalWidth * scale)
+  const scaledHeight = Math.round(originalHeight * scale)
+  
+  console.log('[v0] Scaling:', { originalWidth, originalHeight, targetSize, scale, scaledWidth, scaledHeight })
+  
+  // Resize the entire original image
+  const resized = await sharp(buffer)
     .resize({
-      width: Math.round(contentWidth * scale),
-      height: Math.round(contentHeight * scale),
+      width: scaledWidth,
+      height: scaledHeight,
       fit: 'contain',
-      background: { r: 0, g: 0, b: 0, alpha: 0 },
+      background: { r: 212, g: 208, b: 203, alpha: 255 }, // Match canvas bg
     })
     .toBuffer()
 
-  // Get resized dimensions
-  const resizedMeta = await sharp(extracted).metadata()
-  const resizedWidth = resizedMeta.width || Math.round(contentWidth * scale)
-  const resizedHeight = resizedMeta.height || Math.round(contentHeight * scale)
-
   // Calculate position to center on canvas
-  const left = Math.floor((CANVAS_SIZE - resizedWidth) / 2)
-  const top = Math.floor((CANVAS_SIZE - resizedHeight) / 2)
+  const left = Math.floor((CANVAS_SIZE - scaledWidth) / 2)
+  const top = Math.floor((CANVAS_SIZE - scaledHeight) / 2)
+  
+  console.log('[v0] Centering at:', { left, top })
 
   // Create final canvas with centered content
   // Use the taupe background color #D4D0CB
@@ -176,13 +174,15 @@ async function normalizeImage(buffer: Buffer): Promise<Buffer> {
   })
     .composite([
       {
-        input: extracted,
+        input: resized,
         left,
         top,
       },
     ])
     .png()
     .toBuffer()
+  
+  console.log('[v0] Normalized image created, size:', normalized.length)
 
   return normalized
 }
