@@ -373,3 +373,263 @@ img {
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
+
+/* =============================================================================
+   AAA-LEVEL ANIMATION SYSTEM
+   Performance-optimized, accessibility-aware animations
+   ============================================================================= */
+
+/* GPU-accelerated animation layer */
+.gpu-layer {
+  will-change: transform, opacity;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Reset will-change after animation completes */
+.gpu-layer-auto {
+  will-change: auto;
+}
+
+/* Cinematic easing presets */
+.ease-cinematic {
+  transition-timing-function: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.ease-expo-out {
+  transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ease-expo-in {
+  transition-timing-function: cubic-bezier(0.7, 0, 0.84, 0);
+}
+
+.ease-spring {
+  transition-timing-function: cubic-bezier(0.5, 1.5, 0.8, 1);
+}
+
+/* Fade up animation - most common reveal */
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-up {
+  animation: fade-up 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Fade in with blur */
+@keyframes fade-in-blur {
+  from {
+    opacity: 0;
+    filter: blur(4px);
+  }
+  to {
+    opacity: 1;
+    filter: blur(0px);
+  }
+}
+
+.animate-fade-in-blur {
+  animation: fade-in-blur 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Scale up reveal */
+@keyframes scale-up {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-scale-up {
+  animation: scale-up 0.5s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Slide from left */
+@keyframes slide-left {
+  from {
+    opacity: 0;
+    transform: translateX(-40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-slide-left {
+  animation: slide-left 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Slide from right */
+@keyframes slide-right {
+  from {
+    opacity: 0;
+    transform: translateX(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.animate-slide-right {
+  animation: slide-right 0.6s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Wipe reveal */
+@keyframes wipe-reveal {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+
+.animate-wipe-reveal {
+  animation: wipe-reveal 0.8s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+/* Line draw */
+@keyframes line-draw {
+  from {
+    transform: scaleX(0);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.animate-line-draw {
+  animation: line-draw 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+  transform-origin: left;
+}
+
+/* Stagger delays - precise timing */
+.stagger-1 { animation-delay: 0.05s; }
+.stagger-2 { animation-delay: 0.1s; }
+.stagger-3 { animation-delay: 0.15s; }
+.stagger-4 { animation-delay: 0.2s; }
+.stagger-5 { animation-delay: 0.25s; }
+.stagger-6 { animation-delay: 0.3s; }
+.stagger-7 { animation-delay: 0.35s; }
+.stagger-8 { animation-delay: 0.4s; }
+
+/* Hover transforms - premium feel */
+.hover-lift {
+  transition: transform 0.4s cubic-bezier(0.22, 1, 0.36, 1),
+              box-shadow 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.hover-lift:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 
+              0 8px 10px -6px rgba(0, 0, 0, 0.1);
+}
+
+/* Image zoom on hover */
+.hover-zoom {
+  transition: transform 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.hover-zoom:hover {
+  transform: scale(1.05);
+}
+
+/* Button press effect */
+.press-effect {
+  transition: transform 0.15s ease;
+}
+
+.press-effect:active {
+  transform: scale(0.98);
+}
+
+/* Magnetic cursor effect container */
+.magnetic {
+  transition: transform 0.3s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+/* Floating animation - subtle ambient motion */
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+/* Pulse attention - for CTAs */
+@keyframes pulse-attention {
+  0%, 100% {
+    transform: scale(1);
+    box-shadow: 0 0 0 0 rgba(0, 0, 0, 0.1);
+  }
+  50% {
+    transform: scale(1.02);
+    box-shadow: 0 0 0 8px rgba(0, 0, 0, 0);
+  }
+}
+
+.animate-pulse-attention {
+  animation: pulse-attention 3s ease-in-out infinite;
+}
+
+/* Intersection observer utility classes */
+.in-view {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.not-in-view {
+  opacity: 0;
+  transform: translateY(30px);
+}
+
+/* Performance: Composite layer hints */
+.composite-layer {
+  contain: layout style paint;
+  content-visibility: auto;
+}
+
+/* Performance: Reduce paint during scroll */
+.scroll-optimized {
+  will-change: scroll-position;
+  contain: strict;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .hover-lift:hover,
+  .hover-zoom:hover {
+    outline: 2px solid currentColor;
+    outline-offset: 2px;
+  }
+}
+
+/* Print styles - remove animations */
+@media print {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+  }
+}

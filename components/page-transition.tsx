@@ -3,6 +3,7 @@
 import { motion, AnimatePresence } from 'framer-motion'
 import { usePathname } from 'next/navigation'
 import { ReactNode, useEffect, useState } from 'react'
+import { EASINGS, DURATIONS, prefersReducedMotion } from '@/lib/animations'
 
 interface PageTransitionProps {
   children: ReactNode
@@ -20,8 +21,8 @@ const pageVariants = {
     y: 0,
     filter: 'blur(0px)',
     transition: {
-      duration: 0.6,
-      ease: [0.22, 1, 0.36, 1], // Custom easing for smooth feel
+      duration: DURATIONS.slow,
+      ease: EASINGS.cinematic,
       staggerChildren: 0.1,
     },
   },
@@ -30,8 +31,8 @@ const pageVariants = {
     y: -10,
     filter: 'blur(2px)',
     transition: {
-      duration: 0.4,
-      ease: [0.22, 1, 0.36, 1],
+      duration: DURATIONS.normal,
+      ease: EASINGS.cinematic,
     },
   },
 }
@@ -42,29 +43,43 @@ const overlayVariants = {
   enter: { 
     scaleY: 0,
     transition: {
-      duration: 0.8,
-      ease: [0.22, 1, 0.36, 1],
+      duration: DURATIONS.slower,
+      ease: EASINGS.cinematic,
       delay: 0.1,
     }
   },
   exit: { 
     scaleY: 1,
     transition: {
-      duration: 0.6,
-      ease: [0.22, 1, 0.36, 1],
+      duration: DURATIONS.slow,
+      ease: EASINGS.cinematic,
     }
   },
+}
+
+// Reduced motion variants - instant transition
+const reducedMotionVariants = {
+  initial: { opacity: 0 },
+  enter: { opacity: 1, transition: { duration: 0.01 } },
+  exit: { opacity: 0, transition: { duration: 0.01 } },
 }
 
 export function PageTransition({ children }: PageTransitionProps) {
   const pathname = usePathname()
   const [isFirstLoad, setIsFirstLoad] = useState(true)
+  const [reducedMotion, setReducedMotion] = useState(false)
 
   useEffect(() => {
+    // Check for reduced motion preference
+    setReducedMotion(prefersReducedMotion())
+    
     // Skip dramatic transition on first load
     const timer = setTimeout(() => setIsFirstLoad(false), 100)
     return () => clearTimeout(timer)
   }, [])
+
+  // Use instant transition for reduced motion
+  const variants = reducedMotion ? reducedMotionVariants : pageVariants
 
   return (
     <AnimatePresence mode="wait" initial={false}>
@@ -73,7 +88,7 @@ export function PageTransition({ children }: PageTransitionProps) {
         initial={isFirstLoad ? false : 'initial'}
         animate="enter"
         exit="exit"
-        variants={pageVariants}
+        variants={variants}
       >
         {children}
       </motion.div>
