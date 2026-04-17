@@ -12,6 +12,9 @@ const InlineProductViewer = lazy(() =>
   import('@/components/product-viewer-3d').then(mod => ({ default: mod.InlineProductViewer }))
 )
 
+// Type for Blob files
+type BlobFile = { pathname: string; url: string }
+
 // 3D Model - using the working model from the project
 const HERO_MODEL = 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/04c9d9d2b5314e5a-8y7OUV6nPxO85ZCzkdZjwpAlALyBeF.glb'
 
@@ -24,6 +27,7 @@ export default function CollectionPage() {
   const [loaded, setLoaded] = useState(false)
   const [openDropdown, setOpenDropdown] = useState<'category' | 'color' | 'finish' | null>(null)
   const [viewer3DReady, setViewer3DReady] = useState(false)
+  const [blobImages, setBlobImages] = useState<Record<string, string>>({}) // filename -> pathname
   
   // Carousel refs
   const carouselRef = useRef<HTMLDivElement>(null)
@@ -34,6 +38,25 @@ export default function CollectionPage() {
     setLoaded(true)
     // Delay 3D viewer to avoid hydration issues
     const timer = setTimeout(() => setViewer3DReady(true), 600)
+    
+    // Fetch Blob images and create lookup map
+    fetch('/api/upload-inventory')
+      .then(res => res.json())
+      .then(data => {
+        const imageMap: Record<string, string> = {}
+        const categories = data.byCategory || {}
+        
+        for (const cat of Object.keys(categories)) {
+          for (const blob of categories[cat]) {
+            // Extract filename without extension as key
+            const filename = blob.pathname.split('/').pop()?.replace('.png', '').toLowerCase() || ''
+            imageMap[filename] = blob.pathname
+          }
+        }
+        setBlobImages(imageMap)
+      })
+      .catch(console.error)
+    
     return () => clearTimeout(timer)
   }, [])
   
@@ -42,6 +65,23 @@ export default function CollectionPage() {
     const timer = setTimeout(() => setDebouncedSearch(searchQuery), 300)
     return () => clearTimeout(timer)
   }, [searchQuery])
+  
+  // Get Blob image URL or fallback to original
+  const getImageUrl = (product: typeof INVENTORY[0]): string => {
+    // Try to find matching Blob image by product name
+    const nameSlug = product.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
+    
+    // Check various potential matches
+    for (const key of Object.keys(blobImages)) {
+      // Check if blob filename contains the product name slug
+      if (key.includes(nameSlug.split('-')[0]) || nameSlug.includes(key.split('-')[0])) {
+        return `/api/inventory-image?pathname=${encodeURIComponent(blobImages[key])}`
+      }
+    }
+    
+    // Fallback to Squarespace URL
+    return product.image
+  }
   
   // Carousel scroll tracking
   const checkScroll = () => {
@@ -432,12 +472,12 @@ export default function CollectionPage() {
                 )}
                 style={{ transitionDelay: `${delay}ms` }}
               >
-                {/* Image container - simple, clean */}
-                <div className="aspect-square bg-[#D4D0CB] overflow-hidden">
+                {/* Image container - using Blob storage when available */}
+                <div className="aspect-square bg-[#D4D0CB] overflow-hidden flex items-center justify-center">
                   <img
-                    src={product.image}
+                    src={getImageUrl(product)}
                     alt={product.name}
-                    className="w-full h-full object-cover"
+                    className="max-w-full max-h-full object-contain"
                     loading="lazy"
                   />
                 </div>
