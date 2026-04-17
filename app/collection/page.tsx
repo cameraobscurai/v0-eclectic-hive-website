@@ -472,12 +472,12 @@ export default function CollectionPage() {
                 )}
                 style={{ transitionDelay: `${delay}ms` }}
               >
-                {/* Image container - full white bg stays full size, image scaled down visually */}
-                <div className="aspect-square bg-white overflow-hidden flex items-center justify-center">
+                {/* Image container - normalized images from Blob have consistent padding */}
+                <div className="aspect-square bg-[#D4D0CB] overflow-hidden">
                   <img
                     src={getImageUrl(product)}
                     alt={product.name}
-                    className="w-full h-full object-contain scale-90"
+                    className="w-full h-full object-cover"
                     loading="lazy"
                   />
                 </div>
