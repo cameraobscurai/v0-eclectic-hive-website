@@ -12,14 +12,46 @@ const inter = Inter({
 // Saol Display is loaded via @font-face in globals.css from Blob storage
 
 export const metadata: Metadata = {
-  title: 'Eclectic Hive | Design + Production',
-  description: 'Two parts luxe, one part regal, and a dash of edge. Full-service design and production house creating cinematic, art-forward event environments.',
-  keywords: ['event design', 'fabrication', 'production', 'luxury events', 'destination events', 'custom design', 'environment design'],
+  metadataBase: new URL('https://eclectichive.com'),
+  title: {
+    default: 'Eclectic Hive | Luxury Event Design & Production | Denver',
+    template: '%s | Eclectic Hive',
+  },
+  description: 'Two parts luxe, one part regal, and a dash of edge. Full-service luxury event design, custom fabrication, and furniture rentals in Denver, Colorado. Creating cinematic, art-forward environments for weddings, galas, and corporate events.',
+  keywords: ['luxury event design', 'event fabrication', 'furniture rental Denver', 'wedding design', 'corporate event design', 'custom fabrication', 'destination events', 'Denver event planner', 'luxury furniture rental', 'event production'],
   authors: [{ name: 'Eclectic Hive' }],
+  creator: 'Eclectic Hive',
+  publisher: 'Eclectic Hive',
+  formatDetection: {
+    email: false,
+    address: false,
+    telephone: false,
+  },
   openGraph: {
-    title: 'Eclectic Hive | Design + Production',
-    description: 'Two parts luxe, one part regal, and a dash of edge. Full-service design and production house.',
+    title: 'Eclectic Hive | Luxury Event Design & Production',
+    description: 'Two parts luxe, one part regal, and a dash of edge. Full-service design and production house creating cinematic event environments.',
     type: 'website',
+    locale: 'en_US',
+    siteName: 'Eclectic Hive',
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'Eclectic Hive | Luxury Event Design & Production',
+    description: 'Two parts luxe, one part regal, and a dash of edge. Full-service design and production house.',
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: {
+      index: true,
+      follow: true,
+      'max-video-preview': -1,
+      'max-image-preview': 'large',
+      'max-snippet': -1,
+    },
+  },
+  alternates: {
+    canonical: '/',
   },
 }
 
@@ -32,6 +64,73 @@ export const viewport: Viewport = {
   initialScale: 1,
 }
 
+// JSON-LD Structured Data for SEO and AI Chat optimization
+const jsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'LocalBusiness',
+  '@id': 'https://eclectichive.com',
+  name: 'Eclectic Hive',
+  description: 'Full-service luxury event design, custom fabrication, and furniture rental company creating cinematic, art-forward environments.',
+  url: 'https://eclectichive.com',
+  // telephone: Contact via inquiry form
+  email: 'hello@eclectichive.com',
+  address: {
+    '@type': 'PostalAddress',
+    addressLocality: 'Denver',
+    addressRegion: 'CO',
+    addressCountry: 'US',
+  },
+  geo: {
+    '@type': 'GeoCoordinates',
+    latitude: 39.7392,
+    longitude: -104.9903,
+  },
+  areaServed: [
+    { '@type': 'State', name: 'Colorado' },
+    { '@type': 'Country', name: 'United States' },
+  ],
+  priceRange: '$$$',
+  openingHoursSpecification: {
+    '@type': 'OpeningHoursSpecification',
+    dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday'],
+    opens: '09:00',
+    closes: '18:00',
+  },
+  sameAs: [
+    'https://www.instagram.com/eclectichive',
+  ],
+  hasOfferCatalog: {
+    '@type': 'OfferCatalog',
+    name: 'Event Design Services',
+    itemListElement: [
+      {
+        '@type': 'Offer',
+        itemOffered: {
+          '@type': 'Service',
+          name: 'Custom Event Design',
+          description: 'Full-service event design from concept to execution',
+        },
+      },
+      {
+        '@type': 'Offer',
+        itemOffered: {
+          '@type': 'Service',
+          name: 'Furniture Rental',
+          description: 'Curated collection of luxury furniture for events',
+        },
+      },
+      {
+        '@type': 'Offer',
+        itemOffered: {
+          '@type': 'Service',
+          name: 'Custom Fabrication',
+          description: 'Bespoke fabrication and installation services',
+        },
+      },
+    ],
+  },
+}
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -39,7 +138,13 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" className={inter.variable} data-scroll-behavior="smooth">
-<body className="font-sans antialiased">
+      <head>
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
+      </head>
+      <body className="font-sans antialiased">
         {/* Skip to main content link for accessibility */}
         <a 
           href="#main-content" 

@@ -1,0 +1,15 @@
+# Eclectic Hive - Robots.txt
+
+User-agent: *
+Allow: /
+
+# Block admin and API routes from indexing
+Disallow: /admin/
+Disallow: /api/
+Disallow: /upload-fonts/
+
+# Allow important API content for AI chat
+Allow: /api/fonts/
+
+# Sitemap
+Sitemap: https://eclectichive.com/sitemap.xml

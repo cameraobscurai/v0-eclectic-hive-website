@@ -130,10 +130,10 @@ export function Navigation() {
             })}
           </div>
 
-          {/* Mobile burger */}
+          {/* Mobile burger - 44px minimum touch target */}
           <button
             onClick={() => setIsOpen((o) => !o)}
-            className="lg:hidden flex flex-col justify-center items-center w-10 h-10 -mr-2"
+            className="lg:hidden flex flex-col justify-center items-center w-11 h-11 min-w-[44px] min-h-[44px] -mr-2 touch-manipulation"
             aria-label={isOpen ? 'Close menu' : 'Open menu'}
             aria-expanded={isOpen}
             aria-controls="mobile-menu"
@@ -179,12 +179,12 @@ export function Navigation() {
       >
         <div className="flex flex-col h-full pt-24 pb-12 px-6">
           <nav className="flex-1 flex flex-col justify-center">
-            {/* Home link */}
+            {/* Home link - minimum touch target */}
             <Link
               href="/"
               onClick={() => setIsOpen(false)}
               className={cn(
-                'py-3 transition-all duration-500',
+                'py-4 min-h-[44px] flex items-center touch-manipulation transition-all duration-500',
                 isOpen
                   ? 'opacity-100 translate-x-0'
                   : 'opacity-0 -translate-x-8'
@@ -196,14 +196,14 @@ export function Navigation() {
               </span>
             </Link>
 
-            {/* Page links */}
+            {/* Page links - minimum touch targets */}
             {NAV_LINKS.map((link, i) => (
               <Link
                 key={link.href}
                 href={link.href}
                 onClick={() => setIsOpen(false)}
                 className={cn(
-                  'py-3 transition-all duration-500',
+                  'py-4 min-h-[44px] flex items-center touch-manipulation transition-all duration-500',
                   isOpen
                     ? 'opacity-100 translate-x-0'
                     : 'opacity-0 -translate-x-8'

@@ -3,6 +3,11 @@
 import { useState, useCallback, useEffect } from 'react'
 import { cn } from '@/lib/utils'
 
+// Prevent admin page from being indexed
+export const metadata = {
+  robots: 'noindex, nofollow',
+}
+
 const CATEGORIES = ['seating', 'tables', 'lighting', 'decor'] as const
 type Category = typeof CATEGORIES[number]
 
