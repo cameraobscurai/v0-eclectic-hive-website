@@ -457,7 +457,7 @@ export default function CollectionPage() {
       ───────────────────────────────────────────────────────────── */}
       <section className="px-4 lg:px-6 py-6 bg-cream">
         {filteredProducts.length > 0 ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-1">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-px">
             {filteredProducts.map((product, i) => {
               // Stagger by row (4 columns) for clean top-down reveal
               const row = Math.floor(i / 4)
@@ -472,8 +472,8 @@ export default function CollectionPage() {
                 )}
                 style={{ transitionDelay: `${delay}ms` }}
               >
-                {/* Image container - padding creates breathing room for products */}
-                <div className="aspect-square bg-white overflow-hidden p-4 lg:p-6">
+                {/* Image container - minimal padding, products fill the frame */}
+                <div className="aspect-square bg-white overflow-hidden p-2">
                   <img
                     src={getImageUrl(product)}
                     alt={product.name}
