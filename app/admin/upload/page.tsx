@@ -29,6 +29,7 @@ export default function UploadPage() {
   const [downloading, setDownloading] = useState(false)
   const [deleting, setDeleting] = useState(false)
   const [editingImage, setEditingImage] = useState<{ url: string; pathname: string } | null>(null)
+  const [cacheBuster, setCacheBuster] = useState(Date.now())
 
   // Delete all files (clean slate)
   const deleteAll = async () => {
@@ -94,6 +95,8 @@ export default function UploadPage() {
 
   // Handle save from editor
   const handleEditorSave = (pathname: string) => {
+    // Bust cache to force reload of updated images
+    setCacheBuster(Date.now())
     // Refresh the file list to show updated image
     fetch('/api/upload-inventory')
       .then(res => res.json())
@@ -353,7 +356,7 @@ export default function UploadPage() {
               {results.slice(0, 20).map((r, i) => (
                 <div key={i} className="aspect-square bg-[#D4D0CB] overflow-hidden">
                   <img 
-                    src={`/api/inventory-image?pathname=${encodeURIComponent(r.pathname)}`} 
+                    src={`/api/inventory-image?pathname=${encodeURIComponent(r.pathname)}&t=${cacheBuster}`} 
                     alt={r.name} 
                     className="w-full h-full object-contain" 
                   />
@@ -463,7 +466,7 @@ export default function UploadPage() {
                             title={filename}
                           >
                             <img 
-                              src={`/api/inventory-image?pathname=${encodeURIComponent(blob.pathname)}`} 
+                              src={`/api/inventory-image?pathname=${encodeURIComponent(blob.pathname)}&t=${cacheBuster}`} 
                               alt={filename} 
                               className="w-full h-full object-contain cursor-pointer"
                               onClick={() => toggleFileSelection(blob.pathname)}
