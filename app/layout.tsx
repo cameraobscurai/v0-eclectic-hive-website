@@ -139,13 +139,14 @@ export default function RootLayout({
   return (
     <html lang="en" className={inter.variable} data-scroll-behavior="smooth">
       <head>
-        {/* Preload brand fonts to eliminate FOUT */}
+        {/* Preload brand fonts to eliminate FOUT - highest priority */}
         <link
           rel="preload"
           href="/api/fonts/SaolDisplay-Regular.otf"
           as="font"
           type="font/otf"
           crossOrigin="anonymous"
+          fetchPriority="high"
         />
         <link
           rel="preload"
@@ -153,6 +154,7 @@ export default function RootLayout({
           as="font"
           type="font/otf"
           crossOrigin="anonymous"
+          fetchPriority="high"
         />
         <script
           type="application/ld+json"

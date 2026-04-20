@@ -1,9 +1,21 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  // Next.js 16 optimizations
+  reactCompiler: true, // Automatic memoization - no more manual useMemo/useCallback
+  cacheComponents: true, // Granular 'use cache' directive support
+  
   typescript: {
     ignoreBuildErrors: true,
   },
+  
   images: {
+    // Prefer AVIF (40-55% smaller than JPEG), fallback to WebP
+    formats: ['image/avif', 'image/webp'],
+    // Optimized device sizes for responsive images
+    deviceSizes: [640, 750, 828, 1080, 1200],
+    imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
+    // Long cache for immutable images
+    minimumCacheTTL: 31536000,
     remotePatterns: [
       {
         protocol: 'https',
