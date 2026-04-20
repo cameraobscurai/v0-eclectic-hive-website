@@ -276,7 +276,8 @@ export default function CollectionPage() {
                   <img
                     src={getImageUrl(product)}
                     alt={product.name}
-                    className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"
+                    className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105 bg-white"
+                    style={{ backgroundColor: '#fff' }}
                     loading="lazy"
                   />
                 </div>
