@@ -2,283 +2,106 @@ import { put, list, del } from '@vercel/blob'
 import { type NextRequest, NextResponse } from 'next/server'
 import sharp from 'sharp'
 
-// Target canvas size (square)
-const CANVAS_SIZE = 1200
-// Alpha threshold to detect content (0-255)
-const ALPHA_THRESHOLD = 10
-// Color difference threshold to detect background vs content
-const COLOR_DIFF_THRESHOLD = 30
+// ============================================================================
+// IMAGE PROCESSING CONFIG
+// ============================================================================
+const CANVAS_SIZE = 1200        // Output: 1200x1200 square
+const CONTENT_FILL = 0.72       // Product fills ~72% of canvas
+const OUTPUT_QUALITY = 90       // PNG compression quality
+const WHITE = { r: 255, g: 255, b: 255 }
 
-/**
- * Smart sizing based on aspect ratio detection
- * 
- * Aspect Ratio Tiers:
- * > 1.5  (very wide)   → 80%   Sofas, long benches
- * 1.2-1.5 (wide)       → 75%   Loveseats, settees  
- * 0.85-1.2 (square)    → 70%   Accent chairs, club chairs
- * 0.65-0.85 (tall)     → 68%   Dining chairs, side chairs
- * < 0.65 (very tall)   → 65%   Bar stools, tall items
- * 
- * Minimum fill: 58%
- */
-function getTargetFillPercent(contentWidth: number, contentHeight: number): number {
-  const aspectRatio = contentWidth / contentHeight
-  
-  // Very wide (sofas, long benches)
-  if (aspectRatio > 1.5) {
-    return 0.80
-  }
-  
-  // Wide (loveseats, settees)
-  if (aspectRatio > 1.2) {
-    return 0.75
-  }
-  
-  // Square-ish (accent chairs, club chairs, poufs)
-  if (aspectRatio > 0.85) {
-    return 0.70
-  }
-  
-  // Tall (dining chairs, side chairs)
-  if (aspectRatio > 0.65) {
-    return 0.68
-  }
-  
-  // Very tall (bar stools, floor items)
-  return 0.65
-}
-
-/**
- * Check if a pixel color is similar to the background color
- */
-function isBackgroundColor(r: number, g: number, b: number, bgR: number, bgG: number, bgB: number): boolean {
-  const diff = Math.abs(r - bgR) + Math.abs(g - bgG) + Math.abs(b - bgB)
-  return diff < COLOR_DIFF_THRESHOLD
-}
-
-/**
- * Sample corner pixels to detect background color
- */
-function detectBackgroundColor(data: Buffer, width: number, height: number): { r: number; g: number; b: number } | null {
-  // Sample corners
-  const corners = [
-    { x: 0, y: 0 },
-    { x: width - 1, y: 0 },
-    { x: 0, y: height - 1 },
-    { x: width - 1, y: height - 1 },
-  ]
-  
-  const colors: Array<{ r: number; g: number; b: number }> = []
-  
-  for (const corner of corners) {
-    const idx = (corner.y * width + corner.x) * 4
-    colors.push({
-      r: data[idx],
-      g: data[idx + 1],
-      b: data[idx + 2],
-    })
-  }
-  
-  // Check if corners are similar (likely background)
-  const [c1, c2, c3, c4] = colors
-  const similar = (a: typeof c1, b: typeof c1) => 
-    Math.abs(a.r - b.r) < 20 && Math.abs(a.g - b.g) < 20 && Math.abs(a.b - b.b) < 20
-  
-  if (similar(c1, c2) && similar(c2, c3) && similar(c3, c4)) {
-    // Average the corner colors
-    return {
-      r: Math.round((c1.r + c2.r + c3.r + c4.r) / 4),
-      g: Math.round((c1.g + c2.g + c3.g + c4.g) / 4),
-      b: Math.round((c1.b + c2.b + c3.b + c4.b) / 4),
-    }
-  }
-  
-  return null
-}
-
-/**
- * Normalizes an image by:
- * 1. Detecting the content bounding box (non-transparent OR non-background pixels)
- * 2. Adding uniform padding around the content
- * 3. Centering on a square canvas
- */
-async function normalizeImage(buffer: Buffer): Promise<Buffer> {
-  // Get image metadata and raw pixels
+// ============================================================================
+// CORE IMAGE PROCESSOR
+// Simple, bulletproof: Remove background → Center on white → Output PNG
+// ============================================================================
+async function processImage(buffer: Buffer): Promise<Buffer> {
+  // Step 1: Load image and get metadata
   const image = sharp(buffer)
   const metadata = await image.metadata()
   
   if (!metadata.width || !metadata.height) {
-    throw new Error('Could not read image dimensions')
+    throw new Error('Invalid image')
   }
 
-  // Extract raw pixel data with alpha channel
-  const { data, info } = await image
-    .ensureAlpha()
-    .raw()
-    .toBuffer({ resolveWithObject: true })
+  // Step 2: Flatten any transparency to white, ensure RGB
+  const flattened = await sharp(buffer)
+    .flatten({ background: WHITE })
+    .toBuffer()
 
-  // Detect background color from corners
-  const bgColor = detectBackgroundColor(data, info.width, info.height)
-  console.log('[v0] Detected background color:', bgColor)
-
-  // Find bounding box of content (non-transparent AND non-background pixels)
-  let minX = info.width
-  let minY = info.height
-  let maxX = 0
-  let maxY = 0
-
-  for (let y = 0; y < info.height; y++) {
-    for (let x = 0; x < info.width; x++) {
-      const idx = (y * info.width + x) * 4
-      const r = data[idx]
-      const g = data[idx + 1]
-      const b = data[idx + 2]
-      const alpha = data[idx + 3]
-      
-      // Skip transparent pixels
-      if (alpha <= ALPHA_THRESHOLD) continue
-      
-      // Skip background-colored pixels if we detected a background
-      if (bgColor && isBackgroundColor(r, g, b, bgColor.r, bgColor.g, bgColor.b)) continue
-      
-      // This is content
-      minX = Math.min(minX, x)
-      minY = Math.min(minY, y)
-      maxX = Math.max(maxX, x)
-      maxY = Math.max(maxY, y)
-    }
-  }
+  // Step 3: Trim whitespace/background to get content bounds
+  // This removes any existing background color
+  let trimmed: Buffer
+  let trimInfo: { width: number; height: number }
   
-  console.log('[v0] Content bounds:', { minX, minY, maxX, maxY, width: info.width, height: info.height })
-
-  // If no content found, still process with white background
-  if (maxX <= minX || maxY <= minY) {
-    console.log('[v0] No content bounds found, applying white background to full image')
-    // Just resize and put on white canvas
-    const resized = await sharp(buffer)
-      .resize({
-        width: Math.floor(CANVAS_SIZE * 0.7),
-        height: Math.floor(CANVAS_SIZE * 0.7),
-        fit: 'contain',
-        background: { r: 255, g: 255, b: 255, alpha: 255 },
+  try {
+    const result = await sharp(flattened)
+      .trim({ 
+        background: WHITE,
+        threshold: 40  // Tolerance for near-white pixels
       })
-      .toBuffer()
+      .toBuffer({ resolveWithObject: true })
     
-    const resizedMeta = await sharp(resized).metadata()
-    const left = Math.floor((CANVAS_SIZE - (resizedMeta.width || CANVAS_SIZE * 0.7)) / 2)
-    const top = Math.floor((CANVAS_SIZE - (resizedMeta.height || CANVAS_SIZE * 0.7)) / 2)
-    
-    return sharp({
-      create: {
-        width: CANVAS_SIZE,
-        height: CANVAS_SIZE,
-        channels: 4,
-        background: { r: 255, g: 255, b: 255, alpha: 255 },
-      },
-    })
-      .composite([{ input: resized, left, top }])
-      .png()
-      .toBuffer()
+    trimmed = result.data
+    trimInfo = { width: result.info.width, height: result.info.height }
+  } catch {
+    // If trim fails (e.g., image is all white), use original
+    trimmed = flattened
+    trimInfo = { width: metadata.width, height: metadata.height }
   }
-  
-  // If content already fills most of the image with good margins, skip processing
-  const contentWidth = maxX - minX + 1
-  const contentHeight = maxY - minY + 1
-  const marginX = minX + (info.width - maxX)
-  const marginY = minY + (info.height - maxY)
-  const marginRatioX = marginX / info.width
-  const marginRatioY = marginY / info.height
-  
-  // Determine optimal fill percentage based on aspect ratio
-  const aspectRatio = contentWidth / contentHeight
-  const fillPercent = getTargetFillPercent(contentWidth, contentHeight)
-  
-  console.log('[v0] Content analysis:', { 
-    contentWidth, 
-    contentHeight, 
-    aspectRatio: aspectRatio.toFixed(2),
-    fillPercent: `${(fillPercent * 100).toFixed(0)}%`
-  })
 
-  // Calculate target dimensions based on fill percentage
-  // For wide items, we size by width; for tall items, by height
-  let targetWidth: number
-  let targetHeight: number
+  // Step 4: Calculate target size to fill canvas at CONTENT_FILL %
+  const contentAspect = trimInfo.width / trimInfo.height
+  const targetSize = Math.floor(CANVAS_SIZE * CONTENT_FILL)
   
-  if (aspectRatio > 1) {
-    // Wide item - fit to width
-    targetWidth = Math.floor(CANVAS_SIZE * fillPercent)
-    targetHeight = Math.floor(targetWidth / aspectRatio)
+  let resizeWidth: number
+  let resizeHeight: number
+  
+  if (contentAspect > 1) {
+    // Wide image - fit to width
+    resizeWidth = targetSize
+    resizeHeight = Math.floor(targetSize / contentAspect)
   } else {
-    // Tall or square item - fit to height
-    targetHeight = Math.floor(CANVAS_SIZE * fillPercent)
-    targetWidth = Math.floor(targetHeight * aspectRatio)
+    // Tall/square image - fit to height
+    resizeHeight = targetSize
+    resizeWidth = Math.floor(targetSize * contentAspect)
   }
-  
-  // Ensure minimum size (58% of canvas)
-  const minSize = Math.floor(CANVAS_SIZE * 0.58)
-  if (targetWidth < minSize && targetHeight < minSize) {
-    const smallScale = minSize / Math.max(contentWidth, contentHeight)
-    targetWidth = Math.floor(contentWidth * smallScale)
-    targetHeight = Math.floor(contentHeight * smallScale)
-  }
-  
-  console.log('[v0] Target size:', { targetWidth, targetHeight })
-  
-  // Extract just the content area, flatten transparency, and resize
-  const extracted = await sharp(buffer)
-    .extract({
-      left: minX,
-      top: minY,
-      width: contentWidth,
-      height: contentHeight,
-    })
-    .flatten({ background: { r: 255, g: 255, b: 255 } }) // Replace any transparency with white
-    .resize({
-      width: targetWidth,
-      height: targetHeight,
-      fit: 'contain',
-      background: { r: 255, g: 255, b: 255, alpha: 255 },
+
+  // Step 5: Resize content
+  const resized = await sharp(trimmed)
+    .resize(resizeWidth, resizeHeight, {
+      fit: 'inside',
+      background: WHITE,
     })
     .toBuffer()
 
-  // Get actual resized dimensions
-  const extractedMeta = await sharp(extracted).metadata()
-  const finalWidth = extractedMeta.width || targetWidth
-  const finalHeight = extractedMeta.height || targetHeight
-  
-  // Calculate position to center on canvas
-  const left = Math.floor((CANVAS_SIZE - finalWidth) / 2)
-  const top = Math.floor((CANVAS_SIZE - finalHeight) / 2)
-  
-  console.log('[v0] Centering at:', { left, top, finalWidth, finalHeight })
+  // Step 6: Get final dimensions after resize
+  const resizedMeta = await sharp(resized).metadata()
+  const finalW = resizedMeta.width || resizeWidth
+  const finalH = resizedMeta.height || resizeHeight
 
-  // Create final canvas with centered content
-  // Use white background
-  const normalized = await sharp({
+  // Step 7: Center on white canvas
+  const left = Math.floor((CANVAS_SIZE - finalW) / 2)
+  const top = Math.floor((CANVAS_SIZE - finalH) / 2)
+
+  // Step 8: Composite onto white canvas and output
+  const final = await sharp({
     create: {
       width: CANVAS_SIZE,
       height: CANVAS_SIZE,
-      channels: 4,
-      background: { r: 255, g: 255, b: 255, alpha: 255 }, // #FFFFFF
+      channels: 3,
+      background: WHITE,
     },
   })
-    .composite([
-      {
-        input: extracted,
-        left,
-        top,
-      },
-    ])
-    .png()
+    .composite([{ input: resized, left, top }])
+    .png({ quality: OUTPUT_QUALITY, compressionLevel: 6 })
     .toBuffer()
-  
-  console.log('[v0] Normalized image created, size:', normalized.length)
 
-  return normalized
+  return final
 }
 
-// Upload multiple images to Blob storage
+// ============================================================================
+// API: Upload images
+// ============================================================================
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData()
@@ -293,46 +116,14 @@ export async function POST(request: NextRequest) {
     
     for (const file of files) {
       try {
-        // Convert file to buffer
-        const arrayBuffer = await file.arrayBuffer()
-        const buffer = Buffer.from(arrayBuffer)
+        const buffer = Buffer.from(await file.arrayBuffer())
+        const processed = await processImage(buffer)
         
-        // Normalize the image - ALWAYS apply white background
-        let processedBuffer: Buffer
-        try {
-          processedBuffer = await normalizeImage(buffer)
-        } catch (err) {
-          console.error(`[v0] Failed to normalize ${file.name}:`, err)
-          // Still apply white background even on error
-          const resized = await sharp(buffer)
-            .resize({
-              width: Math.floor(CANVAS_SIZE * 0.7),
-              height: Math.floor(CANVAS_SIZE * 0.7),
-              fit: 'contain',
-              background: { r: 255, g: 255, b: 255, alpha: 255 },
-            })
-            .flatten({ background: { r: 255, g: 255, b: 255 } })
-            .toBuffer()
-          
-          processedBuffer = await sharp({
-            create: {
-              width: CANVAS_SIZE,
-              height: CANVAS_SIZE,
-              channels: 3,
-              background: { r: 255, g: 255, b: 255 },
-            },
-          })
-            .composite([{ input: resized, gravity: 'center' }])
-            .png()
-            .toBuffer()
-        }
+        const pathname = `inventory/${category}/${file.name.replace(/\.[^.]+$/, '.png')}`
         
-        // Store in category folder: inventory/seating/item-name.png
-        const pathname = `inventory/${category}/${file.name}`
-        
-        const blob = await put(pathname, processedBuffer, {
+        const blob = await put(pathname, processed, {
           access: 'private',
-          addRandomSuffix: false, // Keep clean names for mapping to CSV
+          addRandomSuffix: false,
           allowOverwrite: true,
           contentType: 'image/png',
         })
@@ -344,7 +135,7 @@ export async function POST(request: NextRequest) {
           success: true,
         })
       } catch (err) {
-        console.error(`[v0] Failed to upload ${file.name}:`, err)
+        console.error(`[v0] Failed: ${file.name}`, err)
         results.push({
           name: file.name,
           success: false,
@@ -353,50 +144,41 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    return NextResponse.json({ 
-      uploaded: results.length,
-      files: results 
-    })
+    return NextResponse.json({ uploaded: results.length, files: results })
   } catch (error) {
     console.error('Upload error:', error)
     return NextResponse.json({ error: 'Upload failed' }, { status: 500 })
   }
 }
 
-// List all uploaded inventory images
+// ============================================================================
+// API: List images
+// ============================================================================
 export async function GET() {
   try {
     const { blobs } = await list({ prefix: 'inventory/' })
     
-    // Group by category
     const byCategory: Record<string, typeof blobs> = {}
     
     for (const blob of blobs) {
-      const parts = blob.pathname.split('/')
-      const category = parts[1] || 'uncategorized'
-      
-      if (!byCategory[category]) {
-        byCategory[category] = []
-      }
+      const category = blob.pathname.split('/')[1] || 'uncategorized'
+      if (!byCategory[category]) byCategory[category] = []
       byCategory[category].push(blob)
     }
 
-    return NextResponse.json({
-      total: blobs.length,
-      byCategory,
-    })
+    return NextResponse.json({ total: blobs.length, byCategory })
   } catch (error) {
     console.error('List error:', error)
     return NextResponse.json({ error: 'Failed to list files' }, { status: 500 })
   }
 }
 
-// Delete inventory images
+// ============================================================================
+// API: Delete images
+// ============================================================================
 export async function DELETE(request: NextRequest) {
   try {
     const { category } = await request.json()
-    
-    // Get all blobs to delete
     const prefix = category ? `inventory/${category}/` : 'inventory/'
     const { blobs } = await list({ prefix })
     
@@ -404,13 +186,11 @@ export async function DELETE(request: NextRequest) {
       return NextResponse.json({ deleted: 0, message: 'No files to delete' })
     }
     
-    // Delete all matching blobs
-    const urls = blobs.map(blob => blob.url)
-    await del(urls)
+    await del(blobs.map(b => b.url))
     
     return NextResponse.json({ 
       deleted: blobs.length,
-      message: `Deleted ${blobs.length} files${category ? ` from ${category}` : ''}` 
+      message: `Deleted ${blobs.length} files` 
     })
   } catch (error) {
     console.error('Delete error:', error)
