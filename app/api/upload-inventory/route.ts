@@ -213,7 +213,7 @@ async function normalizeImage(buffer: Buffer): Promise<Buffer> {
       width: targetWidth,
       height: targetHeight,
       fit: 'contain',
-      background: { r: 212, g: 208, b: 203, alpha: 255 },
+      background: { r: 255, g: 255, b: 255, alpha: 255 },
     })
     .toBuffer()
 
