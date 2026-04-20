@@ -188,10 +188,13 @@ export default function CollectionPage() {
     <main className="min-h-screen bg-cream">
       <Navigation />
       
+      {/* Spacer for fixed nav */}
+      <div className="h-[72px] lg:h-[88px]" />
+      
       {/* ─────────────────────────────────────────────────────────────
           Filter Header - Horizontal Two-Tier Navigation
       ───────────────────────────────────────────────────────────── */}
-      <section className="sticky top-0 z-30 bg-cream">
+      <section className="sticky top-[72px] lg:top-[88px] z-30 bg-cream">
         {/* Row 1: Main Categories */}
         <div className="border-b border-charcoal/10">
           <div className="flex items-center justify-center gap-1 py-4 px-4 overflow-x-auto scrollbar-hide">
