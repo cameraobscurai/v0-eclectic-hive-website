@@ -172,6 +172,17 @@ export default function CollectionPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [hiddenProducts, setHiddenProducts] = useState<Set<string>>(new Set())
+  const [sortBy, setSortBy] = useState<'name' | 'newest' | 'oldest'>('name')
+  
+  // Check if any filters are active
+  const hasActiveFilters = activeSubCategory !== 'All' || searchQuery.trim() !== ''
+  
+  // Reset all filters
+  const resetFilters = useCallback(() => {
+    setActiveSubCategory('All')
+    setSearchQuery('')
+    setSortBy('name')
+  }, [])
   
   // Handle broken images - hide them from the grid
   const handleImageError = useCallback((productId: string, imageUrl: string) => {
@@ -242,10 +253,23 @@ export default function CollectionPage() {
         })
         .filter(p => p._score > 0)
         .sort((a, b) => b._score - a._score)
+    } else {
+      // Apply sort when not searching
+      switch (sortBy) {
+        case 'name':
+          results.sort((a, b) => a.name.localeCompare(b.name))
+          break
+        case 'newest':
+          results.sort((a, b) => new Date(b.updated_at || 0).getTime() - new Date(a.updated_at || 0).getTime())
+          break
+        case 'oldest':
+          results.sort((a, b) => new Date(a.updated_at || 0).getTime() - new Date(b.updated_at || 0).getTime())
+          break
+      }
     }
     
     return results
-  }, [products, activeCategory, activeSubCategory, debouncedSearch, hiddenProducts, getImageUrl])
+  }, [products, activeCategory, activeSubCategory, debouncedSearch, hiddenProducts, getImageUrl, sortBy])
   
   // Get available sub-categories for current category (only show if items exist)
   const availableSubCategories = useMemo(() => {
@@ -297,30 +321,55 @@ export default function CollectionPage() {
           </div>
         </div>
         
-        {/* Row 2: Sub-Categories + Search */}
-        {availableSubCategories.length > 1 && (
-          <div className="border-b border-charcoal/5 bg-white">
-            <div className="flex items-center justify-between px-6 py-3">
-              {/* Sub-categories */}
-              <nav className="flex items-center gap-1 overflow-x-auto scrollbar-hide" aria-label="Sub-categories">
-                {availableSubCategories.map((sub) => (
+        {/* Row 2: Sub-Categories + Controls */}
+        <div className="border-b border-charcoal/5 bg-white">
+          <div className="flex items-center justify-between px-4 md:px-6 py-3 gap-3">
+            {/* Left: Sub-categories */}
+            <nav className="flex items-center gap-1 overflow-x-auto scrollbar-hide flex-1" aria-label="Sub-categories">
+              {availableSubCategories.map((sub) => {
+                // Count items in this sub-category
+                const count = sub === 'All' 
+                  ? products.filter(p => p.primary_image_url && p.category === activeCategory).length
+                  : products.filter(p => p.primary_image_url && p.category === activeCategory && detectSubCategory(p.name) === sub).length
+                
+                return (
                   <button
                     key={sub}
                     onClick={() => setActiveSubCategory(sub)}
                     className={cn(
-                      "px-3 py-1 text-[10px] tracking-[0.1em] uppercase whitespace-nowrap transition-all duration-200 rounded-full",
+                      "px-3 py-1 text-[10px] tracking-[0.1em] uppercase whitespace-nowrap transition-all duration-200 rounded-full flex items-center gap-1.5",
                       activeSubCategory === sub 
                         ? "bg-charcoal text-cream" 
                         : "text-charcoal/50 hover:text-charcoal/80 hover:bg-charcoal/5"
                     )}
                   >
                     {sub}
+                    <span className={cn(
+                      "text-[9px] tabular-nums",
+                      activeSubCategory === sub ? "text-cream/70" : "text-charcoal/30"
+                    )}>
+                      {count}
+                    </span>
                   </button>
-                ))}
-              </nav>
+                )
+              })}
+            </nav>
+            
+            {/* Right: Sort + Search + Reset */}
+            <div className="flex items-center gap-2 flex-shrink-0">
+              {/* Sort dropdown */}
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as 'name' | 'newest' | 'oldest')}
+                className="text-[10px] tracking-wide bg-transparent border border-charcoal/10 rounded-full px-2.5 py-1.5 focus:outline-none focus:border-charcoal/30 text-charcoal/60 cursor-pointer"
+              >
+                <option value="name">A-Z</option>
+                <option value="newest">Newest</option>
+                <option value="oldest">Oldest</option>
+              </select>
               
               {/* Search */}
-              <div className="relative flex-shrink-0 ml-4">
+              <div className="relative hidden sm:block">
                 <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-charcoal/30" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
                 </svg>
@@ -329,12 +378,77 @@ export default function CollectionPage() {
                   placeholder="Search..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-8 pr-3 py-1.5 text-[10px] tracking-wide bg-white/60 border border-charcoal/10 rounded-full focus:border-charcoal/30 focus:outline-none transition-all w-[100px] focus:w-[140px] placeholder:text-charcoal/30"
+                  className={cn(
+                    "pl-8 pr-3 py-1.5 text-[10px] tracking-wide border rounded-full focus:outline-none transition-all placeholder:text-charcoal/30",
+                    searchQuery 
+                      ? "w-[140px] border-charcoal/30 bg-charcoal/5" 
+                      : "w-[100px] focus:w-[140px] border-charcoal/10 bg-white/60"
+                  )}
                 />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery('')}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-charcoal/40 hover:text-charcoal"
+                  >
+                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </button>
+                )}
               </div>
+              
+              {/* Reset button - only show when filters active */}
+              {hasActiveFilters && (
+                <button
+                  onClick={resetFilters}
+                  className="text-[10px] tracking-wide text-charcoal/50 hover:text-charcoal underline underline-offset-2 whitespace-nowrap"
+                >
+                  Reset
+                </button>
+              )}
             </div>
           </div>
-        )}
+          
+          {/* Mobile search - full width on small screens */}
+          <div className="sm:hidden px-4 pb-3">
+            <div className="relative">
+              <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-charcoal/30" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+              </svg>
+              <input
+                type="text"
+                placeholder="Search pieces..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full pl-9 pr-9 py-2 text-sm border border-charcoal/10 rounded-full focus:outline-none focus:border-charcoal/30 placeholder:text-charcoal/30"
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-charcoal/40 hover:text-charcoal"
+                >
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+        
+        {/* Active filters summary + result count */}
+        <div className="flex items-center justify-between px-4 md:px-6 py-2 bg-neutral-50/50 text-[10px] tracking-wide text-charcoal/50">
+          <span>
+            {filteredProducts.length} {filteredProducts.length === 1 ? 'piece' : 'pieces'}
+            {debouncedSearch && ` matching "${debouncedSearch}"`}
+          </span>
+          {hasActiveFilters && (
+            <span className="flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-charcoal/30" />
+              Filters applied
+            </span>
+          )}
+        </div>
       </section>
       
       {/* ─────────────────────────────────────────────────────────────
@@ -363,12 +477,15 @@ export default function CollectionPage() {
           </div>
         ) : (
           <div className="py-20 text-center">
-            <p className="text-sm text-charcoal/40 mb-4">No pieces found.</p>
+            <p className="text-sm text-charcoal/40 mb-2">No pieces found.</p>
+            <p className="text-xs text-charcoal/30 mb-4">
+              {debouncedSearch ? `No results for "${debouncedSearch}"` : 'Try adjusting your filters'}
+            </p>
             <button
-              onClick={() => { setActiveSubCategory('All'); setSearchQuery('') }}
+              onClick={resetFilters}
               className="text-xs uppercase tracking-[0.12em] text-charcoal/60 hover:text-charcoal underline underline-offset-4"
             >
-              Clear filters
+              Reset all filters
             </button>
           </div>
         )}
