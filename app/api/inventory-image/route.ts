@@ -9,7 +9,14 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Missing pathname' }, { status: 400 })
     }
 
-    const result = await get(pathname, {
+    // Security: Validate pathname to prevent path traversal
+    // Only allow paths within inventory/ or fonts/ directories
+    const normalizedPath = pathname.replace(/\.\./g, '').replace(/\/+/g, '/')
+    if (!normalizedPath.startsWith('inventory/') && !normalizedPath.startsWith('fonts/')) {
+      return NextResponse.json({ error: 'Invalid path' }, { status: 403 })
+    }
+
+    const result = await get(normalizedPath, {
       access: 'private',
       ifNoneMatch: request.headers.get('if-none-match') ?? undefined,
     })
