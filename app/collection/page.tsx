@@ -1,7 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef, lazy, Suspense, useMemo } from 'react'
-import Image from 'next/image'
+import { useState, useEffect, useMemo } from 'react'
 import useSWR from 'swr'
 import { Navigation } from '@/components/navigation'
 import { Footer } from '@/components/footer'
@@ -24,7 +23,6 @@ const fetcher = (url: string) => fetch(url).then(res => res.json())
 
 // Category display names mapping
 const CATEGORY_DISPLAY: Record<string, string> = {
-  'All': 'All Pieces',
   'Seating': 'Lounge Seating',
   'Tables': 'Tables',
   'Bars': 'Cocktail & Bar',
@@ -34,19 +32,43 @@ const CATEGORY_DISPLAY: Record<string, string> = {
   'Styling': 'Styling',
   'Serveware': 'Serveware',
   'Storage': 'Storage',
-  'Candlelight': 'Candlelight',
 }
 
-// Lazy load 3D viewer
-const InlineProductViewer = lazy(() => 
-  import('@/components/product-viewer-3d').then(mod => ({ default: mod.InlineProductViewer }))
-)
+// Sub-categories by main category (detected from product names)
+const SUB_CATEGORIES: Record<string, string[]> = {
+  'Seating': ['All', 'Sofas', 'Chairs', 'Benches', 'Ottomans', 'Stools'],
+  'Tables': ['All', 'Coffee Tables', 'Side Tables', 'Dining Tables', 'Consoles'],
+  'Bars': ['All', 'Bars', 'Back Bars', 'Carts'],
+  'Large Decor & Dividers': ['All', 'Screens', 'Mirrors', 'Planters', 'Arches'],
+  'Lighting': ['All', 'Floor Lamps', 'Table Lamps', 'Sconces'],
+  'Styling': ['All'],
+  'Serveware': ['All'],
+}
 
-// Type for Blob files
-type BlobFile = { pathname: string; url: string }
+// Keywords for sub-category detection
+const SUB_CATEGORY_KEYWORDS: Record<string, string[]> = {
+  'Sofas': ['sofa', 'loveseat', 'settee', 'couch'],
+  'Chairs': ['chair', 'armchair', 'accent chair', 'lounge chair'],
+  'Benches': ['bench', 'daybed'],
+  'Ottomans': ['ottoman', 'pouf', 'footstool'],
+  'Stools': ['stool', 'barstool'],
+  'Coffee Tables': ['coffee table', 'cocktail table'],
+  'Side Tables': ['side table', 'end table', 'accent table', 'drink table'],
+  'Dining Tables': ['dining table', 'farm table'],
+  'Consoles': ['console', 'entry table', 'sofa table'],
+  'Bars': ['bar ', ' bar'],
+  'Back Bars': ['back bar', 'backbar'],
+  'Carts': ['cart', 'trolley'],
+  'Screens': ['screen', 'divider', 'partition'],
+  'Mirrors': ['mirror'],
+  'Planters': ['planter', 'pot', 'urn'],
+  'Arches': ['arch', 'arbor'],
+  'Floor Lamps': ['floor lamp', 'standing lamp'],
+  'Table Lamps': ['table lamp', 'desk lamp'],
+  'Sconces': ['sconce', 'wall lamp'],
+}
 
-// 3D Model - using the working model from the project
-const HERO_MODEL = 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/04c9d9d2b5314e5a-8y7OUV6nPxO85ZCzkdZjwpAlALyBeF.glb'
+
 
 export default function CollectionPage() {
   // SWR for products - cached, instant on revisit
@@ -78,22 +100,9 @@ export default function CollectionPage() {
   }, [products])
   
   const [activeCategory, setActiveCategory] = useState<string>('Seating')
+  const [activeSubCategory, setActiveSubCategory] = useState<string>('All')
   const [searchQuery, setSearchQuery] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
-  const [loaded, setLoaded] = useState(false)
-  const [viewer3DReady, setViewer3DReady] = useState(false)
-  
-  // Carousel refs
-  const carouselRef = useRef<HTMLDivElement>(null)
-  const [canScrollLeft, setCanScrollLeft] = useState(false)
-  const [canScrollRight, setCanScrollRight] = useState(true)
-
-  // Initialize on mount
-  useEffect(() => {
-    setLoaded(true)
-    const timer = setTimeout(() => setViewer3DReady(true), 600)
-    return () => clearTimeout(timer)
-  }, [])
   
   // Debounce search input
   useEffect(() => {
@@ -114,29 +123,15 @@ export default function CollectionPage() {
     return '/placeholder-product.jpg'
   }
   
-  // Carousel scroll tracking
-  const checkScroll = () => {
-    if (!carouselRef.current) return
-    const { scrollLeft, scrollWidth, clientWidth } = carouselRef.current
-    setCanScrollLeft(scrollLeft > 10)
-    setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10)
-  }
-  
-  useEffect(() => {
-    const el = carouselRef.current
-    if (!el) return
-    el.addEventListener('scroll', checkScroll)
-    checkScroll()
-    return () => el.removeEventListener('scroll', checkScroll)
-  }, [])
-  
-  const scrollCarousel = (direction: 'left' | 'right') => {
-    if (!carouselRef.current) return
-    const amount = carouselRef.current.clientWidth * 0.6
-    carouselRef.current.scrollBy({ 
-      left: direction === 'left' ? -amount : amount, 
-      behavior: 'smooth' 
-    })
+  // Detect sub-category from product name
+  const detectSubCategory = (name: string): string => {
+    const lowerName = name.toLowerCase()
+    for (const [subCat, keywords] of Object.entries(SUB_CATEGORY_KEYWORDS)) {
+      if (keywords.some(kw => lowerName.includes(kw))) {
+        return subCat
+      }
+    }
+    return 'Other'
   }
 
   // Filter and search products
@@ -145,8 +140,11 @@ export default function CollectionPage() {
     let results = products.filter(p => p.primary_image_url)
     
     // Category filter
-    if (activeCategory !== 'All') {
-      results = results.filter(p => p.category === activeCategory)
+    results = results.filter(p => p.category === activeCategory)
+    
+    // Sub-category filter
+    if (activeSubCategory !== 'All') {
+      results = results.filter(p => detectSubCategory(p.name) === activeSubCategory)
     }
     
     // Search filter with scoring
@@ -159,7 +157,6 @@ export default function CollectionPage() {
           if (name === q) score = 100
           else if (name.startsWith(q)) score = 80
           else if (name.includes(q)) score = 60
-          else if (p.category.toLowerCase().includes(q)) score = 40
           return { ...p, _score: score }
         })
         .filter(p => p._score > 0)
@@ -167,7 +164,23 @@ export default function CollectionPage() {
     }
     
     return results
-  }, [products, activeCategory, debouncedSearch])
+  }, [products, activeCategory, activeSubCategory, debouncedSearch])
+  
+  // Get available sub-categories for current category (only show if items exist)
+  const availableSubCategories = useMemo(() => {
+    const categoryProducts = products.filter(p => p.primary_image_url && p.category === activeCategory)
+    const subs = SUB_CATEGORIES[activeCategory] || ['All']
+    
+    return subs.filter(sub => {
+      if (sub === 'All') return true
+      return categoryProducts.some(p => detectSubCategory(p.name) === sub)
+    })
+  }, [products, activeCategory])
+  
+  // Reset sub-category when main category changes
+  useEffect(() => {
+    setActiveSubCategory('All')
+  }, [activeCategory])
   
 
 
@@ -176,231 +189,128 @@ export default function CollectionPage() {
       <Navigation />
       
       {/* ─────────────────────────────────────────────────────────────
-          Category Navigation - Horizontal Pills
+          Filter Header - Two-tier navigation
       ───────────────────────────────────────────────────────────── */}
-      <section className="sticky top-0 z-30 bg-cream/95 backdrop-blur-sm border-b border-charcoal/10">
-        <div className="px-6 lg:px-12">
-          {/* Category pills - scrollable on mobile */}
-          <div className="flex items-center gap-2 py-4 overflow-x-auto scrollbar-hide">
-            <nav className="flex items-center gap-1 lg:gap-2" role="tablist" aria-label="Product categories">
+      <section className="sticky top-0 z-30 bg-cream border-b border-charcoal/10">
+        {/* Main categories - vertical list on left side like their site */}
+        <div className="flex">
+          {/* Category sidebar */}
+          <nav className="hidden lg:flex flex-col border-r border-charcoal/10 py-6 px-8 min-w-[200px]" aria-label="Product categories">
+            {['Seating', 'Tables', 'Bars', 'Large Decor & Dividers', 'Lighting', 'Chandeliers', 'Styling', 'Serveware', 'Storage'].filter(c => categoryCounts[c] > 0).map((cat) => (
+              <button
+                key={cat}
+                onClick={() => setActiveCategory(cat)}
+                className={cn(
+                  "text-left py-2 text-xs tracking-[0.12em] uppercase transition-colors",
+                  activeCategory === cat 
+                    ? "text-charcoal" 
+                    : "text-charcoal/40 hover:text-charcoal/70"
+                )}
+              >
+                {CATEGORY_DISPLAY[cat] || cat}
+              </button>
+            ))}
+          </nav>
+          
+          {/* Mobile category selector */}
+          <div className="lg:hidden w-full px-4 py-3 border-b border-charcoal/10">
+            <select
+              value={activeCategory}
+              onChange={(e) => setActiveCategory(e.target.value)}
+              className="w-full py-2 px-3 text-xs tracking-[0.12em] uppercase bg-transparent border border-charcoal/20 focus:outline-none"
+            >
               {['Seating', 'Tables', 'Bars', 'Large Decor & Dividers', 'Lighting', 'Chandeliers', 'Styling', 'Serveware', 'Storage'].filter(c => categoryCounts[c] > 0).map((cat) => (
-                <button
-                  key={cat}
-                  role="tab"
-                  aria-selected={activeCategory === cat}
-                  onClick={() => setActiveCategory(cat)}
-                  className={cn(
-                    "relative flex items-center gap-2 px-4 py-2 text-xs tracking-[0.12em] uppercase whitespace-nowrap transition-all duration-200",
-                    activeCategory === cat 
-                      ? "text-charcoal font-medium" 
-                      : "text-charcoal/50 hover:text-charcoal/80"
-                  )}
-                >
-                  <span>{CATEGORY_DISPLAY[cat] || cat}</span>
-                  <span className={cn(
-                    "text-[10px] tabular-nums",
-                    activeCategory === cat ? "text-charcoal/60" : "text-charcoal/30"
-                  )}>
-                    {categoryCounts[cat] || 0}
-                  </span>
-                  {/* Active indicator */}
-                  {activeCategory === cat && (
-                    <span className="absolute bottom-0 left-4 right-4 h-px bg-charcoal" />
-                  )}
-                </button>
+                <option key={cat} value={cat}>{CATEGORY_DISPLAY[cat] || cat}</option>
               ))}
-            </nav>
-            
-            {/* Spacer */}
-            <div className="flex-1 min-w-4" />
-            
-            {/* Search */}
-            <div className="relative flex-shrink-0">
-              <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-charcoal/30" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
-              </svg>
-              <input
-                type="text"
-                placeholder="Search pieces..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 pr-8 py-2 text-xs tracking-wide bg-white/50 border border-charcoal/10 focus:border-charcoal/30 focus:bg-white focus:outline-none transition-all w-[140px] lg:w-[200px] placeholder:text-charcoal/30"
-              />
-              {searchQuery && (
-                <button 
-                  onClick={() => setSearchQuery('')} 
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-charcoal/40 hover:text-charcoal"
-                  aria-label="Clear search"
-                >
-                  <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                  </svg>
-                </button>
-              )}
+            </select>
+          </div>
+          
+          {/* Sub-categories + search */}
+          <div className="flex-1 px-6 py-4">
+            <div className="flex items-center justify-between gap-4">
+              {/* Sub-category filters */}
+              <nav className="flex items-center gap-1 overflow-x-auto scrollbar-hide" aria-label="Sub-categories">
+                {availableSubCategories.map((sub) => (
+                  <button
+                    key={sub}
+                    onClick={() => setActiveSubCategory(sub)}
+                    className={cn(
+                      "px-3 py-1.5 text-[11px] tracking-[0.1em] uppercase whitespace-nowrap transition-colors",
+                      activeSubCategory === sub 
+                        ? "text-charcoal" 
+                        : "text-charcoal/40 hover:text-charcoal/70"
+                    )}
+                  >
+                    {sub}
+                  </button>
+                ))}
+              </nav>
+              
+              {/* Search */}
+              <div className="relative flex-shrink-0">
+                <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-charcoal/30" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+                </svg>
+                <input
+                  type="text"
+                  placeholder="Search..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-9 pr-3 py-1.5 text-xs tracking-wide bg-transparent border-b border-charcoal/20 focus:border-charcoal/40 focus:outline-none transition-all w-[120px] lg:w-[160px] placeholder:text-charcoal/30"
+                />
+              </div>
             </div>
           </div>
         </div>
-        
-        {/* Search results indicator */}
-        {searchQuery && (
-          <div className="px-6 lg:px-12 py-2 bg-sand/30 border-b border-charcoal/5">
-            <div className="flex items-center justify-between">
-              <span className="text-xs text-charcoal/60">
-                {filteredProducts.length} result{filteredProducts.length !== 1 ? 's' : ''} for &quot;{searchQuery}&quot;
-              </span>
-              <button 
-                onClick={() => setSearchQuery('')}
-                className="text-xs text-charcoal/50 hover:text-charcoal underline underline-offset-2"
-              >
-                Clear search
-              </button>
-            </div>
-          </div>
-        )}
       </section>
       
       {/* ─────────────────────────────────────────────────────────────
-          Product Grid
+          Product Grid - Dense catalog layout
       ───────────────────────────────────────────────────────────── */}
-      <section className="px-4 lg:px-8 py-8 bg-cream">
+      <section className="flex-1 bg-white">
         {isLoading ? (
           <div className="py-20 text-center">
-            <p className="text-sm text-charcoal/50">Loading collection...</p>
+            <p className="text-sm text-charcoal/40">Loading...</p>
           </div>
         ) : filteredProducts.length > 0 ? (
-          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {filteredProducts.map((product, i) => {
-              const row = Math.floor(i / 4)
-              const delay = Math.min(row * 80, 400)
-              
-              return (
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+            {filteredProducts.map((product, i) => (
               <div
                 key={product.id || `${product.name}-${i}`}
-                className={cn(
-                  "group cursor-pointer transition-all duration-500 ease-out",
-                  loaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3"
-                )}
-                style={{ transitionDelay: `${delay}ms` }}
+                className="group relative cursor-pointer border-r border-b border-charcoal/5"
               >
-                {/* Image container */}
-                <div className="aspect-square bg-[#D4D0CB] overflow-hidden">
+                {/* Image container - clean white background */}
+                <div className="aspect-square bg-white p-4 lg:p-6">
                   <img
                     src={getImageUrl(product)}
                     alt={product.name}
-                    className="w-full h-full object-contain"
+                    className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"
                     loading="lazy"
                   />
                 </div>
                 
-                {/* Info */}
-                <div className="pt-4">
-                  <h3 className="text-[11px] tracking-[0.1em] text-charcoal font-medium uppercase">
-                    {product.name}
-                  </h3>
-                  <p className="text-[10px] tracking-[0.05em] text-charcoal/40 uppercase mt-0.5">
-                    {product.category}
-                  </p>
+                {/* Hover overlay with name */}
+                <div className="absolute inset-0 flex items-end justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+                  <div className="bg-white/95 backdrop-blur-sm w-full py-3 px-2 text-center">
+                    <p className="text-[10px] tracking-[0.08em] text-charcoal uppercase truncate">
+                      {product.name}
+                    </p>
+                  </div>
                 </div>
               </div>
-              )
-            })}
+            ))}
           </div>
         ) : (
           <div className="py-20 text-center">
-            <p className="text-sm text-charcoal/50 mb-4">No pieces found matching your search.</p>
+            <p className="text-sm text-charcoal/40 mb-4">No pieces found.</p>
             <button
-              onClick={clearAllFilters}
-              className="text-xs uppercase tracking-[0.15em] text-charcoal underline underline-offset-4 hover:no-underline"
+              onClick={() => { setActiveSubCategory('All'); setSearchQuery('') }}
+              className="text-xs uppercase tracking-[0.12em] text-charcoal/60 hover:text-charcoal underline underline-offset-4"
             >
               Clear filters
             </button>
           </div>
         )}
-      </section>
-      
-      {/* ─────────────────────────────────────────────────────────────
-          New Arrivals Carousel - Below inventory
-      ───────────────────────────────────────────────────────────── */}
-      <section className="py-12 border-t border-charcoal/10 bg-white">
-        <div className="flex items-center justify-between px-6 lg:px-12 mb-6">
-          <h2 className="text-[11px] uppercase tracking-[0.2em] text-charcoal/50">Featured Pieces</h2>
-          <div className="flex items-center gap-2">
-            <button
-              onClick={() => scrollCarousel('left')}
-              disabled={!canScrollLeft}
-              className={cn(
-                "w-8 h-8 rounded-full border flex items-center justify-center transition-all",
-                canScrollLeft 
-                  ? "border-charcoal/30 text-charcoal hover:bg-charcoal hover:text-cream" 
-                  : "border-charcoal/10 text-charcoal/20 cursor-not-allowed"
-              )}
-              aria-label="Scroll left"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-              </svg>
-            </button>
-            <button
-              onClick={() => scrollCarousel('right')}
-              disabled={!canScrollRight}
-              className={cn(
-                "w-8 h-8 rounded-full border flex items-center justify-center transition-all",
-                canScrollRight 
-                  ? "border-charcoal/30 text-charcoal hover:bg-charcoal hover:text-cream" 
-                  : "border-charcoal/10 text-charcoal/20 cursor-not-allowed"
-              )}
-              aria-label="Scroll right"
-            >
-              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-              </svg>
-            </button>
-          </div>
-        </div>
-        
-        <div 
-          ref={carouselRef}
-          className="flex gap-3 overflow-x-auto scrollbar-hide px-6 lg:px-12 pb-2"
-          style={{ scrollSnapType: 'x mandatory' }}
-        >
-          {products.filter(p => p.primary_image_url).slice(0, 12).map((product, i) => (
-            <div
-              key={`featured-${product.id || i}`}
-              className="group flex-shrink-0 w-[160px] lg:w-[180px]"
-              style={{ scrollSnapAlign: 'start' }}
-            >
-              <div className="relative aspect-[3/4] bg-[#E8E4DF] mb-2 overflow-hidden">
-                <Image
-                  src={getImageUrl(product)}
-                  alt={product.name}
-                  fill
-                  className="object-contain p-3 transition-transform duration-500 group-hover:scale-105"
-                  sizes="180px"
-                />
-              </div>
-              <p className="text-[9px] tracking-[0.1em] text-charcoal/60 group-hover:text-charcoal transition-colors truncate">
-                {product.name}
-              </p>
-            </div>
-          ))}
-        </div>
-      </section>
-      
-      {/* ─────────────────────────────────────────────────────────────
-          CTA
-      ─────────────────────────────────���─────────────────────────── */}
-      <section className="py-16 px-6 lg:px-12 border-t border-charcoal/10 bg-cream">
-        <div className="text-center max-w-2xl mx-auto">
-          <p className="text-sm text-charcoal/60 mb-6">
-            Looking for something specific? Our team can help you find the perfect pieces for your event.
-          </p>
-          <a
-            href="/contact"
-            className="inline-block px-8 py-3 bg-charcoal text-cream text-xs uppercase tracking-[0.15em] hover:bg-charcoal/90 transition-colors"
-          >
-            Get in Touch
-          </a>
-        </div>
       </section>
       
       <Footer />
