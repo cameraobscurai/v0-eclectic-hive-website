@@ -29,12 +29,12 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
   
-  // Cache response for 60 seconds
+  // No cache during development, short cache in production
   return NextResponse.json(
     { products },
     {
       headers: {
-        'Cache-Control': 'public, s-maxage=60, stale-while-revalidate=300',
+        'Cache-Control': 'private, no-cache, must-revalidate',
       },
     }
   )

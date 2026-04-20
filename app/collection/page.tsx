@@ -76,6 +76,7 @@ type Product = {
   primary_image_url?: string
   display_type: string
   is_featured?: boolean
+  updated_at?: string
 }
 
 // SWR fetcher with caching headers
@@ -187,9 +188,11 @@ export default function CollectionPage() {
   // Get image URL - use Blob URL if available
   const getImageUrl = useCallback((product: Product): string => {
     if (product.primary_image_url) {
-      // If it's a Blob pathname, use the API route
+      // If it's a Blob pathname, use the API route with cache buster
       if (product.primary_image_url.startsWith('inventory/')) {
-        return `/api/inventory-image?pathname=${encodeURIComponent(product.primary_image_url)}`
+        // Use updated_at as cache buster if available
+        const cacheBuster = product.updated_at ? `&v=${new Date(product.updated_at).getTime()}` : ''
+        return `/api/inventory-image?pathname=${encodeURIComponent(product.primary_image_url)}${cacheBuster}`
       }
       return product.primary_image_url
     }
