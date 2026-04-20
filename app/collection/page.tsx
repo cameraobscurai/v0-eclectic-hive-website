@@ -117,7 +117,8 @@ export default function CollectionPage() {
 
   // Filter and search products
   const filteredProducts = useMemo(() => {
-    let results = products
+    // Only show products with images
+    let results = products.filter(p => p.primary_image_url)
     
     // Category filter
     if (activeCategory !== 'All') {
@@ -206,7 +207,7 @@ export default function CollectionPage() {
         </div>
       </section>
       
-      {/* ────────────────────────────────────────────────────�������────────
+      {/* ────────────────���───────────────────────────────────�������────────
           Filter & Search Bar
       ───────────────────────────────────────────────────────────── */}
       <section className="py-4 px-6 lg:px-12 bg-cream border-y border-charcoal/10">
