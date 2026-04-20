@@ -105,11 +105,11 @@ function parseCSVRow(row: string): string[] {
 export async function POST(request: NextRequest) {
   const supabase = await createClient()
   
-  // Check auth
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  // TODO: Re-enable auth after setting up admin account
+  // const { data: { user } } = await supabase.auth.getUser()
+  // if (!user) {
+  //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  // }
   
   try {
     const formData = await request.formData()
@@ -142,7 +142,7 @@ export async function POST(request: NextRequest) {
         filename: file.name,
         status: 'processing',
         total_rows: lines.length - 1,
-        imported_by: user.id
+        // imported_by: user.id // TODO: re-enable with auth
       })
       .select()
       .single()
