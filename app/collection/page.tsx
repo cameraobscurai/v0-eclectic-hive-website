@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useRef, lazy, Suspense, useMemo } from 'react'
 import Image from 'next/image'
+import useSWR from 'swr'
 import { Navigation } from '@/components/navigation'
 import { Footer } from '@/components/footer'
 import { cn } from '@/lib/utils'
@@ -18,6 +19,9 @@ type Product = {
   is_featured?: boolean
 }
 
+// SWR fetcher
+const fetcher = (url: string) => fetch(url).then(res => res.json())
+
 // Lazy load 3D viewer
 const InlineProductViewer = lazy(() => 
   import('@/components/product-viewer-3d').then(mod => ({ default: mod.InlineProductViewer }))
@@ -30,46 +34,40 @@ type BlobFile = { pathname: string; url: string }
 const HERO_MODEL = 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/04c9d9d2b5314e5a-8y7OUV6nPxO85ZCzkdZjwpAlALyBeF.glb'
 
 export default function CollectionPage() {
-  const [products, setProducts] = useState<Product[]>([])
-  const [categories, setCategories] = useState<string[]>(['All'])
+  // SWR for products - cached, instant on revisit
+  const { data: productsData } = useSWR('/api/products', fetcher, {
+    revalidateOnFocus: false,
+    revalidateOnReconnect: false,
+    dedupingInterval: 60000, // Cache for 1 minute
+  })
+  
+  // SWR for categories - cached
+  const { data: categoriesData } = useSWR('/api/categories', fetcher, {
+    revalidateOnFocus: false,
+    revalidateOnReconnect: false,
+    dedupingInterval: 60000,
+  })
+  
+  const products: Product[] = productsData?.products || []
+  const categories: string[] = categoriesData?.categories || ['All']
+  const isLoading = !productsData
+  
   const [activeCategory, setActiveCategory] = useState<string>('All')
   const [searchQuery, setSearchQuery] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [loaded, setLoaded] = useState(false)
   const [openDropdown, setOpenDropdown] = useState<'category' | null>(null)
   const [viewer3DReady, setViewer3DReady] = useState(false)
-  const [isLoading, setIsLoading] = useState(true)
   
   // Carousel refs
   const carouselRef = useRef<HTMLDivElement>(null)
   const [canScrollLeft, setCanScrollLeft] = useState(false)
   const [canScrollRight, setCanScrollRight] = useState(true)
 
-  // Fetch products and categories from Supabase
+  // Initialize on mount
   useEffect(() => {
     setLoaded(true)
     const timer = setTimeout(() => setViewer3DReady(true), 600)
-    
-    // Fetch categories
-    fetch('/api/categories')
-      .then(res => res.json())
-      .then(data => {
-        if (data.categories) setCategories(data.categories)
-      })
-      .catch(console.error)
-    
-    // Fetch all products
-    fetch('/api/products')
-      .then(res => res.json())
-      .then(data => {
-        if (data.products) setProducts(data.products)
-        setIsLoading(false)
-      })
-      .catch(err => {
-        console.error(err)
-        setIsLoading(false)
-      })
-    
     return () => clearTimeout(timer)
   }, [])
   

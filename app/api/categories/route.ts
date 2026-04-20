@@ -30,7 +30,13 @@ export async function GET() {
     })
   }
   
-  return NextResponse.json({ 
-    categories: Array.from(allCategories)
-  })
+  // Cache for 5 minutes - categories rarely change
+  return NextResponse.json(
+    { categories: Array.from(allCategories) },
+    {
+      headers: {
+        'Cache-Control': 'public, s-maxage=300, stale-while-revalidate=600',
+      },
+    }
+  )
 }
