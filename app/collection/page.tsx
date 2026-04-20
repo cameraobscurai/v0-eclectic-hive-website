@@ -87,7 +87,7 @@ const fetcher = async (url: string) => {
   return res.json()
 }
 
-// Category display names mapping
+// Category display names mapping (friendly names for nav)
 const CATEGORY_DISPLAY: Record<string, string> = {
   'Seating': 'Lounge Seating',
   'Tables': 'Tables',
@@ -98,7 +98,16 @@ const CATEGORY_DISPLAY: Record<string, string> = {
   'Styling': 'Styling',
   'Serveware': 'Serveware',
   'Storage': 'Storage',
+  'Candlelight': 'Candlelight',
+  'Pillows': 'Pillows',
+  'Rugs': 'Rugs',
+  'Tableware': 'Tableware',
+  'Furs & Pelts': 'Furs & Pelts',
+  'Subrentals': 'Subrentals',
 }
+
+// Get display name for a category (falls back to raw name if not mapped)
+const getCategoryDisplay = (cat: string): string => CATEGORY_DISPLAY[cat] || cat
 
 // Sub-categories by main category (detected from product names)
 const SUB_CATEGORIES: Record<string, string[]> = {
@@ -107,8 +116,16 @@ const SUB_CATEGORIES: Record<string, string[]> = {
   'Bars': ['All', 'Bars', 'Back Bars', 'Carts'],
   'Large Decor & Dividers': ['All', 'Screens', 'Mirrors', 'Planters', 'Arches'],
   'Lighting': ['All', 'Floor Lamps', 'Table Lamps', 'Sconces'],
+  'Chandeliers': ['All'],
   'Styling': ['All'],
   'Serveware': ['All'],
+  'Storage': ['All'],
+  'Candlelight': ['All'],
+  'Pillows': ['All'],
+  'Rugs': ['All'],
+  'Tableware': ['All'],
+  'Furs & Pelts': ['All'],
+  'Subrentals': ['All'],
 }
 
 // Keywords for sub-category detection
@@ -167,12 +184,24 @@ export default function CollectionPage() {
     return counts
   }, [products])
   
-  const [activeCategory, setActiveCategory] = useState<string>('Seating')
+  const [activeCategory, setActiveCategory] = useState<string>('')
   const [activeSubCategory, setActiveSubCategory] = useState<string>('All')
   const [searchQuery, setSearchQuery] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [hiddenProducts, setHiddenProducts] = useState<Set<string>>(new Set())
   const [sortBy, setSortBy] = useState<'name' | 'newest' | 'oldest'>('name')
+  
+  // Set initial category to first one with images once products load
+  useEffect(() => {
+    if (!activeCategory && products.length > 0) {
+      const firstCategoryWithImages = Object.entries(categoryCounts)
+        .filter(([cat, count]) => cat !== 'All' && count > 0)
+        .sort((a, b) => b[1] - a[1])[0]
+      if (firstCategoryWithImages) {
+        setActiveCategory(firstCategoryWithImages[0])
+      }
+    }
+  }, [products, categoryCounts, activeCategory])
   
   // Check if any filters are active
   const hasActiveFilters = activeSubCategory !== 'All' || searchQuery.trim() !== ''
@@ -231,7 +260,8 @@ export default function CollectionPage() {
       !brokenImages.has(getImageUrl(p))
     )
     
-    // Category filter
+    // Category filter (if no category selected yet, show nothing until loaded)
+    if (!activeCategory) return []
     results = results.filter(p => p.category === activeCategory)
     
     // Sub-category filter
@@ -297,10 +327,13 @@ export default function CollectionPage() {
           Filter Header - Horizontal Two-Tier Navigation
       ───────────────────────────────────────────────────────────── */}
       <section className="sticky top-0 z-40 bg-white">
-        {/* Row 1: Main Categories */}
+        {/* Row 1: Main Categories - dynamically shows categories with images */}
         <div className="border-b border-charcoal/10">
           <div className="flex items-center justify-center gap-1 py-4 px-4 overflow-x-auto scrollbar-hide">
-            {['Seating', 'Tables', 'Bars', 'Large Decor & Dividers', 'Lighting', 'Chandeliers', 'Styling', 'Serveware', 'Storage'].filter(c => categoryCounts[c] > 0).map((cat) => (
+            {Object.entries(categoryCounts)
+              .filter(([_, count]) => count > 0)
+              .sort((a, b) => b[1] - a[1]) // Sort by count descending
+              .map(([cat]) => (
               <button
                 key={cat}
                 onClick={() => setActiveCategory(cat)}
@@ -311,7 +344,7 @@ export default function CollectionPage() {
                     : "text-charcoal/40 hover:text-charcoal/60"
                 )}
               >
-                {CATEGORY_DISPLAY[cat] || cat}
+                {getCategoryDisplay(cat)}
                 {/* Active underline */}
                 {activeCategory === cat && (
                   <span className="absolute bottom-1 left-4 right-4 h-px bg-charcoal" />
