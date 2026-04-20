@@ -1,10 +1,70 @@
 'use client'
 
-import { useState, useEffect, useMemo } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import useSWR from 'swr'
 import { Navigation } from '@/components/navigation'
 import { Footer } from '@/components/footer'
 import { cn } from '@/lib/utils'
+
+// Track broken images globally to avoid re-checking
+const brokenImages = new Set<string>()
+
+// Optimized ProductCard with loading states
+function ProductCard({ 
+  product, 
+  imageUrl, 
+  onImageError 
+}: { 
+  product: Product
+  imageUrl: string
+  onImageError: (id: string, url: string) => void 
+}) {
+  const [loaded, setLoaded] = useState(false)
+  const [error, setError] = useState(false)
+  
+  // Don't render if already known to be broken
+  if (brokenImages.has(imageUrl)) return null
+  
+  const handleError = () => {
+    setError(true)
+    onImageError(product.id, imageUrl)
+  }
+  
+  if (error) return null
+  
+  return (
+    <div className="group relative cursor-pointer border-r border-b border-charcoal/5">
+      {/* Image container */}
+      <div className="aspect-square bg-white p-4 lg:p-6 relative">
+        {/* Skeleton placeholder */}
+        {!loaded && (
+          <div className="absolute inset-4 lg:inset-6 bg-neutral-100 animate-pulse" />
+        )}
+        <img
+          src={imageUrl}
+          alt={product.name}
+          className={cn(
+            "w-full h-full object-contain transition-all duration-300",
+            loaded ? "opacity-100 group-hover:scale-105" : "opacity-0"
+          )}
+          loading="lazy"
+          decoding="async"
+          onLoad={() => setLoaded(true)}
+          onError={handleError}
+        />
+      </div>
+      
+      {/* Hover overlay with name */}
+      <div className="absolute inset-0 flex items-end justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+        <div className="bg-white/95 backdrop-blur-sm w-full py-3 px-2 text-center">
+          <p className="text-[10px] tracking-[0.08em] text-charcoal uppercase truncate">
+            {product.name}
+          </p>
+        </div>
+      </div>
+    </div>
+  )
+}
 
 // Product type from Supabase
 type Product = {
@@ -18,8 +78,13 @@ type Product = {
   is_featured?: boolean
 }
 
-// SWR fetcher
-const fetcher = (url: string) => fetch(url).then(res => res.json())
+// SWR fetcher with caching headers
+const fetcher = async (url: string) => {
+  const res = await fetch(url, {
+    next: { revalidate: 300 }, // 5 min cache
+  })
+  return res.json()
+}
 
 // Category display names mapping
 const CATEGORY_DISPLAY: Record<string, string> = {
@@ -75,14 +140,16 @@ export default function CollectionPage() {
   const { data: productsData } = useSWR('/api/products', fetcher, {
     revalidateOnFocus: false,
     revalidateOnReconnect: false,
-    dedupingInterval: 60000, // Cache for 1 minute
+    dedupingInterval: 300000, // Cache for 5 minutes
+    keepPreviousData: true, // Keep showing old data while revalidating
   })
   
   // SWR for categories - cached
   const { data: categoriesData } = useSWR('/api/categories', fetcher, {
     revalidateOnFocus: false,
     revalidateOnReconnect: false,
-    dedupingInterval: 60000,
+    dedupingInterval: 300000,
+    keepPreviousData: true,
   })
   
   const products: Product[] = productsData?.products || []
@@ -103,6 +170,13 @@ export default function CollectionPage() {
   const [activeSubCategory, setActiveSubCategory] = useState<string>('All')
   const [searchQuery, setSearchQuery] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
+  const [hiddenProducts, setHiddenProducts] = useState<Set<string>>(new Set())
+  
+  // Handle broken images - hide them from the grid
+  const handleImageError = useCallback((productId: string, imageUrl: string) => {
+    brokenImages.add(imageUrl)
+    setHiddenProducts(prev => new Set(prev).add(productId))
+  }, [])
   
   // Debounce search input
   useEffect(() => {
@@ -111,7 +185,7 @@ export default function CollectionPage() {
   }, [searchQuery])
   
   // Get image URL - use Blob URL if available
-  const getImageUrl = (product: Product): string => {
+  const getImageUrl = useCallback((product: Product): string => {
     if (product.primary_image_url) {
       // If it's a Blob pathname, use the API route
       if (product.primary_image_url.startsWith('inventory/')) {
@@ -121,7 +195,7 @@ export default function CollectionPage() {
     }
     // Placeholder for items without images
     return '/placeholder-product.jpg'
-  }
+  }, [])
   
   // Detect sub-category from product name
   const detectSubCategory = (name: string): string => {
@@ -136,8 +210,12 @@ export default function CollectionPage() {
 
   // Filter and search products
   const filteredProducts = useMemo(() => {
-    // Only show products with images
-    let results = products.filter(p => p.primary_image_url)
+    // Only show products with images, exclude hidden/broken ones
+    let results = products.filter(p => 
+      p.primary_image_url && 
+      !hiddenProducts.has(p.id) &&
+      !brokenImages.has(getImageUrl(p))
+    )
     
     // Category filter
     results = results.filter(p => p.category === activeCategory)
@@ -164,7 +242,7 @@ export default function CollectionPage() {
     }
     
     return results
-  }, [products, activeCategory, activeSubCategory, debouncedSearch])
+  }, [products, activeCategory, activeSubCategory, debouncedSearch, hiddenProducts, getImageUrl])
   
   // Get available sub-categories for current category (only show if items exist)
   const availableSubCategories = useMemo(() => {
@@ -257,39 +335,27 @@ export default function CollectionPage() {
       </section>
       
       {/* ─────────────────────────────────────────────────────────────
-          Product Grid - Dense catalog layout
+          Product Grid - Dense catalog layout with skeleton loading
       ───────────────────────────────────────────────────────────── */}
       <section className="flex-1 bg-white">
         {isLoading ? (
-          <div className="py-20 text-center">
-            <p className="text-sm text-charcoal/40">Loading...</p>
+          // Skeleton grid - instant visual feedback
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+            {Array.from({ length: 24 }).map((_, i) => (
+              <div key={i} className="border-r border-b border-charcoal/5">
+                <div className="aspect-square bg-neutral-100 animate-pulse" />
+              </div>
+            ))}
           </div>
         ) : filteredProducts.length > 0 ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-            {filteredProducts.map((product, i) => (
-              <div
-                key={product.id || `${product.name}-${i}`}
-                className="group relative cursor-pointer border-r border-b border-charcoal/5"
-              >
-                {/* Image container - clean white background */}
-                <div className="aspect-square bg-white p-4 lg:p-6">
-                  <img
-                    src={getImageUrl(product)}
-                    alt={product.name}
-                    className="w-full h-full object-contain transition-transform duration-300 group-hover:scale-105"
-                    loading="lazy"
-                  />
-                </div>
-                
-                {/* Hover overlay with name */}
-                <div className="absolute inset-0 flex items-end justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
-                  <div className="bg-white/95 backdrop-blur-sm w-full py-3 px-2 text-center">
-                    <p className="text-[10px] tracking-[0.08em] text-charcoal uppercase truncate">
-                      {product.name}
-                    </p>
-                  </div>
-                </div>
-              </div>
+            {filteredProducts.map((product) => (
+              <ProductCard 
+                key={product.id} 
+                product={product} 
+                imageUrl={getImageUrl(product)}
+                onImageError={handleImageError}
+              />
             ))}
           </div>
         ) : (
