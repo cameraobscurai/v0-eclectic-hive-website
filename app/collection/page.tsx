@@ -5,7 +5,18 @@ import Image from 'next/image'
 import { Navigation } from '@/components/navigation'
 import { Footer } from '@/components/footer'
 import { cn } from '@/lib/utils'
-import { INVENTORY, NEW_ARRIVALS, CATEGORIES, COLORS, FINISHES, type Category, type Color, type Finish } from '@/lib/inventory-data'
+
+// Product type from Supabase
+type Product = {
+  id: string
+  slug: string
+  name: string
+  category: string
+  sub_category?: string
+  primary_image_url?: string
+  display_type: string
+  is_featured?: boolean
+}
 
 // Lazy load 3D viewer
 const InlineProductViewer = lazy(() => 
@@ -19,43 +30,45 @@ type BlobFile = { pathname: string; url: string }
 const HERO_MODEL = 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/04c9d9d2b5314e5a-8y7OUV6nPxO85ZCzkdZjwpAlALyBeF.glb'
 
 export default function CollectionPage() {
-  const [activeCategory, setActiveCategory] = useState<Category>('All')
-  const [activeColors, setActiveColors] = useState<Color[]>([])
-  const [activeFinishes, setActiveFinishes] = useState<Finish[]>([])
+  const [products, setProducts] = useState<Product[]>([])
+  const [categories, setCategories] = useState<string[]>(['All'])
+  const [activeCategory, setActiveCategory] = useState<string>('All')
   const [searchQuery, setSearchQuery] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [loaded, setLoaded] = useState(false)
-  const [openDropdown, setOpenDropdown] = useState<'category' | 'color' | 'finish' | null>(null)
+  const [openDropdown, setOpenDropdown] = useState<'category' | null>(null)
   const [viewer3DReady, setViewer3DReady] = useState(false)
-  const [blobImages, setBlobImages] = useState<Record<string, string>>({}) // filename -> pathname
+  const [isLoading, setIsLoading] = useState(true)
   
   // Carousel refs
   const carouselRef = useRef<HTMLDivElement>(null)
   const [canScrollLeft, setCanScrollLeft] = useState(false)
   const [canScrollRight, setCanScrollRight] = useState(true)
 
+  // Fetch products and categories from Supabase
   useEffect(() => {
     setLoaded(true)
-    // Delay 3D viewer to avoid hydration issues
     const timer = setTimeout(() => setViewer3DReady(true), 600)
     
-    // Fetch Blob images and create lookup map
-    fetch('/api/upload-inventory')
+    // Fetch categories
+    fetch('/api/categories')
       .then(res => res.json())
       .then(data => {
-        const imageMap: Record<string, string> = {}
-        const categories = data.byCategory || {}
-        
-        for (const cat of Object.keys(categories)) {
-          for (const blob of categories[cat]) {
-            // Extract filename without extension as key
-            const filename = blob.pathname.split('/').pop()?.replace('.png', '').toLowerCase() || ''
-            imageMap[filename] = blob.pathname
-          }
-        }
-        setBlobImages(imageMap)
+        if (data.categories) setCategories(data.categories)
       })
       .catch(console.error)
+    
+    // Fetch all products
+    fetch('/api/products')
+      .then(res => res.json())
+      .then(data => {
+        if (data.products) setProducts(data.products)
+        setIsLoading(false)
+      })
+      .catch(err => {
+        console.error(err)
+        setIsLoading(false)
+      })
     
     return () => clearTimeout(timer)
   }, [])
@@ -66,21 +79,17 @@ export default function CollectionPage() {
     return () => clearTimeout(timer)
   }, [searchQuery])
   
-  // Get Blob image URL or fallback to original
-  const getImageUrl = (product: typeof INVENTORY[0]): string => {
-    // Try to find matching Blob image by product name
-    const nameSlug = product.name.toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '')
-    
-    // Check various potential matches
-    for (const key of Object.keys(blobImages)) {
-      // Check if blob filename contains the product name slug
-      if (key.includes(nameSlug.split('-')[0]) || nameSlug.includes(key.split('-')[0])) {
-        return `/api/inventory-image?pathname=${encodeURIComponent(blobImages[key])}`
+  // Get image URL - use Blob URL if available
+  const getImageUrl = (product: Product): string => {
+    if (product.primary_image_url) {
+      // If it's a Blob pathname, use the API route
+      if (product.primary_image_url.startsWith('inventory/')) {
+        return `/api/inventory-image?pathname=${encodeURIComponent(product.primary_image_url)}`
       }
+      return product.primary_image_url
     }
-    
-    // Fallback to Squarespace URL
-    return product.image
+    // Placeholder for items without images
+    return '/placeholder-product.jpg'
   }
   
   // Carousel scroll tracking
@@ -108,27 +117,13 @@ export default function CollectionPage() {
     })
   }
 
-  // Filter and search products with scoring
+  // Filter and search products
   const filteredProducts = useMemo(() => {
-    let results = INVENTORY
+    let results = products
     
     // Category filter
     if (activeCategory !== 'All') {
       results = results.filter(p => p.category === activeCategory)
-    }
-    
-    // Color filter (OR - any selected color matches)
-    if (activeColors.length > 0) {
-      results = results.filter(p => 
-        p.color?.some(c => activeColors.includes(c))
-      )
-    }
-    
-    // Finish filter (OR - any selected finish matches)
-    if (activeFinishes.length > 0) {
-      results = results.filter(p => 
-        p.finish?.some(f => activeFinishes.includes(f))
-      )
     }
     
     // Search filter with scoring
@@ -142,8 +137,6 @@ export default function CollectionPage() {
           else if (name.startsWith(q)) score = 80
           else if (name.includes(q)) score = 60
           else if (p.category.toLowerCase().includes(q)) score = 40
-          else if (p.color?.some(c => c.toLowerCase().includes(q))) score = 30
-          else if (p.finish?.some(f => f.toLowerCase().includes(q))) score = 30
           return { ...p, _score: score }
         })
         .filter(p => p._score > 0)
@@ -151,31 +144,15 @@ export default function CollectionPage() {
     }
     
     return results
-  }, [activeCategory, activeColors, activeFinishes, debouncedSearch])
+  }, [products, activeCategory, debouncedSearch])
   
   // Check if any filters active
-  const hasActiveFilters = activeCategory !== 'All' || activeColors.length > 0 || activeFinishes.length > 0 || searchQuery.trim()
+  const hasActiveFilters = activeCategory !== 'All' || searchQuery.trim()
   
   // Clear all filters
   const clearAllFilters = () => {
     setActiveCategory('All')
-    setActiveColors([])
-    setActiveFinishes([])
     setSearchQuery('')
-  }
-  
-  // Toggle color selection
-  const toggleColor = (color: Color) => {
-    setActiveColors(prev => 
-      prev.includes(color) ? prev.filter(c => c !== color) : [...prev, color]
-    )
-  }
-  
-  // Toggle finish selection  
-  const toggleFinish = (finish: Finish) => {
-    setActiveFinishes(prev => 
-      prev.includes(finish) ? prev.filter(f => f !== finish) : [...prev, finish]
-    )
   }
 
   return (
@@ -261,8 +238,8 @@ export default function CollectionPage() {
               </button>
               
               {openDropdown === 'category' && (
-                <div className="absolute top-full left-0 mt-1 bg-white border border-charcoal/10 shadow-lg z-50 min-w-[160px]">
-                  {CATEGORIES.map((cat) => (
+                <div className="absolute top-full left-0 mt-1 bg-white border border-charcoal/10 shadow-lg z-50 min-w-[160px] max-h-[400px] overflow-y-auto">
+                  {categories.map((cat) => (
                     <button
                       key={cat}
                       onClick={() => { setActiveCategory(cat); setOpenDropdown(null) }}
@@ -272,96 +249,6 @@ export default function CollectionPage() {
                       )}
                     >
                       {cat}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-            
-            {/* Color Dropdown (Multi-select) */}
-            <div className="relative">
-              <button
-                onClick={() => setOpenDropdown(openDropdown === 'color' ? null : 'color')}
-                className={cn(
-                  "flex items-center gap-2 text-xs uppercase tracking-[0.15em] py-2 px-3 border transition-colors min-w-[120px] justify-between",
-                  activeColors.length > 0 
-                    ? "border-charcoal bg-charcoal text-cream" 
-                    : "border-charcoal/20 text-charcoal hover:border-charcoal/40"
-                )}
-              >
-                <span>{activeColors.length > 0 ? `Color (${activeColors.length})` : 'Color'}</span>
-                <svg className={cn("w-3 h-3 transition-transform", openDropdown === 'color' && "rotate-180")} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-                </svg>
-              </button>
-              
-              {openDropdown === 'color' && (
-                <div className="absolute top-full left-0 mt-1 bg-white border border-charcoal/10 shadow-lg z-50 min-w-[160px] max-h-[280px] overflow-y-auto">
-                  {COLORS.map((color) => (
-                    <button
-                      key={color}
-                      onClick={() => toggleColor(color)}
-                      className={cn(
-                        "flex items-center gap-3 w-full text-left px-4 py-2.5 text-xs uppercase tracking-[0.1em] transition-colors",
-                        activeColors.includes(color) ? "bg-charcoal/10 text-charcoal" : "text-charcoal/70 hover:bg-sand/30"
-                      )}
-                    >
-                      <span className={cn(
-                        "w-4 h-4 border flex items-center justify-center",
-                        activeColors.includes(color) ? "border-charcoal bg-charcoal" : "border-charcoal/30"
-                      )}>
-                        {activeColors.includes(color) && (
-                          <svg className="w-2.5 h-2.5 text-cream" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                          </svg>
-                        )}
-                      </span>
-                      {color}
-                    </button>
-                  ))}
-                </div>
-              )}
-            </div>
-            
-            {/* Finish Dropdown (Multi-select) */}
-            <div className="relative">
-              <button
-                onClick={() => setOpenDropdown(openDropdown === 'finish' ? null : 'finish')}
-                className={cn(
-                  "flex items-center gap-2 text-xs uppercase tracking-[0.15em] py-2 px-3 border transition-colors min-w-[120px] justify-between",
-                  activeFinishes.length > 0 
-                    ? "border-charcoal bg-charcoal text-cream" 
-                    : "border-charcoal/20 text-charcoal hover:border-charcoal/40"
-                )}
-              >
-                <span>{activeFinishes.length > 0 ? `Finish (${activeFinishes.length})` : 'Finish'}</span>
-                <svg className={cn("w-3 h-3 transition-transform", openDropdown === 'finish' && "rotate-180")} fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
-                </svg>
-              </button>
-              
-              {openDropdown === 'finish' && (
-                <div className="absolute top-full left-0 mt-1 bg-white border border-charcoal/10 shadow-lg z-50 min-w-[160px] max-h-[280px] overflow-y-auto">
-                  {FINISHES.map((finish) => (
-                    <button
-                      key={finish}
-                      onClick={() => toggleFinish(finish)}
-                      className={cn(
-                        "flex items-center gap-3 w-full text-left px-4 py-2.5 text-xs uppercase tracking-[0.1em] transition-colors",
-                        activeFinishes.includes(finish) ? "bg-charcoal/10 text-charcoal" : "text-charcoal/70 hover:bg-sand/30"
-                      )}
-                    >
-                      <span className={cn(
-                        "w-4 h-4 border flex items-center justify-center",
-                        activeFinishes.includes(finish) ? "border-charcoal bg-charcoal" : "border-charcoal/30"
-                      )}>
-                        {activeFinishes.includes(finish) && (
-                          <svg className="w-2.5 h-2.5 text-cream" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                            <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-                          </svg>
-                        )}
-                      </span>
-                      {finish}
                     </button>
                   ))}
                 </div>
@@ -411,26 +298,6 @@ export default function CollectionPage() {
                   </button>
                 </span>
               )}
-              {activeColors.map(color => (
-                <span key={color} className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-charcoal/5 text-[10px] uppercase tracking-[0.1em] text-charcoal">
-                  {color}
-                  <button onClick={() => toggleColor(color)} className="hover:text-charcoal/60">
-                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </span>
-              ))}
-              {activeFinishes.map(finish => (
-                <span key={finish} className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-charcoal/5 text-[10px] uppercase tracking-[0.1em] text-charcoal">
-                  {finish}
-                  <button onClick={() => toggleFinish(finish)} className="hover:text-charcoal/60">
-                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                  </button>
-                </span>
-              ))}
               {searchQuery && (
                 <span className="inline-flex items-center gap-1.5 px-2.5 py-1 bg-charcoal/5 text-[10px] tracking-[0.1em] text-charcoal">
                   &quot;{searchQuery}&quot;
@@ -456,7 +323,11 @@ export default function CollectionPage() {
           Product Grid
       ───────────────────────────────────────────────────────────── */}
       <section className="px-4 lg:px-8 py-8 bg-cream">
-        {filteredProducts.length > 0 ? (
+        {isLoading ? (
+          <div className="py-20 text-center">
+            <p className="text-sm text-charcoal/50">Loading collection...</p>
+          </div>
+        ) : filteredProducts.length > 0 ? (
           <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
             {filteredProducts.map((product, i) => {
               const row = Math.floor(i / 4)
@@ -464,7 +335,7 @@ export default function CollectionPage() {
               
               return (
               <div
-                key={`${product.name}-${i}`}
+                key={product.id || `${product.name}-${i}`}
                 className={cn(
                   "group cursor-pointer transition-all duration-500 ease-out",
                   loaded ? "opacity-100 translate-y-0" : "opacity-0 translate-y-3"
