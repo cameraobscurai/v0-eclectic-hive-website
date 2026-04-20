@@ -23,7 +23,7 @@ export default function AdminLoginPage() {
         password,
       })
       if (error) throw error
-      router.push('/admin/upload')
+      router.push('/admin')
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : 'Invalid credentials')
     } finally {

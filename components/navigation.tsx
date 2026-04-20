@@ -14,7 +14,7 @@ const NAV_LINKS = [
 ]
 
 // Pages with light (cream) backgrounds need dark nav text
-const LIGHT_BG_PAGES = ['/collection', '/contact', '/faq', '/privacy', '/design', '/studio']
+const LIGHT_BG_PAGES = ['/collection', '/contact', '/faq', '/privacy', '/studio']
 
 export function Navigation() {
   const [isOpen, setIsOpen] = useState(false)
