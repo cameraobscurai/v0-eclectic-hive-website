@@ -189,56 +189,48 @@ export default function CollectionPage() {
       <Navigation />
       
       {/* ─────────────────────────────────────────────────────────────
-          Filter Header - Two-tier navigation
+          Filter Header - Horizontal Two-Tier Navigation
       ───────────────────────────────────────────────────────────── */}
-      <section className="sticky top-0 z-30 bg-cream border-b border-charcoal/10">
-        {/* Main categories - vertical list on left side like their site */}
-        <div className="flex">
-          {/* Category sidebar */}
-          <nav className="hidden lg:flex flex-col border-r border-charcoal/10 py-6 px-8 min-w-[200px]" aria-label="Product categories">
+      <section className="sticky top-0 z-30 bg-cream">
+        {/* Row 1: Main Categories */}
+        <div className="border-b border-charcoal/10">
+          <div className="flex items-center justify-center gap-1 py-4 px-4 overflow-x-auto scrollbar-hide">
             {['Seating', 'Tables', 'Bars', 'Large Decor & Dividers', 'Lighting', 'Chandeliers', 'Styling', 'Serveware', 'Storage'].filter(c => categoryCounts[c] > 0).map((cat) => (
               <button
                 key={cat}
                 onClick={() => setActiveCategory(cat)}
                 className={cn(
-                  "text-left py-2 text-xs tracking-[0.12em] uppercase transition-colors",
+                  "relative px-4 py-2 text-[11px] tracking-[0.15em] uppercase whitespace-nowrap transition-all duration-200",
                   activeCategory === cat 
                     ? "text-charcoal" 
-                    : "text-charcoal/40 hover:text-charcoal/70"
+                    : "text-charcoal/40 hover:text-charcoal/60"
                 )}
               >
                 {CATEGORY_DISPLAY[cat] || cat}
+                {/* Active underline */}
+                {activeCategory === cat && (
+                  <span className="absolute bottom-1 left-4 right-4 h-px bg-charcoal" />
+                )}
               </button>
             ))}
-          </nav>
-          
-          {/* Mobile category selector */}
-          <div className="lg:hidden w-full px-4 py-3 border-b border-charcoal/10">
-            <select
-              value={activeCategory}
-              onChange={(e) => setActiveCategory(e.target.value)}
-              className="w-full py-2 px-3 text-xs tracking-[0.12em] uppercase bg-transparent border border-charcoal/20 focus:outline-none"
-            >
-              {['Seating', 'Tables', 'Bars', 'Large Decor & Dividers', 'Lighting', 'Chandeliers', 'Styling', 'Serveware', 'Storage'].filter(c => categoryCounts[c] > 0).map((cat) => (
-                <option key={cat} value={cat}>{CATEGORY_DISPLAY[cat] || cat}</option>
-              ))}
-            </select>
           </div>
-          
-          {/* Sub-categories + search */}
-          <div className="flex-1 px-6 py-4">
-            <div className="flex items-center justify-between gap-4">
-              {/* Sub-category filters */}
+        </div>
+        
+        {/* Row 2: Sub-Categories + Search */}
+        {availableSubCategories.length > 1 && (
+          <div className="border-b border-charcoal/5 bg-sand/20">
+            <div className="flex items-center justify-between px-6 py-3">
+              {/* Sub-categories */}
               <nav className="flex items-center gap-1 overflow-x-auto scrollbar-hide" aria-label="Sub-categories">
                 {availableSubCategories.map((sub) => (
                   <button
                     key={sub}
                     onClick={() => setActiveSubCategory(sub)}
                     className={cn(
-                      "px-3 py-1.5 text-[11px] tracking-[0.1em] uppercase whitespace-nowrap transition-colors",
+                      "px-3 py-1 text-[10px] tracking-[0.1em] uppercase whitespace-nowrap transition-all duration-200 rounded-full",
                       activeSubCategory === sub 
-                        ? "text-charcoal" 
-                        : "text-charcoal/40 hover:text-charcoal/70"
+                        ? "bg-charcoal text-cream" 
+                        : "text-charcoal/50 hover:text-charcoal/80 hover:bg-charcoal/5"
                     )}
                   >
                     {sub}
@@ -247,8 +239,8 @@ export default function CollectionPage() {
               </nav>
               
               {/* Search */}
-              <div className="relative flex-shrink-0">
-                <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-charcoal/30" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <div className="relative flex-shrink-0 ml-4">
+                <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-charcoal/30" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
                 </svg>
                 <input
@@ -256,12 +248,12 @@ export default function CollectionPage() {
                   placeholder="Search..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-9 pr-3 py-1.5 text-xs tracking-wide bg-transparent border-b border-charcoal/20 focus:border-charcoal/40 focus:outline-none transition-all w-[120px] lg:w-[160px] placeholder:text-charcoal/30"
+                  className="pl-8 pr-3 py-1.5 text-[10px] tracking-wide bg-white/60 border border-charcoal/10 rounded-full focus:border-charcoal/30 focus:outline-none transition-all w-[100px] focus:w-[140px] placeholder:text-charcoal/30"
                 />
               </div>
             </div>
           </div>
-        </div>
+        )}
       </section>
       
       {/* ─────────────────────────────────────────────────────────────
