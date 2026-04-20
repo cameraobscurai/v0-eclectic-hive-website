@@ -218,7 +218,7 @@ export default function CollectionPage() {
         
         {/* Row 2: Sub-Categories + Search */}
         {availableSubCategories.length > 1 && (
-          <div className="border-b border-charcoal/5 bg-neutral-50">
+          <div className="border-b border-charcoal/5 bg-white">
             <div className="flex items-center justify-between px-6 py-3">
               {/* Sub-categories */}
               <nav className="flex items-center gap-1 overflow-x-auto scrollbar-hide" aria-label="Sub-categories">
