@@ -151,10 +151,34 @@ async function normalizeImage(buffer: Buffer): Promise<Buffer> {
   
   console.log('[v0] Content bounds:', { minX, minY, maxX, maxY, width: info.width, height: info.height })
 
-  // If no content found or content fills entire image, return original
+  // If no content found, still process with white background
   if (maxX <= minX || maxY <= minY) {
-    console.log('[v0] No content bounds found, returning original')
-    return buffer
+    console.log('[v0] No content bounds found, applying white background to full image')
+    // Just resize and put on white canvas
+    const resized = await sharp(buffer)
+      .resize({
+        width: Math.floor(CANVAS_SIZE * 0.7),
+        height: Math.floor(CANVAS_SIZE * 0.7),
+        fit: 'contain',
+        background: { r: 255, g: 255, b: 255, alpha: 255 },
+      })
+      .toBuffer()
+    
+    const resizedMeta = await sharp(resized).metadata()
+    const left = Math.floor((CANVAS_SIZE - (resizedMeta.width || CANVAS_SIZE * 0.7)) / 2)
+    const top = Math.floor((CANVAS_SIZE - (resizedMeta.height || CANVAS_SIZE * 0.7)) / 2)
+    
+    return sharp({
+      create: {
+        width: CANVAS_SIZE,
+        height: CANVAS_SIZE,
+        channels: 4,
+        background: { r: 255, g: 255, b: 255, alpha: 255 },
+      },
+    })
+      .composite([{ input: resized, left, top }])
+      .png()
+      .toBuffer()
   }
   
   // If content already fills most of the image with good margins, skip processing
@@ -201,7 +225,7 @@ async function normalizeImage(buffer: Buffer): Promise<Buffer> {
   
   console.log('[v0] Target size:', { targetWidth, targetHeight })
   
-  // Extract just the content area and resize
+  // Extract just the content area, flatten transparency, and resize
   const extracted = await sharp(buffer)
     .extract({
       left: minX,
@@ -209,6 +233,7 @@ async function normalizeImage(buffer: Buffer): Promise<Buffer> {
       width: contentWidth,
       height: contentHeight,
     })
+    .flatten({ background: { r: 255, g: 255, b: 255 } }) // Replace any transparency with white
     .resize({
       width: targetWidth,
       height: targetHeight,
@@ -272,14 +297,34 @@ export async function POST(request: NextRequest) {
         const arrayBuffer = await file.arrayBuffer()
         const buffer = Buffer.from(arrayBuffer)
         
-        // Normalize the image
+        // Normalize the image - ALWAYS apply white background
         let processedBuffer: Buffer
         try {
           processedBuffer = await normalizeImage(buffer)
         } catch (err) {
           console.error(`[v0] Failed to normalize ${file.name}:`, err)
-          // Fall back to original if normalization fails
-          processedBuffer = buffer
+          // Still apply white background even on error
+          const resized = await sharp(buffer)
+            .resize({
+              width: Math.floor(CANVAS_SIZE * 0.7),
+              height: Math.floor(CANVAS_SIZE * 0.7),
+              fit: 'contain',
+              background: { r: 255, g: 255, b: 255, alpha: 255 },
+            })
+            .flatten({ background: { r: 255, g: 255, b: 255 } })
+            .toBuffer()
+          
+          processedBuffer = await sharp({
+            create: {
+              width: CANVAS_SIZE,
+              height: CANVAS_SIZE,
+              channels: 3,
+              background: { r: 255, g: 255, b: 255 },
+            },
+          })
+            .composite([{ input: resized, gravity: 'center' }])
+            .png()
+            .toBuffer()
         }
         
         // Store in category folder: inventory/seating/item-name.png
