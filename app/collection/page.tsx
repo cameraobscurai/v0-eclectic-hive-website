@@ -423,15 +423,15 @@ export default function CollectionPage() {
           className="flex gap-3 overflow-x-auto scrollbar-hide px-6 lg:px-12 pb-2"
           style={{ scrollSnapType: 'x mandatory' }}
         >
-          {NEW_ARRIVALS.map((product, i) => (
+          {products.filter(p => p.primary_image_url).slice(0, 12).map((product, i) => (
             <div
-              key={`featured-${i}`}
+              key={`featured-${product.id || i}`}
               className="group flex-shrink-0 w-[160px] lg:w-[180px]"
               style={{ scrollSnapAlign: 'start' }}
             >
               <div className="relative aspect-[3/4] bg-[#E8E4DF] mb-2 overflow-hidden">
                 <Image
-                  src={product.image}
+                  src={getImageUrl(product)}
                   alt={product.name}
                   fill
                   className="object-contain p-3 transition-transform duration-500 group-hover:scale-105"
