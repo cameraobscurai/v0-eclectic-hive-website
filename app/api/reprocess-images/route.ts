@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
-import { put } from '@vercel/blob'
+import { put, del } from '@vercel/blob'
 import sharp from 'sharp'
 
 const supabase = createClient(
@@ -9,6 +9,7 @@ const supabase = createClient(
 )
 
 const CANVAS_SIZE = 1200
+const BATCH_SIZE = 5 // Process 5 at a time to avoid timeouts
 
 // Reprocess image with white background
 async function reprocessWithWhiteBackground(imageUrl: string): Promise<Buffer> {
@@ -21,12 +22,7 @@ async function reprocessWithWhiteBackground(imageUrl: string): Promise<Buffer> {
   const arrayBuffer = await response.arrayBuffer()
   const buffer = Buffer.from(arrayBuffer)
   
-  // Get image metadata
-  const metadata = await sharp(buffer).metadata()
-  const { width = CANVAS_SIZE, height = CANVAS_SIZE } = metadata
-  
   // Create white background and composite the image on top
-  // This handles both transparent PNGs and images with existing backgrounds
   const processed = await sharp({
     create: {
       width: CANVAS_SIZE,
@@ -54,56 +50,80 @@ async function reprocessWithWhiteBackground(imageUrl: string): Promise<Buffer> {
   return processed
 }
 
-// Extract pathname from Blob URL
-function getPathnameFromUrl(url: string): string {
-  // URL format: https://xxx.public.blob.vercel-storage.com/inventory/category/filename.png
-  const urlObj = new URL(url)
-  // Remove leading slash
-  return urlObj.pathname.slice(1)
-}
-
-export async function POST() {
+export async function POST(request: Request) {
   try {
-    // Get all products with images
+    // Get offset from query params for pagination
+    const url = new URL(request.url)
+    const offset = parseInt(url.searchParams.get('offset') || '0')
+    const limit = parseInt(url.searchParams.get('limit') || String(BATCH_SIZE))
+    
+    // Get products with images (paginated)
     const { data: products, error } = await supabase
       .from('products')
       .select('id, name, primary_image_url')
       .not('primary_image_url', 'is', null)
       .eq('is_active', true)
+      .range(offset, offset + limit - 1)
     
     if (error) {
       return NextResponse.json({ error: error.message }, { status: 500 })
     }
     
     if (!products?.length) {
-      return NextResponse.json({ message: 'No products with images found', processed: 0 })
+      return NextResponse.json({ 
+        message: 'No more products to process', 
+        processed: 0,
+        done: true 
+      })
     }
     
     const results = {
       processed: 0,
       failed: 0,
       errors: [] as { id: string; name: string; error: string }[],
+      processedNames: [] as string[],
     }
     
     for (const product of products) {
       try {
         if (!product.primary_image_url) continue
         
+        const oldUrl = product.primary_image_url
+        
         // Reprocess the image with white background
-        const processedBuffer = await reprocessWithWhiteBackground(product.primary_image_url)
+        const processedBuffer = await reprocessWithWhiteBackground(oldUrl)
         
-        // Get the original pathname to overwrite
-        const pathname = getPathnameFromUrl(product.primary_image_url)
+        // Delete old blob and upload new one with same path structure
+        // Extract just the path portion for the new upload
+        const urlObj = new URL(oldUrl)
+        const pathParts = urlObj.pathname.split('/')
+        // Get everything after the random hash in the filename, or use original
+        const pathname = pathParts.slice(1).join('/')
         
-        // Upload back to Blob, overwriting the original
-        await put(pathname, processedBuffer, {
+        // Upload new version (will get new URL)
+        const { url: newUrl } = await put(pathname, processedBuffer, {
           access: 'public',
           contentType: 'image/png',
           addRandomSuffix: false,
         })
         
+        // Update Supabase with new URL if it changed
+        if (newUrl !== oldUrl) {
+          await supabase
+            .from('products')
+            .update({ primary_image_url: newUrl })
+            .eq('id', product.id)
+          
+          // Try to delete old blob (don't fail if it doesn't work)
+          try {
+            await del(oldUrl)
+          } catch {
+            // Ignore deletion errors
+          }
+        }
+        
         results.processed++
-        console.log(`[v0] Reprocessed: ${product.name}`)
+        results.processedNames.push(product.name)
         
       } catch (err) {
         results.failed++
@@ -112,13 +132,14 @@ export async function POST() {
           name: product.name,
           error: err instanceof Error ? err.message : 'Unknown error',
         })
-        console.error(`[v0] Failed to reprocess ${product.name}:`, err)
       }
     }
     
     return NextResponse.json({
-      message: `Reprocessed ${results.processed} images with white backgrounds`,
+      message: `Batch complete: ${results.processed} processed, ${results.failed} failed`,
       ...results,
+      nextOffset: offset + limit,
+      done: products.length < limit,
     })
     
   } catch (err) {
