@@ -185,13 +185,13 @@ export default function CollectionPage() {
 
 
   return (
-    <main className="min-h-screen bg-cream">
+    <main className="min-h-screen bg-white pt-[72px] lg:pt-[88px]">
       <Navigation />
       
       {/* ─────────────────────────────────────────────────────────────
           Filter Header - Horizontal Two-Tier Navigation
       ───────────────────────────────────────────────────────────── */}
-      <section className="sticky top-0 z-40 bg-cream">
+      <section className="sticky top-0 z-40 bg-white">
         {/* Row 1: Main Categories */}
         <div className="border-b border-charcoal/10">
           <div className="flex items-center justify-center gap-1 py-4 px-4 overflow-x-auto scrollbar-hide">
@@ -218,7 +218,7 @@ export default function CollectionPage() {
         
         {/* Row 2: Sub-Categories + Search */}
         {availableSubCategories.length > 1 && (
-          <div className="border-b border-charcoal/5 bg-sand/20">
+          <div className="border-b border-charcoal/5 bg-neutral-50">
             <div className="flex items-center justify-between px-6 py-3">
               {/* Sub-categories */}
               <nav className="flex items-center gap-1 overflow-x-auto scrollbar-hide" aria-label="Sub-categories">
