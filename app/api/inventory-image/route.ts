@@ -40,7 +40,7 @@ export async function GET(request: NextRequest) {
       headers: {
         'Content-Type': result.blob.contentType,
         ETag: result.blob.etag,
-        'Cache-Control': 'private, max-age=31536000', // Cache for 1 year since images don't change
+        'Cache-Control': 'private, no-cache, must-revalidate', // Always validate with server
       },
     })
   } catch (error) {
