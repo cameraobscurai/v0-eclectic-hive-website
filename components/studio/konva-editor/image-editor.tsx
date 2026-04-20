@@ -8,7 +8,7 @@ import { cn } from '@/lib/utils'
 // Canvas settings
 const CANVAS_SIZE = 540
 const EXPORT_SIZE = 1200
-const BG_COLOR = '#D4D0CB'
+const BG_COLOR = '#FFFFFF'
 
 interface ImageEditorProps {
   imageUrl: string

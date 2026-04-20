@@ -359,7 +359,7 @@ export default function UploadPage() {
             </h2>
             <div className="grid grid-cols-4 gap-2">
               {results.slice(0, 20).map((r, i) => (
-                <div key={i} className="aspect-square bg-[#D4D0CB] overflow-hidden">
+                <div key={i} className="aspect-square bg-white border border-charcoal/5 overflow-hidden">
                   <img 
                     src={`/api/inventory-image?pathname=${encodeURIComponent(r.pathname)}&t=${cacheBuster}`} 
                     alt={r.name} 
@@ -465,7 +465,7 @@ export default function UploadPage() {
                           <div 
                             key={i} 
                             className={cn(
-                              "group relative aspect-square bg-[#D4D0CB] overflow-hidden transition-all",
+                              "group relative aspect-square bg-white border border-charcoal/5 overflow-hidden transition-all",
                               isSelected && "ring-2 ring-charcoal ring-offset-2"
                             )}
                             title={filename}

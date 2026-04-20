@@ -229,13 +229,13 @@ async function normalizeImage(buffer: Buffer): Promise<Buffer> {
   console.log('[v0] Centering at:', { left, top, finalWidth, finalHeight })
 
   // Create final canvas with centered content
-  // Use the taupe background color #D4D0CB
+  // Use white background
   const normalized = await sharp({
     create: {
       width: CANVAS_SIZE,
       height: CANVAS_SIZE,
       channels: 4,
-      background: { r: 212, g: 208, b: 203, alpha: 255 }, // #D4D0CB
+      background: { r: 255, g: 255, b: 255, alpha: 255 }, // #FFFFFF
     },
   })
     .composite([

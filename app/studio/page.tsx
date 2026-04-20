@@ -396,7 +396,7 @@ export default function StudioPage() {
                                 key={i} 
                                 onClick={() => toggleInventory(blob.pathname)}
                                 className={cn(
-                                  "group relative aspect-square bg-[#D4D0CB] overflow-hidden cursor-pointer transition-all",
+                                  "group relative aspect-square bg-white overflow-hidden cursor-pointer transition-all border border-charcoal/5",
                                   isSelected && "ring-2 ring-charcoal ring-offset-2"
                                 )}
                                 title={filename.replace('.png', '').replace(/-/g, ' ')}
