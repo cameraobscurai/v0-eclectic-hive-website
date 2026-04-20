@@ -3,14 +3,12 @@ import { type NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 
 // Routes that require authentication
-const protectedRoutes = ['/admin']
+// TODO: Re-enable auth after setting up admin account
+const protectedRoutes: string[] = [] // ['/admin'] - temporarily disabled
 
 // API routes that require authentication
-const protectedApiRoutes = [
-  '/api/upload-inventory',
-  '/api/inventory-image/update',
-  '/api/upload-font',
-]
+// TODO: Re-enable auth after setting up admin account
+const protectedApiRoutes: string[] = [] // temporarily disabled
 
 export async function middleware(request: NextRequest) {
   // First, update the session
