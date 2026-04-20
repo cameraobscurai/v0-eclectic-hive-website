@@ -77,7 +77,7 @@ export default function CollectionPage() {
     return counts
   }, [products])
   
-  const [activeCategory, setActiveCategory] = useState<string>('All')
+  const [activeCategory, setActiveCategory] = useState<string>('Seating')
   const [searchQuery, setSearchQuery] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [loaded, setLoaded] = useState(false)
@@ -178,12 +178,12 @@ export default function CollectionPage() {
       {/* ─────────────────────────────────────────────────────────────
           Category Navigation - Horizontal Pills
       ───────────────────────────────────────────────────────────── */}
-      <section className="sticky top-16 z-30 bg-cream/95 backdrop-blur-sm border-b border-charcoal/10">
+      <section className="sticky top-0 z-30 bg-cream/95 backdrop-blur-sm border-b border-charcoal/10">
         <div className="px-6 lg:px-12">
           {/* Category pills - scrollable on mobile */}
           <div className="flex items-center gap-2 py-4 overflow-x-auto scrollbar-hide">
             <nav className="flex items-center gap-1 lg:gap-2" role="tablist" aria-label="Product categories">
-              {['All', ...categories.filter(c => c !== 'All' && categoryCounts[c] > 0)].map((cat) => (
+              {['Seating', 'Tables', 'Bars', 'Large Decor & Dividers', 'Lighting', 'Chandeliers', 'Styling', 'Serveware', 'Storage'].filter(c => categoryCounts[c] > 0).map((cat) => (
                 <button
                   key={cat}
                   role="tab"
