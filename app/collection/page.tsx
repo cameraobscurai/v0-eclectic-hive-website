@@ -5,7 +5,6 @@ import useSWR from 'swr'
 import { Navigation } from '@/components/navigation'
 import { Footer } from '@/components/footer'
 import { QuickViewModal } from '@/components/quick-view-modal'
-import { TextReveal, FadeInView } from '@/components/scroll-animations'
 import { cn } from '@/lib/utils'
 
 // Track broken images globally to avoid re-checking
