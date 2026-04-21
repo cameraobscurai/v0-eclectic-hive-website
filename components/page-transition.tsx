@@ -1,6 +1,6 @@
 'use client'
 
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion } from 'framer-motion'
 import { usePathname } from 'next/navigation'
 import { ReactNode, useEffect, useState, createContext, useContext, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
@@ -24,57 +24,32 @@ const TransitionContext = createContext<TransitionContextType>({
 export const usePageTransition = () => useContext(TransitionContext)
 
 // =============================================================================
-// CINEMATIC WIPE TRANSITION
-// Theatrical bars that slide across screen
+// FOCUS PULL TRANSITION
+// Cinematic blur-to-sharp crossfade - like a camera focus pull
 // =============================================================================
 
-const WIPE_BAR_COUNT = 4
-
-// Wipe bar animation - faster, snappier
-const wipeBarVariants = {
-  hidden: (i: number) => ({
-    y: '100%',
-    transition: {
-      duration: 0.35,
-      ease: EASINGS.cinematic,
-      delay: i * 0.03,
-    },
-  }),
-  visible: (i: number) => ({
-    y: '0%',
-    transition: {
-      duration: 0.35,
-      ease: EASINGS.cinematic,
-      delay: i * 0.03,
-    },
-  }),
-  exit: (i: number) => ({
-    y: '-100%',
-    transition: {
-      duration: 0.3,
-      ease: EASINGS.cinematic,
-      delay: (WIPE_BAR_COUNT - 1 - i) * 0.025,
-    },
-  }),
-}
-
-// Page content variants
+// Page content variants with blur effect
 const pageVariants = {
   initial: {
     opacity: 0,
+    filter: 'blur(12px)',
+    scale: 0.98,
   },
   enter: {
     opacity: 1,
+    filter: 'blur(0px)',
+    scale: 1,
     transition: {
-      duration: 0.4,
+      duration: 0.5,
       ease: EASINGS.cinematic,
-      delay: 0.3,
     },
   },
   exit: {
     opacity: 0,
+    filter: 'blur(8px)',
+    scale: 1.01,
     transition: {
-      duration: 0.2,
+      duration: 0.3,
       ease: EASINGS.cinematic,
     },
   },
@@ -95,9 +70,6 @@ export function PageTransitionProvider({ children }: { children: ReactNode }) {
   const router = useRouter()
   const pathname = usePathname()
   const [isTransitioning, setIsTransitioning] = useState(false)
-  const [showWipe, setShowWipe] = useState(false)
-  const [wipePhase, setWipePhase] = useState<'idle' | 'enter' | 'exit'>('idle')
-  const [pendingHref, setPendingHref] = useState<string | null>(null)
   const [reducedMotion, setReducedMotion] = useState(false)
 
   useEffect(() => {
@@ -113,69 +85,16 @@ export function PageTransitionProvider({ children }: { children: ReactNode }) {
     }
 
     setIsTransitioning(true)
-    setShowWipe(true)
-    setWipePhase('enter')
-    setPendingHref(href)
+    // Navigate immediately - the blur transition handles the visual smoothness
+    router.push(href)
+    
+    // Reset transitioning state after animation completes
+    setTimeout(() => setIsTransitioning(false), 600)
   }, [pathname, isTransitioning, reducedMotion, router])
-
-  // Handle wipe phases
-  useEffect(() => {
-    if (wipePhase === 'enter' && pendingHref) {
-      const timer = setTimeout(() => {
-        router.push(pendingHref)
-      }, 280) // Faster - bars cover screen quicker
-      return () => clearTimeout(timer)
-    }
-  }, [wipePhase, pendingHref, router])
-
-  // When pathname changes after navigation
-  useEffect(() => {
-    if (isTransitioning && pendingHref === pathname) {
-      // Small delay then exit
-      const timer = setTimeout(() => {
-        setWipePhase('exit')
-      }, 100)
-      return () => clearTimeout(timer)
-    }
-  }, [pathname, isTransitioning, pendingHref])
-
-  // Cleanup after exit
-  useEffect(() => {
-    if (wipePhase === 'exit') {
-      const timer = setTimeout(() => {
-        setShowWipe(false)
-        setWipePhase('idle')
-        setIsTransitioning(false)
-        setPendingHref(null)
-      }, 320) // Faster cleanup
-      return () => clearTimeout(timer)
-    }
-  }, [wipePhase])
 
   return (
     <TransitionContext.Provider value={{ navigateWithTransition, isTransitioning }}>
       {children}
-      
-      {/* Cinematic Wipe Overlay */}
-      <AnimatePresence>
-        {showWipe && (
-          <div className="fixed inset-0 z-[9999] pointer-events-none flex" aria-hidden="true">
-            {Array.from({ length: WIPE_BAR_COUNT }).map((_, i) => (
-              <motion.div
-                key={i}
-                custom={i}
-                initial="hidden"
-                animate={wipePhase === 'exit' ? 'exit' : 'visible'}
-                variants={wipeBarVariants}
-                className="flex-1 h-full"
-                style={{
-                  backgroundColor: `hsl(0, 0%, ${6 + i * 2}%)`, // Pure greyscale - monochromatic
-                }}
-              />
-            ))}
-          </div>
-        )}
-      </AnimatePresence>
     </TransitionContext.Provider>
   )
 }

@@ -2,6 +2,7 @@
 
 import { Navigation } from '@/components/navigation'
 import { Footer } from '@/components/footer'
+import { TextReveal, FadeInView, ParallaxDrift } from '@/components/scroll-animations'
 import Image from 'next/image'
 import Link from 'next/link'
 import { useState, useRef, useEffect, useCallback } from 'react'
@@ -356,12 +357,19 @@ export default function GalleryPage() {
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8">
             <div>
-              <p className="text-cream/40 text-xs uppercase tracking-[0.3em] mb-4">
-                The Gallery
-              </p>
-              <h1 className="font-display text-3xl md:text-4xl lg:text-5xl xl:text-6xl text-cream font-light uppercase tracking-[0.2em]">
-                {filteredProjects.length} Environments
-              </h1>
+              <FadeInView delay={0} distance={20}>
+                <p className="text-cream/40 text-xs uppercase tracking-[0.3em] mb-4">
+                  The Gallery
+                </p>
+              </FadeInView>
+              <TextReveal
+                as="h1"
+                className="font-display text-3xl md:text-4xl lg:text-5xl xl:text-6xl text-cream font-light uppercase tracking-[0.2em]"
+                delay={0.1}
+                staggerDelay={0.04}
+              >
+                {filteredProjects.length > 0 ? `${filteredProjects.length} Environments` : 'Coming Soon'}
+              </TextReveal>
             </div>
             
             <p className="text-cream/50 text-base lg:text-lg max-w-md leading-relaxed">

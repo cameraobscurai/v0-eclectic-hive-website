@@ -1,9 +1,10 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { Navigation } from '@/components/navigation'
 import { TransitionLink } from '@/components/page-transition'
+import { TextReveal, KenBurns, FadeInView, StaggerContainer, StaggerItem } from '@/components/scroll-animations'
 import { cn } from '@/lib/utils'
 
 // Navigation destinations
@@ -28,36 +29,11 @@ const DESTINATIONS = [
 export default function HomePage() {
   const [loaded, setLoaded] = useState(false)
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
-  const ctaSectionRef = useRef<HTMLDivElement>(null)
-  const [ctaVisible, setCtaVisible] = useState(false)
-  const cardsSectionRef = useRef<HTMLDivElement>(null)
-  const [cardsVisible, setCardsVisible] = useState(false)
 
   useEffect(() => {
-    // Stagger the initial load animation
+    // Stagger the initial load animation for hero text
     const timer = setTimeout(() => setLoaded(true), 100)
-    
-    // Intersection observers for scroll animations
-    const observerOptions = { threshold: 0.2, rootMargin: '-50px 0px' }
-    
-    const observer = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.target === ctaSectionRef.current && entry.isIntersecting) {
-          setCtaVisible(true)
-        }
-        if (entry.target === cardsSectionRef.current && entry.isIntersecting) {
-          setCardsVisible(true)
-        }
-      })
-    }, observerOptions)
-    
-    if (ctaSectionRef.current) observer.observe(ctaSectionRef.current)
-    if (cardsSectionRef.current) observer.observe(cardsSectionRef.current)
-    
-    return () => {
-      clearTimeout(timer)
-      observer.disconnect()
-    }
+    return () => clearTimeout(timer)
   }, [])
 
   return (
@@ -66,8 +42,8 @@ export default function HomePage() {
       
       {/* ========== HERO - First Fold ========== */}
       <section className="relative h-[100svh] min-h-[600px] flex flex-col items-center justify-center overflow-hidden">
-        {/* Background image */}
-        <div className="absolute inset-0">
+        {/* Background image with Ken Burns zoom-out effect */}
+        <KenBurns className="absolute inset-0" initialScale={1.12} finalScale={1}>
           <Image
             src="/images/hero-desert-venue.jpg"
             alt="Luxury desert event venue at twilight"
@@ -77,7 +53,7 @@ export default function HomePage() {
             className="object-cover object-center"
             sizes="100vw"
           />
-        </div>
+        </KenBurns>
         
         {/* Frosted glass overlay - elegant mystery */}
         <div className="absolute inset-0 backdrop-blur-[6px] bg-charcoal/25" />
@@ -121,24 +97,20 @@ export default function HomePage() {
 
       {/* ========== NAVIGATION CARDS ========== */}
       <section className="bg-charcoal">
-        <div 
-          ref={cardsSectionRef}
-          className="container-padding max-w-5xl mx-auto pt-0 pb-16 md:pb-24"
-        >
+        <div className="container-padding max-w-5xl mx-auto pt-0 pb-16 md:pb-24">
           {/* Cards Grid - scroll-triggered stagger animation */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
+          <StaggerContainer 
+            className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4"
+            staggerDelay={0.12}
+          >
             {DESTINATIONS.map((dest, i) => (
-              <TransitionLink
-                key={dest.href}
-                href={dest.href}
-                className={cn(
-                  'group relative transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]',
-                  cardsVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
-                )}
-                style={{ transitionDelay: cardsVisible ? `${i * 120}ms` : '0ms' }}
-                onMouseEnter={() => setHoveredIndex(i)}
-                onMouseLeave={() => setHoveredIndex(null)}
-              >
+              <StaggerItem key={dest.href}>
+                <TransitionLink
+                  href={dest.href}
+                  className="group relative block"
+                  onMouseEnter={() => setHoveredIndex(i)}
+                  onMouseLeave={() => setHoveredIndex(null)}
+                >
                 {/* Glassmorphic card */}
                 <div className={cn(
                   'relative h-full glass-interactive',
@@ -180,46 +152,33 @@ export default function HomePage() {
                   </div>
                 </div>
               </TransitionLink>
+              </StaggerItem>
             ))}
-          </div>
+          </StaggerContainer>
         </div>
 
         {/* CTA Section with scroll-triggered animation */}
-        <div 
-          ref={ctaSectionRef}
-          className="glass-subtle mx-5 md:mx-8 rounded-sm"
-        >
-          <div 
-            className={cn(
-              'py-14 md:py-20 text-center transition-all duration-1000 ease-[cubic-bezier(0.22,1,0.36,1)]',
-              ctaVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-            )}
-          >
-            <p 
-              className={cn(
-                'text-cream/40 text-xs sm:text-sm mb-6 tracking-wide max-w-md mx-auto px-5 transition-all duration-700',
-                ctaVisible ? 'opacity-100' : 'opacity-0'
-              )}
-              style={{ transitionDelay: ctaVisible ? '150ms' : '0ms' }}
-            >
-              Two parts luxe, one part regal, and a dash of edge.
-            </p>
+        <FadeInView className="glass-subtle mx-5 md:mx-8 rounded-sm" direction="up" distance={30}>
+          <div className="py-14 md:py-20 text-center">
+            <FadeInView delay={0.15} distance={20}>
+              <p className="text-cream/40 text-xs sm:text-sm mb-6 tracking-wide max-w-md mx-auto px-5">
+                Two parts luxe, one part regal, and a dash of edge.
+              </p>
+            </FadeInView>
             
-            <TransitionLink
-              href="/contact"
-              className={cn(
-                'inline-flex flex-col sm:flex-row items-center gap-3 sm:gap-4 group transition-all duration-700',
-                ctaVisible ? 'opacity-100' : 'opacity-0'
-              )}
-              style={{ transitionDelay: ctaVisible ? '250ms' : '0ms' }}
-            >
-              <span className="font-display text-xl sm:text-2xl md:text-3xl tracking-[0.08em] sm:tracking-[0.1em] font-light uppercase text-cream group-hover:text-cream/80 transition-colors duration-300">
-                Start a Conversation
-              </span>
-              <span className="hidden sm:block w-6 h-px bg-cream/40 group-hover:w-10 transition-all duration-300" />
-            </TransitionLink>
+            <FadeInView delay={0.25} distance={20}>
+              <TransitionLink
+                href="/contact"
+                className="inline-flex flex-col sm:flex-row items-center gap-3 sm:gap-4 group"
+              >
+                <span className="font-display text-xl sm:text-2xl md:text-3xl tracking-[0.08em] sm:tracking-[0.1em] font-light uppercase text-cream group-hover:text-cream/80 transition-colors duration-300">
+                  Start a Conversation
+                </span>
+                <span className="hidden sm:block w-6 h-px bg-cream/40 group-hover:w-10 transition-all duration-300" />
+              </TransitionLink>
+            </FadeInView>
           </div>
-        </div>
+        </FadeInView>
       </section>
 
       {/* ========== FOOTER ========== */}
