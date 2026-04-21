@@ -185,7 +185,7 @@ export function QuickViewModal({
             animate="visible"
             exit="exit"
             onMouseMove={handleMouseMove}
-            className="relative w-full max-w-[720px] overflow-hidden rounded-2xl"
+            className="relative w-full max-w-[720px] max-h-[90vh] overflow-y-auto overflow-x-hidden overscroll-contain rounded-2xl"
             onClick={(e) => e.stopPropagation()}
             style={{
               // Liquid glass base
@@ -233,14 +233,14 @@ export function QuickViewModal({
                   onClick={onPrevious}
                   disabled={!onPrevious}
                   className={cn(
-                    'w-8 h-8 rounded-full flex items-center justify-center transition-all',
+                    'w-10 h-10 min-w-[44px] min-h-[44px] rounded-full flex items-center justify-center transition-all touch-manipulation',
                     onPrevious 
-                      ? 'text-charcoal/60 hover:bg-charcoal/5 hover:text-charcoal' 
+                      ? 'text-charcoal/60 hover:bg-charcoal/5 hover:text-charcoal active:bg-charcoal/10' 
                       : 'text-charcoal/20 cursor-not-allowed'
                   )}
                   aria-label="Previous product"
                 >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
                   </svg>
                 </button>
@@ -248,14 +248,14 @@ export function QuickViewModal({
                   onClick={onNext}
                   disabled={!onNext}
                   className={cn(
-                    'w-8 h-8 rounded-full flex items-center justify-center transition-all',
+                    'w-10 h-10 min-w-[44px] min-h-[44px] rounded-full flex items-center justify-center transition-all touch-manipulation',
                     onNext 
-                      ? 'text-charcoal/60 hover:bg-charcoal/5 hover:text-charcoal' 
+                      ? 'text-charcoal/60 hover:bg-charcoal/5 hover:text-charcoal active:bg-charcoal/10' 
                       : 'text-charcoal/20 cursor-not-allowed'
                   )}
                   aria-label="Next product"
                 >
-                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
                   </svg>
                 </button>
@@ -263,10 +263,10 @@ export function QuickViewModal({
 
               <button
                 onClick={onClose}
-                className="w-8 h-8 rounded-full flex items-center justify-center text-charcoal/60 hover:bg-charcoal/5 hover:text-charcoal transition-all"
+                className="w-10 h-10 min-w-[44px] min-h-[44px] rounded-full flex items-center justify-center text-charcoal/60 hover:bg-charcoal/5 hover:text-charcoal active:bg-charcoal/10 transition-all touch-manipulation"
                 aria-label="Close"
               >
-                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
@@ -340,17 +340,20 @@ export function QuickViewModal({
                 <div className="mt-8 space-y-3">
                   <button
                     className={cn(
-                      'w-full py-3.5 px-6 rounded-lg',
+                      'w-full py-4 px-6 min-h-[48px] rounded-lg',
                       'bg-charcoal text-white',
                       'text-xs uppercase tracking-[0.12em] font-medium',
                       'hover:bg-charcoal/90 active:scale-[0.98] transition-all duration-150',
-                      'shadow-sm'
+                      'shadow-sm touch-manipulation'
                     )}
                   >
                     Add to Inquiry
                   </button>
-                  <p className="text-[9px] text-charcoal/30 text-center tracking-wider uppercase">
+                  <p className="text-[9px] text-charcoal/30 text-center tracking-wider uppercase hidden sm:block">
                     Use arrow keys to browse • ESC to close
+                  </p>
+                  <p className="text-[9px] text-charcoal/30 text-center tracking-wider uppercase sm:hidden">
+                    Swipe to browse
                   </p>
                 </div>
               </div>

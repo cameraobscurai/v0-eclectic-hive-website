@@ -63,6 +63,8 @@ export const viewport: Viewport = {
   ],
   width: 'device-width',
   initialScale: 1,
+  maximumScale: 5,
+  viewportFit: 'cover',
 }
 
 // JSON-LD Structured Data for SEO and AI Chat optimization
@@ -138,7 +140,7 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en" className={inter.variable} data-scroll-behavior="smooth">
+    <html lang="en" className={`${inter.variable} bg-charcoal`} data-scroll-behavior="smooth">
       <head>
         {/* Preload brand fonts to eliminate FOUT - highest priority */}
         <link

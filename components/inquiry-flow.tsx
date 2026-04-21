@@ -56,21 +56,21 @@ function OptionButton({
       type="button"
       onClick={onClick}
       className={cn(
-        'w-full text-left px-6 py-5 border transition-all duration-300',
-        'text-sm uppercase tracking-[0.15em]',
+        'w-full text-left px-5 py-4 min-h-[56px] border transition-all duration-300 touch-manipulation',
+        'text-sm uppercase tracking-[0.12em]',
         selected
           ? 'border-charcoal bg-charcoal text-cream'
-          : 'border-charcoal/20 text-charcoal hover:border-charcoal hover:bg-charcoal/5'
+          : 'border-charcoal/20 text-charcoal hover:border-charcoal active:bg-charcoal/5'
       )}
     >
-      <span className="flex items-center justify-between">
-        {children}
+      <span className="flex items-center justify-between gap-3">
+        <span className="flex-1">{children}</span>
         <span
           className={cn(
-            'w-4 h-4 rounded-full border transition-all duration-300 shrink-0',
+            'w-5 h-5 rounded-full border-2 transition-all duration-300 shrink-0',
             selected
               ? 'border-cream bg-cream/20'
-              : 'border-charcoal/30 hover:border-charcoal'
+              : 'border-charcoal/30'
           )}
         />
       </span>
@@ -99,9 +99,9 @@ function LineInput({
       placeholder={placeholder}
       autoFocus={autoFocus}
       className={cn(
-        'w-full bg-transparent border-b border-charcoal/30 pb-3',
-        'font-display text-xl font-normal text-charcoal placeholder:text-charcoal/30',
-        'focus:outline-none focus:border-charcoal transition-colors duration-300'
+        'w-full bg-transparent border-b border-charcoal/30 pb-3 pt-2 min-h-[48px]',
+        'font-display text-lg md:text-xl font-normal text-charcoal placeholder:text-charcoal/30',
+        'focus:outline-none focus:border-charcoal transition-colors duration-300 touch-manipulation'
       )}
     />
   )
@@ -112,7 +112,7 @@ function BackButton({ onClick }: { onClick: () => void }) {
     <button
       type="button"
       onClick={onClick}
-      className="text-xs tracking-[0.2em] uppercase text-charcoal/40 hover:text-charcoal transition-colors"
+      className="text-xs tracking-[0.2em] uppercase text-charcoal/40 hover:text-charcoal transition-colors min-h-[44px] px-3 -ml-3 touch-manipulation"
     >
       Back
     </button>
@@ -134,10 +134,10 @@ function NextButton({
       onClick={onClick}
       disabled={disabled}
       className={cn(
-        'flex items-center gap-4 text-sm uppercase tracking-[0.2em] transition-all duration-300',
+        'flex items-center gap-4 text-sm uppercase tracking-[0.2em] transition-all duration-300 min-h-[44px] px-3 -mr-3 touch-manipulation',
         disabled
           ? 'text-charcoal/20 cursor-not-allowed'
-          : 'text-charcoal hover:gap-6'
+          : 'text-charcoal hover:gap-6 active:text-charcoal/70'
       )}
     >
       {label}

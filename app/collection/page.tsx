@@ -429,7 +429,7 @@ export default function CollectionPage() {
       <section className="sticky top-0 z-40 bg-white">
         {/* Row 1: Main Categories - dynamically shows categories with images */}
         <div className="border-b border-charcoal/10">
-          <div className="flex items-center justify-center gap-1 py-4 px-4 overflow-x-auto scrollbar-hide">
+          <div className="flex items-center lg:justify-center gap-1 py-3 px-4 overflow-x-auto scrollbar-hide -mx-4 px-4 snap-x snap-mandatory">
             {Object.entries(categoryCounts)
               .filter(([_, count]) => count > 0)
               .sort((a, b) => {
@@ -445,27 +445,30 @@ export default function CollectionPage() {
                 key={cat}
                 onClick={() => setActiveCategory(cat)}
                 className={cn(
-                  "relative px-4 py-2 text-[11px] tracking-[0.15em] uppercase whitespace-nowrap transition-all duration-200",
+                  "relative flex-shrink-0 px-3 py-2 min-h-[44px] text-[11px] tracking-[0.12em] uppercase whitespace-nowrap transition-all duration-200 snap-start touch-manipulation",
                   activeCategory === cat 
-                    ? "text-charcoal" 
+                    ? "text-charcoal font-medium" 
                     : "text-charcoal/40 hover:text-charcoal/60"
                 )}
               >
                 {getCategoryDisplay(cat)}
                 {/* Active underline */}
                 {activeCategory === cat && (
-                  <span className="absolute bottom-1 left-4 right-4 h-px bg-charcoal" />
+                  <span className="absolute bottom-1 left-3 right-3 h-px bg-charcoal" />
                 )}
               </button>
             ))}
+            {/* End spacer for scroll */}
+            <div className="flex-shrink-0 w-4" aria-hidden="true" />
           </div>
         </div>
         
         {/* Row 2: Sub-Categories + Controls */}
         <div className="border-b border-charcoal/5 bg-white">
-          <div className="flex items-center justify-between px-4 md:px-6 py-3 gap-3">
-            {/* Left: Sub-categories */}
-            <nav className="flex items-center gap-1 overflow-x-auto scrollbar-hide flex-1" aria-label="Sub-categories">
+          {/* Mobile: Stack vertically. Desktop: Side by side */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between px-4 md:px-6 py-2 sm:py-3 gap-2 sm:gap-3">
+            {/* Sub-categories - scrollable row */}
+            <nav className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 py-1 sm:flex-1" aria-label="Sub-categories">
               {availableSubCategories.map((sub) => {
                 // Count items in this sub-category
                 const count = sub === 'All' 
@@ -477,7 +480,7 @@ export default function CollectionPage() {
                     key={sub}
                     onClick={() => setActiveSubCategory(sub)}
                     className={cn(
-                      "px-3 py-1 text-[10px] tracking-[0.1em] uppercase whitespace-nowrap transition-all duration-200 rounded-full flex items-center gap-1.5",
+                      "flex-shrink-0 px-3 py-1.5 min-h-[36px] text-[10px] tracking-[0.1em] uppercase whitespace-nowrap transition-all duration-200 rounded-full flex items-center gap-1.5 touch-manipulation",
                       activeSubCategory === sub 
                         ? "bg-charcoal text-cream" 
                         : "text-charcoal/50 hover:text-charcoal/80 hover:bg-charcoal/5"
@@ -493,21 +496,23 @@ export default function CollectionPage() {
                   </button>
                 )
               })}
+              {/* End spacer */}
+              <div className="flex-shrink-0 w-4 sm:hidden" aria-hidden="true" />
             </nav>
             
-            {/* Right: Sort + Search + Reset */}
-            <div className="flex items-center gap-2 flex-shrink-0">
-              {/* Sort dropdown */}
+            {/* Sort + Search + Reset */}
+            <div className="flex items-center gap-2 flex-shrink-0 py-1">
+              {/* Sort dropdown - 44px touch target */}
               <select
                 value={sortBy}
-  onChange={(e) => setSortBy(e.target.value as 'type' | 'name' | 'newest' | 'oldest')}
-  className="text-[10px] tracking-wide bg-transparent border border-charcoal/10 rounded-full px-2.5 py-1.5 focus:outline-none focus:border-charcoal/30 text-charcoal/60 cursor-pointer"
-  >
-  <option value="type">By Type</option>
-  <option value="name">A-Z</option>
-  <option value="newest">Newest</option>
-  <option value="oldest">Oldest</option>
-  </select>
+                onChange={(e) => setSortBy(e.target.value as 'type' | 'name' | 'newest' | 'oldest')}
+                className="text-[10px] tracking-wide bg-transparent border border-charcoal/10 rounded-full px-3 py-2 min-h-[36px] focus:outline-none focus:border-charcoal/30 text-charcoal/60 cursor-pointer touch-manipulation"
+              >
+                <option value="type">By Type</option>
+                <option value="name">A-Z</option>
+                <option value="newest">Newest</option>
+                <option value="oldest">Oldest</option>
+              </select>
               
               {/* Search */}
               <div className="relative hidden sm:block">
@@ -542,7 +547,7 @@ export default function CollectionPage() {
               {hasActiveFilters && (
                 <button
                   onClick={resetFilters}
-                  className="text-[10px] tracking-wide text-charcoal/50 hover:text-charcoal underline underline-offset-2 whitespace-nowrap"
+                  className="text-[10px] tracking-wide text-charcoal/50 hover:text-charcoal underline underline-offset-2 whitespace-nowrap min-h-[36px] px-2 touch-manipulation"
                 >
                   Reset
                 </button>
@@ -553,20 +558,22 @@ export default function CollectionPage() {
           {/* Mobile search - full width on small screens */}
           <div className="sm:hidden px-4 pb-3">
             <div className="relative">
-              <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-charcoal/30" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+              <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-charcoal/30 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
               </svg>
               <input
-                type="text"
+                type="search"
+                inputMode="search"
                 placeholder="Search pieces..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-9 pr-9 py-2 text-sm border border-charcoal/10 rounded-full focus:outline-none focus:border-charcoal/30 placeholder:text-charcoal/30"
+                className="w-full pl-10 pr-10 py-3 min-h-[44px] text-base border border-charcoal/10 rounded-full focus:outline-none focus:border-charcoal/30 placeholder:text-charcoal/30 touch-manipulation"
               />
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery('')}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-charcoal/40 hover:text-charcoal"
+                  className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-charcoal/40 hover:text-charcoal touch-manipulation"
+                  aria-label="Clear search"
                 >
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />

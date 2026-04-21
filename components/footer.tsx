@@ -77,12 +77,12 @@ export function Footer() {
                 style={{ transitionDelay: '100ms' }}
               >
                 <h4 className="text-xs uppercase tracking-[0.2em] text-cream/30 mb-7">Studio</h4>
-                <ul className="flex flex-col gap-4">
+                <ul className="flex flex-col gap-1">
                   {footerLinks.studio.map((link) => (
                     <li key={link.href}>
                       <Link 
                         href={link.href}
-                        className="text-cream/70 hover:text-cream transition-colors duration-300 relative inline-block group"
+                        className="text-cream/70 hover:text-cream transition-colors duration-300 relative inline-block group py-2 touch-manipulation"
                       >
                         {link.label}
                         <span className="absolute -bottom-0.5 left-0 w-full h-px bg-cream/30 origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300" />
@@ -100,12 +100,12 @@ export function Footer() {
                 style={{ transitionDelay: '200ms' }}
               >
                 <h4 className="text-xs uppercase tracking-[0.2em] text-cream/30 mb-7">Information</h4>
-                <ul className="flex flex-col gap-4">
+                <ul className="flex flex-col gap-1">
                   {footerLinks.info.map((link) => (
                     <li key={link.href}>
                       <Link 
                         href={link.href}
-                        className="text-cream/70 hover:text-cream transition-colors duration-300 relative inline-block group"
+                        className="text-cream/70 hover:text-cream transition-colors duration-300 relative inline-block group py-2 touch-manipulation"
                       >
                         {link.label}
                         <span className="absolute -bottom-0.5 left-0 w-full h-px bg-cream/30 origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300" />
@@ -123,13 +123,13 @@ export function Footer() {
                 style={{ transitionDelay: '300ms' }}
               >
                 <h4 className="text-xs uppercase tracking-[0.2em] text-cream/30 mb-7">Connect</h4>
-                <ul className="flex flex-col gap-4">
+                <ul className="flex flex-col gap-1">
                   <li>
                     <a 
                       href="https://www.instagram.com/eclectichive/" 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="text-cream/70 hover:text-cream transition-colors duration-300 relative inline-block group"
+                      className="text-cream/70 hover:text-cream transition-colors duration-300 relative inline-block group py-2 touch-manipulation"
                     >
                       Instagram
                       <span className="absolute -bottom-0.5 left-0 w-full h-px bg-cream/30 origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300" />
@@ -140,7 +140,7 @@ export function Footer() {
                       href="https://www.pinterest.com/eclectichive/" 
                       target="_blank" 
                       rel="noopener noreferrer"
-                      className="text-cream/70 hover:text-cream transition-colors duration-300 relative inline-block group"
+                      className="text-cream/70 hover:text-cream transition-colors duration-300 relative inline-block group py-2 touch-manipulation"
                     >
                       Pinterest
                       <span className="absolute -bottom-0.5 left-0 w-full h-px bg-cream/30 origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300" />
@@ -149,7 +149,7 @@ export function Footer() {
                   <li>
                     <a 
                       href="mailto:studio@eclectichive.com"
-                      className="text-cream/70 hover:text-cream transition-colors duration-300 relative inline-block group"
+                      className="text-cream/70 hover:text-cream transition-colors duration-300 relative inline-block group py-2 touch-manipulation"
                     >
                       Email
                       <span className="absolute -bottom-0.5 left-0 w-full h-px bg-cream/30 origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-300" />
