@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect } from 'react'
+import Image from 'next/image'
 import { cn } from '@/lib/utils'
 
 // Monochromatic charcoal shades — staggered so the wipe feels organic
@@ -31,22 +32,24 @@ export function HeroSection() {
       className="relative h-screen w-full overflow-hidden bg-[#0d0d0d]"
       aria-label="Hero"
     >
-      {/* ── Background - solid charcoal panels ── */}
-      <div className="absolute inset-0 grid grid-cols-3 md:grid-cols-5">
-        {BAR_COLORS.map((color, i) => (
-          <div
-            key={i}
-            className={cn(
-              color,
-              i >= 3 ? 'hidden md:block' : ''
-            )}
-          />
-        ))}
+      {/* ── Background image with overlay ── */}
+      <div className="absolute inset-0">
+        <Image
+          src="/images/hero-desert-venue.jpg"
+          alt="Luxury desert event venue at twilight"
+          fill
+          priority
+          quality={90}
+          className="object-cover object-center"
+          sizes="100vw"
+        />
+        {/* Dark overlay for text readability */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/60 via-black/40 to-black/70" />
       </div>
 
       {/* ── Wipe reveal bars ── */}
       {/* Each bar is a solid charcoal column that translates upward on load,
-          revealing the images beneath like a theatrical curtain */}
+          revealing the image beneath like a theatrical curtain */}
       <div
         className="absolute inset-0 grid grid-cols-3 md:grid-cols-5 pointer-events-none z-[5]"
         aria-hidden="true"
@@ -55,14 +58,14 @@ export function HeroSection() {
           <div
             key={i}
             className={cn(
-              'transition-transform ease-[cubic-bezier(0.76,0,0.24,1)]',
+              'h-full transition-transform ease-[cubic-bezier(0.76,0,0.24,1)]',
               i >= 3 ? 'hidden md:block' : '',
               color,
               barsRevealed ? '-translate-y-full' : 'translate-y-0'
             )}
             style={{
-              transitionDuration: '1.2s',
-              transitionDelay: `${i * 120}ms`,
+              transitionDuration: '1.4s',
+              transitionDelay: `${i * 100}ms`,
             }}
           />
         ))}
