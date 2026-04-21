@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { Navigation } from '@/components/navigation'
 import { cn } from '@/lib/utils'
 
@@ -38,8 +39,20 @@ export default function HomePage() {
       
       {/* Hero - Full viewport with centered logo */}
       <section className="relative h-[60vh] md:h-[70vh] flex flex-col items-center justify-center">
-        {/* Subtle gradient background */}
-        <div className="absolute inset-0 bg-gradient-to-b from-charcoal via-[#1a1a1a] to-charcoal" />
+        {/* Background image */}
+        <div className="absolute inset-0">
+          <Image
+            src="/images/hero-desert-venue.jpg"
+            alt="Luxury desert event venue at twilight"
+            fill
+            priority
+            quality={90}
+            className="object-cover object-center"
+            sizes="100vw"
+          />
+          {/* Dark overlay for text readability */}
+          <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-charcoal" />
+        </div>
 
         {/* Content */}
         <div className="relative z-10 text-center">

@@ -33,7 +33,7 @@ export function HeroSection() {
       aria-label="Hero"
     >
       {/* ── Background image with overlay ── */}
-      <div className="absolute inset-0">
+      <div className="absolute inset-0 z-0">
         <Image
           src="/images/hero-desert-venue.jpg"
           alt="Luxury desert event venue at twilight"
