@@ -34,12 +34,39 @@ const projects: Project[] = [
     region: 'Utah',
     type: 'Private Celebration',
     year: '2024',
-    image: '/images/gallery/amangiri/amangiri-landscape.jpg',
+    image: '/images/gallery/amangiri/property-pool.jpg',
     images: [
-      '/images/gallery/amangiri/amangiri-landscape.jpg',
+      // Opening: Iconic property establishing shots
+      '/images/gallery/amangiri/property-pool.jpg',
+      '/images/gallery/amangiri/property-night.jpg',
+      // Desert lounge - wide to detail rhythm
+      '/images/gallery/amangiri/lounge-wide.jpg',
+      '/images/gallery/amangiri/lounge-mesas.jpg',
+      '/images/gallery/amangiri/lounge-firepit.jpg',
+      '/images/gallery/amangiri/lounge-florals.jpg',
+      '/images/gallery/amangiri/lounge-arrangement.jpg',
+      // White canyon lounge vignette
+      '/images/gallery/amangiri/white-lounge.jpg',
+      '/images/gallery/amangiri/branch-pedestal.jpg',
+      '/images/gallery/amangiri/bud-vase-terrazzo.jpg',
+      // Tablescape sequence - day to dusk
+      '/images/gallery/amangiri/tablescape-forsythia.jpg',
       '/images/gallery/amangiri/amangiri-dining-forsythia.jpg',
       '/images/gallery/amangiri/amangiri-dining-side.jpg',
+      '/images/gallery/amangiri/styling-moment.jpg',
+      // Detail moments
+      '/images/gallery/amangiri/floral-pedestal.jpg',
+      '/images/gallery/amangiri/ceramic-vases.jpg',
+      '/images/gallery/amangiri/cherry-cocktails.jpg',
+      '/images/gallery/amangiri/place-setting-dusk.jpg',
+      // Evening atmosphere - the payoff
+      '/images/gallery/amangiri/cocktail-hour.jpg',
+      '/images/gallery/amangiri/dinner-candlelight.jpg',
       '/images/gallery/amangiri/amangiri-lounge.jpg',
+      '/images/gallery/amangiri/amangiri-landscape.jpg',
+      // Night close - lanterns leading into darkness
+      '/images/gallery/amangiri/lantern-path.jpg',
+      '/images/gallery/amangiri/night-lights.jpg',
     ],
   },
   {
@@ -391,7 +418,7 @@ function ProjectPanel({
 
 // ─────────────────────────────────────────────────────────────
 // Main Gallery Page
-// ──────────���──────────────────────────────────────────────────
+// ──────────���───────���──────────────────────────────────────────
 
 export default function GalleryPage() {
   const [activeFilter, setActiveFilter] = useState('All')
