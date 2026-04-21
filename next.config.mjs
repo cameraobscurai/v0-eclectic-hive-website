@@ -1,7 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   // Next.js 16 optimizations
-  reactCompiler: true, // Automatic memoization - no more manual useMemo/useCallback
+  // Note: reactCompiler requires babel-plugin-react-compiler to be installed
   cacheComponents: true, // Granular 'use cache' directive support
   
   typescript: {
