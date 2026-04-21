@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils'
 
 // B4: Lazy load QuickViewModal (heavy component with framer-motion)
 const QuickViewModal = dynamic(
-  () => import('@/components/quick-view-modal').then(mod => mod.QuickViewModal),
+  () => import('@/components/quick-view-modal').then(mod => ({ default: mod.QuickViewModal })),
   { ssr: false }
 )
 
