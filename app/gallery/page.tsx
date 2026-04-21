@@ -9,160 +9,33 @@ import { cn } from '@/lib/utils'
 import { X, ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react'
 
 // ─────────────────────────────────────────────────────────────
-// Project Data - All 15 projects from Eclectic Hive portfolio
+// Project Data - Add approved galleries here
+// Each project needs: id, slug, title, planner, location, type, year, image
 // ─────────────────────────────────────────────────────────────
 
-const projects = [
-  {
-    id: '01',
-    slug: 'easton-brush-creek',
-    title: 'Brush Creek Ranch',
-    planner: 'Easton Events',
-    location: 'Saratoga, Wyoming',
-    type: 'Private Celebration',
-    year: '2024',
-    image: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/1695847847889-RNFP4QB1N8B0T9Y5X5VH/Easton+Events+Brush+Creek+Ranch.jpg',
-  },
-  {
-    id: '02',
-    slug: 'diwan-brush-creek',
-    title: 'Brush Creek Ranch',
-    planner: 'Diwan by Design',
-    location: 'Saratoga, Wyoming',
-    type: 'Wedding',
-    year: '2024',
-    image: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/1695847901234-XHGP5QC2O9C1U0Z6Y6WI/Diwan+by+Design+Wedding.jpg',
-  },
-  {
-    id: '03',
-    slug: 'aspen-event-works',
-    title: 'Aspen',
-    planner: 'Aspen Event Works',
-    location: 'Aspen, Colorado',
-    type: 'Corporate Event',
-    year: '2024',
-    image: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/1695847950123-YIGQ6RD3P0D2V1A7Z7XJ/Aspen+Event+Works.jpg',
-  },
-  {
-    id: '04',
-    slug: 'banks-leaf-denver',
-    title: 'Denver',
-    planner: 'Banks + Leaf',
-    location: 'Denver, Colorado',
-    type: 'Corporate Event',
-    year: '2024',
-    image: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/1695848000456-ZJHR7SE4Q1E3W2B8A8YK/Banks+Leaf+Denver.jpg',
-  },
-  {
-    id: '05',
-    slug: 'love-this-day',
-    title: 'Brush Creek Ranch',
-    planner: 'Love This Day',
-    location: 'Saratoga, Wyoming',
-    type: 'Wedding',
-    year: '2023',
-    image: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/1695848050789-AKIS8TF5R2F4X3C9B9ZL/Love+This+Day+Wedding.jpg',
-  },
-  {
-    id: '06',
-    slug: 'birch-caribou',
-    title: 'Caribou Club',
-    planner: 'Birch Design Studio',
-    location: 'Aspen, Colorado',
-    type: 'Private Event',
-    year: '2023',
-    image: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/1695848100123-BLJT9UG6S3G5Y4D0C0AM/Birch+Design+Studio.jpg',
-  },
-  {
-    id: '07',
-    slug: 'michelle-rago-anguilla',
-    title: 'Anguilla',
-    planner: 'Michelle Rago Destinations',
-    location: 'Anguilla, Caribbean',
-    type: 'Destination Wedding',
-    year: '2023',
-    image: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/1695848150456-CMKU0VH7T4H6Z5E1D1BN/Michelle+Rago+Anguilla.jpg',
-  },
-  {
-    id: '08',
-    slug: 'gold-leaf-aspen',
-    title: 'Aspen',
-    planner: 'Gold Leaf Events',
-    location: 'Aspen, Colorado',
-    type: 'Wedding',
-    year: '2023',
-    image: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/1695848200789-DNLV1WI8U5I7A6F2E2CO/Gold+Leaf+Events+Aspen.jpg',
-  },
-  {
-    id: '09',
-    slug: 'brooke-keegan-dunton',
-    title: 'Dunton Hot Springs',
-    planner: 'Brooke Keegan Events',
-    location: 'Dolores, Colorado',
-    type: 'Wedding',
-    year: '2023',
-    image: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/1695848250123-EOMW2XJ9V6J8B7G3F3DP/Brooke+Keegan+Dunton.jpg',
-  },
-  {
-    id: '10',
-    slug: 'easton-blackberry',
-    title: 'Blackberry Farms',
-    planner: 'Easton Events',
-    location: 'Walland, Tennessee',
-    type: 'Wedding',
-    year: '2022',
-    image: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/1695848300456-FPNX3YK0W7K9C8H4G4EQ/Easton+Events+Blackberry.jpg',
-  },
-  {
-    id: '11',
-    slug: 'easton-amangiri',
-    title: 'Amangiri',
-    planner: 'Easton Events',
-    location: 'Canyon Point, Utah',
-    type: 'Private Celebration',
-    year: '2022',
-    image: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/1695848350789-GQOY4ZL1X8L0D9I5H5FR/Easton+Events+Amangiri.jpg',
-  },
-  {
-    id: '12',
-    slug: 'easton-big-sky',
-    title: 'Big Sky',
-    planner: 'Easton Events',
-    location: 'Big Sky, Montana',
-    type: 'Wedding',
-    year: '2022',
-    image: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/1695848400123-HRPZ5AM2Y9M1E0J6I6GS/Easton+Events+Big+Sky.jpg',
-  },
-  {
-    id: '13',
-    slug: 'cinergy-aspen',
-    title: 'Aspen',
-    planner: 'Cinergy',
-    location: 'Aspen, Colorado',
-    type: 'Corporate Event',
-    year: '2022',
-    image: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/1695848450456-ISQA6BN3Z0N2F1K7J7HT/Cinergy+Aspen.jpg',
-  },
-  {
-    id: '14',
-    slug: 'easton-dunbar',
-    title: 'Dunbar Ranch',
-    planner: 'Easton Events',
-    location: 'Montana',
-    type: 'Private Celebration',
-    year: '2021',
-    image: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/1695848500789-JTRB7CO4A1O3G2L8K8IU/Easton+Events+Dunbar.jpg',
-  },
-  {
-    id: '15',
-    slug: 'easton-dunton',
-    title: 'Dunton Hot Springs',
-    planner: 'Easton Events',
-    location: 'Dolores, Colorado',
-    type: 'Wedding',
-    year: '2021',
-    image: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/1695848550123-KUSC8DP5B2P4H3M9L9JV/Easton+Events+Dunton.jpg',
-  },
+type Project = {
+  id: string
+  slug: string
+  title: string
+  planner: string
+  location: string
+  type: string
+  year: string
+  image: string
+}
+
+const projects: Project[] = [
+  // Add your approved galleries here in this format:
+  // {
+  //   id: '01',
+  //   slug: 'project-slug',
+  //   title: 'Project Title',
+  //   planner: 'Planner Name',
+  //   location: 'City, State',
+  //   type: 'Wedding' | 'Corporate Event' | 'Private Celebration',
+  //   year: '2024',
+  //   image: '/images/gallery/your-image.jpg',
+  // },
 ]
 
 // Extract unique planners for filtering
@@ -418,7 +291,7 @@ function ProjectPanel({
 
 // ─────────────────────────────────────────────────────────────
 // Main Gallery Page
-// ─────────────────────────────────────────────────────────────
+// ──────────���──────────────────────────────────────────────────
 
 export default function GalleryPage() {
   const [activeFilter, setActiveFilter] = useState('All')
@@ -500,12 +373,13 @@ export default function GalleryPage() {
       </section>
       
       {/* ─────────────────────────────────────────────────────────────
-          Filter Pills
+          Filter Pills - Only show when projects exist
       ───────────────────────────────────────────────────────────── */}
-      <section className="pb-8 lg:pb-12 px-6 lg:px-12">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex flex-wrap gap-3">
-            {allPlanners.map((planner) => {
+      {projects.length > 0 && (
+        <section className="pb-8 lg:pb-12 px-6 lg:px-12">
+          <div className="max-w-7xl mx-auto">
+            <div className="flex flex-wrap gap-3">
+              {allPlanners.map((planner) => {
               const isActive = activeFilter === planner
               const count = planner === 'All' ? projects.length : plannerCounts[planner]
               return (
@@ -530,113 +404,136 @@ export default function GalleryPage() {
                   )}
                 </button>
               )
-            })}
+              })}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
       
       {/* ─────────────────────────────────────────────────────────────
           Horizontal Filmstrip
       ───────────────────────────────────────────────────────────── */}
       <section className="pb-16 lg:pb-24">
-        {/* Scrollable Container */}
-        <div 
-          ref={scrollRef}
-          className="flex gap-6 overflow-x-auto snap-x snap-mandatory scroll-smooth px-6 lg:px-12 pb-4 scrollbar-hide"
-          style={{ 
-            scrollbarWidth: 'none',
-            msOverflowStyle: 'none',
-          }}
-        >
-          {filteredProjects.map((project, index) => (
-            <ProjectCard
-              key={project.id}
-              project={project}
-              onClick={() => setSelectedProject(project)}
-              isActive={index === activeIndex}
-            />
-          ))}
-          
-          {/* End spacer for last card */}
-          <div className="flex-shrink-0 w-6 lg:w-12" aria-hidden="true" />
-        </div>
-        
-        {/* Progress Indicator */}
-        <div className="px-6 lg:px-12 mt-8">
-          <div className="max-w-7xl mx-auto flex items-center gap-4">
-            <span className="text-cream/40 text-xs tracking-wider tabular-nums">
-              {(activeIndex + 1).toString().padStart(2, '0')}
-            </span>
-            <div className="flex-1 h-px bg-cream/10 relative">
-              <div 
-                className="absolute top-0 left-0 h-full bg-sand transition-all duration-300"
-                style={{ width: `${((activeIndex + 1) / filteredProjects.length) * 100}%` }}
-              />
+        {filteredProjects.length > 0 ? (
+          <>
+            {/* Scrollable Container */}
+            <div 
+              ref={scrollRef}
+              className="flex gap-6 overflow-x-auto snap-x snap-mandatory scroll-smooth px-6 lg:px-12 pb-4 scrollbar-hide"
+              style={{ 
+                scrollbarWidth: 'none',
+                msOverflowStyle: 'none',
+              }}
+            >
+              {filteredProjects.map((project, index) => (
+                <ProjectCard
+                  key={project.id}
+                  project={project}
+                  onClick={() => setSelectedProject(project)}
+                  isActive={index === activeIndex}
+                />
+              ))}
+              
+              {/* End spacer for last card */}
+              <div className="flex-shrink-0 w-6 lg:w-12" aria-hidden="true" />
             </div>
-            <span className="text-cream/40 text-xs tracking-wider tabular-nums">
-              {filteredProjects.length.toString().padStart(2, '0')}
-            </span>
+            
+            {/* Progress Indicator */}
+            <div className="px-6 lg:px-12 mt-8">
+              <div className="max-w-7xl mx-auto flex items-center gap-4">
+                <span className="text-cream/40 text-xs tracking-wider tabular-nums">
+                  {(activeIndex + 1).toString().padStart(2, '0')}
+                </span>
+                <div className="flex-1 h-px bg-cream/10 relative">
+                  <div 
+                    className="absolute top-0 left-0 h-full bg-sand transition-all duration-300"
+                    style={{ width: `${((activeIndex + 1) / filteredProjects.length) * 100}%` }}
+                  />
+                </div>
+                <span className="text-cream/40 text-xs tracking-wider tabular-nums">
+                  {filteredProjects.length.toString().padStart(2, '0')}
+                </span>
+              </div>
+            </div>
+            
+            {/* Scroll Hint */}
+            <div className="px-6 lg:px-12 mt-6">
+              <div className="max-w-7xl mx-auto">
+                <p className="text-cream/30 text-xs uppercase tracking-[0.2em]">
+                  Drag or scroll to explore
+                </p>
+              </div>
+            </div>
+          </>
+        ) : (
+          /* Empty State - No projects yet */
+          <div className="px-6 lg:px-12 py-24 lg:py-32">
+            <div className="max-w-2xl mx-auto text-center">
+              <p className="text-cream/30 text-xs uppercase tracking-[0.3em] mb-4">
+                Coming Soon
+              </p>
+              <h2 className="font-display text-2xl md:text-3xl lg:text-4xl text-cream/60 font-light tracking-wide mb-6">
+                Gallery Loading
+              </h2>
+              <p className="text-cream/40 text-sm leading-relaxed">
+                Approved projects will appear here. Each gallery showcases complete environments 
+                designed in collaboration with premier event planners.
+              </p>
+            </div>
           </div>
-        </div>
-        
-        {/* Scroll Hint */}
-        <div className="px-6 lg:px-12 mt-6">
-          <div className="max-w-7xl mx-auto">
-            <p className="text-cream/30 text-xs uppercase tracking-[0.2em]">
-              Drag or scroll to explore
-            </p>
-          </div>
-        </div>
+        )}
       </section>
       
       {/* ─────────────────────────────────────────────────────────────
-          Index List (Alternative View)
+          Index List (Alternative View) - Only show when projects exist
       ───────────────────────────────────────────────────────────── */}
-      <section className="bg-cream/5 py-16 lg:py-24 px-6 lg:px-12">
-        <div className="max-w-7xl mx-auto">
-          <p className="text-cream/40 text-xs uppercase tracking-[0.3em] mb-12">
-            Project Index
-          </p>
-          
-          <div className="space-y-0">
-            {filteredProjects.map((project, index) => (
-              <button
-                key={project.id}
-                onClick={() => setSelectedProject(project)}
-                className="w-full group py-6 border-b border-cream/10 flex items-center gap-6 lg:gap-12 text-left hover:bg-cream/5 transition-colors px-4 -mx-4"
-              >
-                {/* Number */}
-                <span className="text-cream/30 text-sm tracking-wider w-8 flex-shrink-0 tabular-nums">
-                  {project.id}
-                </span>
-                
-                {/* Title */}
-                <span className="font-display text-xl lg:text-2xl text-cream font-light flex-1 group-hover:text-sand transition-colors">
-                  {project.title}
-                </span>
-                
-                {/* Planner */}
-                <span className="hidden md:block text-cream/50 text-sm flex-1">
-                  {project.planner}
-                </span>
-                
-                {/* Type */}
-                <span className="hidden lg:block text-cream/40 text-sm w-40">
-                  {project.type}
-                </span>
-                
-                {/* Year */}
-                <span className="text-cream/30 text-sm w-16 text-right tabular-nums">
-                  {project.year}
-                </span>
-                
-                {/* Arrow */}
-                <ArrowRight className="w-4 h-4 text-cream/30 group-hover:text-sand group-hover:translate-x-1 transition-all" />
-              </button>
-            ))}
+      {filteredProjects.length > 0 && (
+        <section className="bg-cream/5 py-16 lg:py-24 px-6 lg:px-12">
+          <div className="max-w-7xl mx-auto">
+            <p className="text-cream/40 text-xs uppercase tracking-[0.3em] mb-12">
+              Project Index
+            </p>
+            
+            <div className="space-y-0">
+              {filteredProjects.map((project) => (
+                <button
+                  key={project.id}
+                  onClick={() => setSelectedProject(project)}
+                  className="w-full group py-6 border-b border-cream/10 flex items-center gap-6 lg:gap-12 text-left hover:bg-cream/5 transition-colors px-4 -mx-4"
+                >
+                  {/* Number */}
+                  <span className="text-cream/30 text-sm tracking-wider w-8 flex-shrink-0 tabular-nums">
+                    {project.id}
+                  </span>
+                  
+                  {/* Title */}
+                  <span className="font-display text-xl lg:text-2xl text-cream font-light flex-1 group-hover:text-sand transition-colors">
+                    {project.title}
+                  </span>
+                  
+                  {/* Planner */}
+                  <span className="hidden md:block text-cream/50 text-sm flex-1">
+                    {project.planner}
+                  </span>
+                  
+                  {/* Type */}
+                  <span className="hidden lg:block text-cream/40 text-sm w-40">
+                    {project.type}
+                  </span>
+                  
+                  {/* Year */}
+                  <span className="text-cream/30 text-sm w-16 text-right tabular-nums">
+                    {project.year}
+                  </span>
+                  
+                  {/* Arrow */}
+                  <ArrowRight className="w-4 h-4 text-cream/30 group-hover:text-sand group-hover:translate-x-1 transition-all" />
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
       
       {/* ─────────────────────────────────────────────────────────────
           CTA Section
