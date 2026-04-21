@@ -21,21 +21,27 @@ type Project = {
   location: string
   type: string
   year: string
-  image: string
+  image: string // Cover image for the filmstrip
+  images: string[] // All images for the detail view
 }
 
 const projects: Project[] = [
-  // Add your approved galleries here in this format:
-  // {
-  //   id: '01',
-  //   slug: 'project-slug',
-  //   title: 'Project Title',
-  //   planner: 'Planner Name',
-  //   location: 'City, State',
-  //   type: 'Wedding' | 'Corporate Event' | 'Private Celebration',
-  //   year: '2024',
-  //   image: '/images/gallery/your-image.jpg',
-  // },
+  {
+    id: '01',
+    slug: 'amangiri',
+    title: 'Amangiri',
+    planner: 'Eclectic Hive',
+    location: 'Canyon Point, Utah',
+    type: 'Private Celebration',
+    year: '2024',
+    image: '/images/gallery/amangiri/amangiri-landscape.jpg',
+    images: [
+      '/images/gallery/amangiri/amangiri-landscape.jpg',
+      '/images/gallery/amangiri/amangiri-dining-forsythia.jpg',
+      '/images/gallery/amangiri/amangiri-dining-side.jpg',
+      '/images/gallery/amangiri/amangiri-lounge.jpg',
+    ],
+  },
 ]
 
 // Extract unique planners for filtering
@@ -148,24 +154,41 @@ function ProjectPanel({
   hasNext: boolean
 }) {
   const [imageLoaded, setImageLoaded] = useState(false)
+  const [currentImageIndex, setCurrentImageIndex] = useState(0)
   
-  // Reset image loaded state when project changes
+  // Reset image loaded state and index when project changes
   useEffect(() => {
     setImageLoaded(false)
+    setCurrentImageIndex(0)
   }, [project?.id])
+  
+  // Get current image
+  const currentImage = project?.images?.[currentImageIndex] || project?.image || ''
+  const totalImages = project?.images?.length || 1
 
-  // Keyboard navigation
+  // Keyboard navigation - arrow keys for images within project
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!project) return
       if (e.key === 'Escape') onClose()
-      if (e.key === 'ArrowLeft' && hasPrev) onPrev()
-      if (e.key === 'ArrowRight' && hasNext) onNext()
+      // Arrow keys navigate images within the current project
+      if (e.key === 'ArrowLeft') {
+        if (currentImageIndex > 0) {
+          setCurrentImageIndex(currentImageIndex - 1)
+          setImageLoaded(false)
+        }
+      }
+      if (e.key === 'ArrowRight') {
+        if (currentImageIndex < totalImages - 1) {
+          setCurrentImageIndex(currentImageIndex + 1)
+          setImageLoaded(false)
+        }
+      }
     }
     
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [project, onClose, onPrev, onNext, hasPrev, hasNext])
+  }, [project, onClose, currentImageIndex, totalImages])
 
   // Lock body scroll when panel is open
   useEffect(() => {
@@ -197,23 +220,23 @@ function ProjectPanel({
         <X className="w-6 h-6" />
       </button>
       
-      {/* Navigation Arrows */}
-      {hasPrev && (
+      {/* Image Navigation Arrows - navigate within project images */}
+      {currentImageIndex > 0 && (
         <button
-          onClick={onPrev}
-          className="absolute left-6 top-1/2 -translate-y-1/2 z-10 w-12 h-12 flex items-center justify-center text-cream/50 hover:text-cream transition-colors"
-          aria-label="Previous project"
+          onClick={() => { setCurrentImageIndex(currentImageIndex - 1); setImageLoaded(false) }}
+          className="absolute left-6 top-1/2 -translate-y-1/2 z-10 w-12 h-12 flex items-center justify-center text-cream/50 hover:text-cream transition-colors bg-black/20 backdrop-blur-sm rounded-full"
+          aria-label="Previous image"
         >
-          <ChevronLeft className="w-8 h-8" />
+          <ChevronLeft className="w-6 h-6" />
         </button>
       )}
-      {hasNext && (
+      {currentImageIndex < totalImages - 1 && (
         <button
-          onClick={onNext}
-          className="absolute right-6 top-1/2 -translate-y-1/2 z-10 w-12 h-12 flex items-center justify-center text-cream/50 hover:text-cream transition-colors"
-          aria-label="Next project"
+          onClick={() => { setCurrentImageIndex(currentImageIndex + 1); setImageLoaded(false) }}
+          className="absolute right-6 top-1/2 -translate-y-1/2 z-10 w-12 h-12 flex items-center justify-center text-cream/50 hover:text-cream transition-colors bg-black/20 backdrop-blur-sm rounded-full"
+          aria-label="Next image"
         >
-          <ChevronRight className="w-8 h-8" />
+          <ChevronRight className="w-6 h-6" />
         </button>
       )}
       
@@ -222,8 +245,8 @@ function ProjectPanel({
         {/* Image Side */}
         <div className="relative h-[50vh] lg:h-full lg:w-2/3">
           <Image
-            src={project.image}
-            alt={`${project.title} - ${project.planner}`}
+            src={currentImage}
+            alt={`${project.title} - Image ${currentImageIndex + 1} of ${totalImages}`}
             fill
             className={cn(
               'object-cover transition-opacity duration-500',
@@ -234,6 +257,25 @@ function ProjectPanel({
             priority
           />
           <div className="absolute inset-0 bg-gradient-to-r from-transparent to-charcoal/20 lg:bg-gradient-to-l" />
+          
+          {/* Image counter */}
+          {totalImages > 1 && (
+            <div className="absolute bottom-6 left-6 flex items-center gap-2">
+              {project.images?.map((_, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => { setCurrentImageIndex(idx); setImageLoaded(false) }}
+                  className={cn(
+                    'w-2 h-2 rounded-full transition-all',
+                    idx === currentImageIndex 
+                      ? 'bg-cream w-6' 
+                      : 'bg-cream/40 hover:bg-cream/60'
+                  )}
+                  aria-label={`Go to image ${idx + 1}`}
+                />
+              ))}
+            </div>
+          )}
         </div>
         
         {/* Info Side */}
@@ -281,6 +323,32 @@ function ProjectPanel({
                 <span>Start Your Project</span>
                 <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
               </Link>
+            </div>
+            
+            {/* Project Navigation */}
+            <div className="flex items-center justify-between mt-12 pt-8 border-t border-cream/10">
+              <button
+                onClick={onPrev}
+                disabled={!hasPrev}
+                className={cn(
+                  'flex items-center gap-2 text-xs uppercase tracking-[0.15em] transition-colors',
+                  hasPrev ? 'text-cream/60 hover:text-cream' : 'text-cream/20 cursor-not-allowed'
+                )}
+              >
+                <ChevronLeft className="w-4 h-4" />
+                <span>Prev Project</span>
+              </button>
+              <button
+                onClick={onNext}
+                disabled={!hasNext}
+                className={cn(
+                  'flex items-center gap-2 text-xs uppercase tracking-[0.15em] transition-colors',
+                  hasNext ? 'text-cream/60 hover:text-cream' : 'text-cream/20 cursor-not-allowed'
+                )}
+              >
+                <span>Next Project</span>
+                <ChevronRight className="w-4 h-4" />
+              </button>
             </div>
           </div>
         </div>
