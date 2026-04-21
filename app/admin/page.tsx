@@ -133,6 +133,20 @@ function ImagesTab() {
       .catch(() => setLoadingExisting(false))
   }, [results])
 
+  const [syncing, setSyncing] = useState(false)
+  
+  const syncToDatabase = async () => {
+    setSyncing(true)
+    try {
+      const res = await fetch('/api/upload-inventory', { method: 'PATCH' })
+      const data = await res.json()
+      alert(`Synced ${data.synced} images to database (${data.total} total in Blob)`)
+    } catch {
+      alert('Sync failed')
+    }
+    setSyncing(false)
+  }
+
   const deleteAll = async () => {
     if (!confirm('Delete ALL inventory images? This cannot be undone.')) return
     setDeleting(true)
@@ -402,6 +416,13 @@ function ImagesTab() {
                 </button>
               </>
             )}
+            <button
+              onClick={syncToDatabase}
+              disabled={syncing}
+              className="px-3 py-1.5 bg-blue-600 text-white text-[10px] uppercase tracking-[0.1em] hover:bg-blue-700 disabled:opacity-50"
+            >
+              {syncing ? 'Syncing...' : 'Sync to Database'}
+            </button>
             <button
               onClick={deleteAll}
               disabled={deleting}

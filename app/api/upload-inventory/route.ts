@@ -1,6 +1,7 @@
 import { put, list, del } from '@vercel/blob'
 import { type NextRequest, NextResponse } from 'next/server'
 import sharp from 'sharp'
+import { createClient } from '@/lib/supabase/server'
 
 // ============================================================================
 // IMAGE PROCESSING CONFIG
@@ -128,11 +129,39 @@ export async function POST(request: NextRequest) {
           contentType: 'image/png',
         })
         
+        // Match filename to product and update database
+        // Filename format: "product-name.png" -> search for "product name"
+        const searchName = file.name
+          .replace(/\.[^.]+$/, '') // Remove extension
+          .replace(/[-_]/g, ' ')   // Replace dashes/underscores with spaces
+        
+        const supabase = await createClient()
+        const { data: matchedProducts } = await supabase
+          .from('products')
+          .select('id, name')
+          .ilike('name', `%${searchName}%`)
+          .limit(1)
+        
+        let dbUpdated = false
+        if (matchedProducts && matchedProducts.length > 0) {
+          const { error: updateError } = await supabase
+            .from('products')
+            .update({ 
+              primary_image_url: blob.pathname,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', matchedProducts[0].id)
+          
+          dbUpdated = !updateError
+        }
+        
         results.push({
           name: file.name,
           url: blob.url,
           pathname: blob.pathname,
           success: true,
+          dbUpdated,
+          matchedProduct: matchedProducts?.[0]?.name || null,
         })
       } catch (err) {
         console.error(`[v0] Failed: ${file.name}`, err)
@@ -174,6 +203,65 @@ export async function GET() {
 }
 
 // ============================================================================
+// API: Sync Blob images to database (PATCH)
+// ============================================================================
+export async function PATCH() {
+  try {
+    const { blobs } = await list({ prefix: 'inventory/' })
+    const supabase = await createClient()
+    
+    let synced = 0
+    let failed = 0
+    const results: { pathname: string; matched: string | null }[] = []
+    
+    for (const blob of blobs) {
+      // Extract product name from pathname: inventory/category/product-name.png
+      const filename = blob.pathname.split('/').pop() || ''
+      const searchName = filename
+        .replace(/\.[^.]+$/, '') // Remove extension
+        .replace(/[-_]/g, ' ')   // Replace dashes/underscores with spaces
+      
+      // Find matching product
+      const { data: matchedProducts } = await supabase
+        .from('products')
+        .select('id, name')
+        .ilike('name', `%${searchName}%`)
+        .limit(1)
+      
+      if (matchedProducts && matchedProducts.length > 0) {
+        const { error } = await supabase
+          .from('products')
+          .update({ 
+            primary_image_url: blob.pathname,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', matchedProducts[0].id)
+        
+        if (!error) {
+          synced++
+          results.push({ pathname: blob.pathname, matched: matchedProducts[0].name })
+        } else {
+          failed++
+          results.push({ pathname: blob.pathname, matched: null })
+        }
+      } else {
+        results.push({ pathname: blob.pathname, matched: null })
+      }
+    }
+    
+    return NextResponse.json({ 
+      total: blobs.length, 
+      synced, 
+      failed,
+      results 
+    })
+  } catch (error) {
+    console.error('Sync error:', error)
+    return NextResponse.json({ error: 'Sync failed' }, { status: 500 })
+  }
+}
+
+// ============================================================================
 // API: Delete images
 // ============================================================================
 export async function DELETE(request: NextRequest) {
@@ -187,6 +275,20 @@ export async function DELETE(request: NextRequest) {
     }
     
     await del(blobs.map(b => b.url))
+    
+    // Also clear database references for deleted images
+    const supabase = await createClient()
+    if (category) {
+      await supabase
+        .from('products')
+        .update({ primary_image_url: null })
+        .ilike('primary_image_url', `inventory/${category}/%`)
+    } else {
+      await supabase
+        .from('products')
+        .update({ primary_image_url: null })
+        .ilike('primary_image_url', 'inventory/%')
+    }
     
     return NextResponse.json({ 
       deleted: blobs.length,
