@@ -15,9 +15,19 @@ export async function GET(request: NextRequest) {
   const sort = request.nextUrl.searchParams.get('sort') || 'name' // name, newest, oldest
   
   // Build query with count for pagination
+  // Include first variant data for quick view (stock_count, dimensions)
   let query = supabase
     .from('products')
-    .select('*', { count: 'exact' })
+    .select(`
+      *,
+      product_variants (
+        stock_count,
+        dims_display,
+        width_inches,
+        depth_inches,
+        height_inches
+      )
+    `, { count: 'exact' })
     .eq('is_active', true)
   
   // Filter: only products with images
@@ -52,11 +62,32 @@ export async function GET(request: NextRequest) {
   const to = from + limit - 1
   query = query.range(from, to)
   
-  const { data: products, error, count } = await query
+  const { data: rawProducts, error, count } = await query
   
   if (error) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
+  
+  // Flatten variant data onto product for easy access in quick view
+  const products = rawProducts?.map(product => {
+    const variants = product.product_variants || []
+    // Aggregate stock count from all variants
+    const totalStock = variants.reduce((sum: number, v: { stock_count?: number }) => sum + (v.stock_count || 0), 0)
+    // Use first variant's dimensions (they're typically the same for display purposes)
+    const firstVariant = variants[0] || {}
+    
+    return {
+      ...product,
+      // Flatten variant data for quick view
+      stock_count: totalStock > 0 ? totalStock : undefined,
+      dims_display: firstVariant.dims_display,
+      width_inches: firstVariant.width_inches,
+      depth_inches: firstVariant.depth_inches,
+      height_inches: firstVariant.height_inches,
+      // Remove the nested array
+      product_variants: undefined,
+    }
+  }) || []
   
   const totalPages = Math.ceil((count || 0) / limit)
   

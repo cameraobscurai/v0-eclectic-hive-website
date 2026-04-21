@@ -75,7 +75,7 @@ function ProductCard({
   )
 }
 
-// Product type from Supabase (full schema)
+// Product type from Supabase (with flattened variant data)
 type Product = {
   id: string
   slug: string
@@ -86,16 +86,13 @@ type Product = {
   display_type: string
   is_featured?: boolean
   updated_at?: string
-  // Inventory details
-  quantity?: number
-  stocked_quantity?: number
-  dimensions?: string
-  width?: string
-  depth?: string
-  height?: string
-  color?: string
-  finish?: string
   description?: string
+  // Flattened variant data from API
+  stock_count?: number
+  dims_display?: string
+  width_inches?: number
+  depth_inches?: number
+  height_inches?: number
 }
 
 // SWR fetcher with caching headers
@@ -428,7 +425,7 @@ export default function CollectionPage() {
       
       {/* ─────────────────────────────────────────────────────────────
           Filter Header - Horizontal Two-Tier Navigation
-      ───────────────────────────────────────────────────────────── */}
+      ──────────────────────────────��────────────────────────────── */}
       <section className="sticky top-0 z-40 bg-white">
         {/* Row 1: Main Categories - dynamically shows categories with images */}
         <div className="border-b border-charcoal/10">

@@ -1,13 +1,15 @@
 'use client'
 
-import { useEffect, useCallback, useState } from 'react'
+import { useEffect, useCallback, useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
 
 // =============================================================================
-// QUICK VIEW MODAL
-// Centered glassmorphic modal - single frosted glass panel
-// Matches Eclectic Hive's minimal product info style
+// LIQUID GLASS QUICK VIEW MODAL
+// True liquid glass with:
+// 1. Dynamic specular highlights (mouse tracking)
+// 2. Backdrop refraction/blur
+// 3. Gel-like fluid animations (springy morphing)
 // =============================================================================
 
 interface Product {
@@ -17,13 +19,13 @@ interface Product {
   category: string
   sub_category?: string
   primary_image_url?: string
-  // Inventory fields
-  quantity?: number
-  stocked_quantity?: number
-  dimensions?: string
-  width?: string
-  depth?: string
-  height?: string
+  description?: string
+  // Variant data (if joined)
+  stock_count?: number
+  dims_display?: string
+  width_inches?: number
+  depth_inches?: number
+  height_inches?: number
 }
 
 interface QuickViewModalProps {
@@ -35,42 +37,46 @@ interface QuickViewModalProps {
   imageUrl?: string
 }
 
-// Smooth, cinematic easing
-const modalEasing = [0.32, 0.72, 0, 1]
-
-// Animation variants
-const backdropVariants = {
-  hidden: { opacity: 0 },
-  visible: { 
-    opacity: 1,
-    transition: { duration: 0.3, ease: modalEasing }
-  },
-  exit: { 
-    opacity: 0,
-    transition: { duration: 0.2, ease: modalEasing }
-  },
+// Springy, gel-like easing for liquid feel
+const liquidSpring = {
+  type: "spring",
+  stiffness: 400,
+  damping: 30,
+  mass: 1,
 }
 
 const modalVariants = {
   hidden: { 
     opacity: 0,
-    scale: 0.94,
+    scale: 0.92,
+    y: 20,
   },
   visible: { 
     opacity: 1,
     scale: 1,
-    transition: { 
-      duration: 0.35, 
-      ease: modalEasing,
-    }
+    y: 0,
+    transition: liquidSpring,
   },
   exit: { 
     opacity: 0,
-    scale: 0.96,
+    scale: 0.95,
+    y: 10,
     transition: { 
       duration: 0.2, 
-      ease: modalEasing,
+      ease: [0.32, 0, 0.67, 0],
     }
+  },
+}
+
+const backdropVariants = {
+  hidden: { opacity: 0 },
+  visible: { 
+    opacity: 1,
+    transition: { duration: 0.3 }
+  },
+  exit: { 
+    opacity: 0,
+    transition: { duration: 0.2 }
   },
 }
 
@@ -83,11 +89,22 @@ export function QuickViewModal({
   imageUrl 
 }: QuickViewModalProps) {
   const [imageLoaded, setImageLoaded] = useState(false)
+  const modalRef = useRef<HTMLDivElement>(null)
+  const [mousePos, setMousePos] = useState({ x: 50, y: 50 })
 
   // Reset image loaded state when product changes
   useEffect(() => {
     setImageLoaded(false)
   }, [product?.id])
+
+  // Mouse tracking for specular highlight
+  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (!modalRef.current) return
+    const rect = modalRef.current.getBoundingClientRect()
+    const x = ((e.clientX - rect.left) / rect.width) * 100
+    const y = ((e.clientY - rect.top) / rect.height) * 100
+    setMousePos({ x, y })
+  }, [])
 
   // Keyboard navigation
   useEffect(() => {
@@ -125,21 +142,21 @@ export function QuickViewModal({
 
   if (!product) return null
 
-  // Build dimensions string from individual fields or use dimensions field
+  // Build dimensions string
   const getDimensions = () => {
-    if (product.dimensions) return product.dimensions
-    if (product.width || product.depth || product.height) {
+    if (product.dims_display) return product.dims_display
+    if (product.width_inches || product.depth_inches || product.height_inches) {
       const parts = []
-      if (product.width) parts.push(`${product.width}"W`)
-      if (product.depth) parts.push(`${product.depth}"D`)
-      if (product.height) parts.push(`${product.height}"H`)
+      if (product.width_inches) parts.push(`${product.width_inches}"W`)
+      if (product.depth_inches) parts.push(`${product.depth_inches}"D`)
+      if (product.height_inches) parts.push(`${product.height_inches}"H`)
       return parts.join(' x ')
     }
     return null
   }
 
   const dimensions = getDimensions()
-  const stockedQty = product.stocked_quantity ?? product.quantity
+  const stockCount = product.stock_count
 
   return (
     <AnimatePresence>
@@ -150,48 +167,76 @@ export function QuickViewModal({
           aria-modal="true" 
           aria-labelledby="quick-view-title"
         >
-          {/* Backdrop - frosted blur */}
+          {/* Backdrop - heavy blur for refraction effect */}
           <motion.div
             variants={backdropVariants}
             initial="hidden"
             animate="visible"
             exit="exit"
-            className="absolute inset-0 bg-charcoal/60 backdrop-blur-md"
+            className="absolute inset-0 bg-charcoal/50 backdrop-blur-xl"
             onClick={onClose}
           />
 
-          {/* Modal - single glassmorphic panel */}
+          {/* Modal - LIQUID GLASS */}
           <motion.div
+            ref={modalRef}
             variants={modalVariants}
             initial="hidden"
             animate="visible"
             exit="exit"
-            className={cn(
-              'relative w-full max-w-[720px]',
-              // TRUE GLASSMORPHIC - single color, frosted glass
-              'bg-cream backdrop-blur-xl',
-              'border border-cream/20',
-              'shadow-2xl shadow-charcoal/30',
-              'overflow-hidden'
-            )}
+            onMouseMove={handleMouseMove}
+            className="relative w-full max-w-[720px] overflow-hidden rounded-2xl"
             onClick={(e) => e.stopPropagation()}
+            style={{
+              // Liquid glass base
+              background: 'rgba(255, 255, 255, 0.85)',
+              backdropFilter: 'blur(40px) saturate(180%)',
+              WebkitBackdropFilter: 'blur(40px) saturate(180%)',
+              border: '1px solid rgba(255, 255, 255, 0.3)',
+              boxShadow: `
+                0 8px 32px rgba(0, 0, 0, 0.12),
+                0 2px 8px rgba(0, 0, 0, 0.08),
+                inset 0 1px 0 rgba(255, 255, 255, 0.5)
+              `,
+            }}
           >
+            {/* Dynamic Specular Highlight - follows mouse */}
+            <div
+              className="absolute inset-0 pointer-events-none transition-opacity duration-300"
+              style={{
+                background: `radial-gradient(
+                  600px circle at ${mousePos.x}% ${mousePos.y}%,
+                  rgba(255, 255, 255, 0.4) 0%,
+                  rgba(255, 255, 255, 0.1) 25%,
+                  transparent 50%
+                )`,
+              }}
+            />
+
+            {/* Inner glow edge */}
+            <div 
+              className="absolute inset-0 pointer-events-none rounded-2xl"
+              style={{
+                boxShadow: 'inset 0 0 0 1px rgba(255, 255, 255, 0.2)',
+              }}
+            />
+
             {/* Drag handle */}
-            <div className="flex justify-center pt-3">
-              <div className="w-8 h-0.5 rounded-full bg-charcoal/10" />
+            <div className="flex justify-center pt-3 relative z-10">
+              <div className="w-10 h-1 rounded-full bg-charcoal/10" />
             </div>
 
             {/* Header - nav + close */}
-            <div className="flex items-center justify-between px-4 py-2">
-              <div className="flex items-center gap-0.5">
+            <div className="flex items-center justify-between px-4 py-2 relative z-10">
+              <div className="flex items-center gap-1">
                 <button
                   onClick={onPrevious}
                   disabled={!onPrevious}
                   className={cn(
-                    'p-2 transition-colors',
+                    'w-8 h-8 rounded-full flex items-center justify-center transition-all',
                     onPrevious 
-                      ? 'text-charcoal/50 hover:text-charcoal' 
-                      : 'text-charcoal/15 cursor-not-allowed'
+                      ? 'text-charcoal/60 hover:bg-charcoal/5 hover:text-charcoal' 
+                      : 'text-charcoal/20 cursor-not-allowed'
                   )}
                   aria-label="Previous product"
                 >
@@ -203,10 +248,10 @@ export function QuickViewModal({
                   onClick={onNext}
                   disabled={!onNext}
                   className={cn(
-                    'p-2 transition-colors',
+                    'w-8 h-8 rounded-full flex items-center justify-center transition-all',
                     onNext 
-                      ? 'text-charcoal/50 hover:text-charcoal' 
-                      : 'text-charcoal/15 cursor-not-allowed'
+                      ? 'text-charcoal/60 hover:bg-charcoal/5 hover:text-charcoal' 
+                      : 'text-charcoal/20 cursor-not-allowed'
                   )}
                   aria-label="Next product"
                 >
@@ -218,7 +263,7 @@ export function QuickViewModal({
 
               <button
                 onClick={onClose}
-                className="p-2 text-charcoal/50 hover:text-charcoal transition-colors"
+                className="w-8 h-8 rounded-full flex items-center justify-center text-charcoal/60 hover:bg-charcoal/5 hover:text-charcoal transition-all"
                 aria-label="Close"
               >
                 <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -228,18 +273,24 @@ export function QuickViewModal({
             </div>
 
             {/* Content - image left, details right */}
-            <div className="grid grid-cols-1 md:grid-cols-[1.2fr_1fr]">
-              {/* Image - clean white background */}
-              <div className="aspect-square md:aspect-auto md:min-h-[350px] bg-white relative">
+            <div className="grid grid-cols-1 md:grid-cols-[1.2fr_1fr] relative z-10">
+              {/* Image - subtle inner shadow for depth */}
+              <div 
+                className="aspect-square md:aspect-auto md:min-h-[350px] relative mx-4 mb-4 md:mb-0 md:mx-0 md:ml-4 rounded-xl overflow-hidden"
+                style={{
+                  background: 'rgba(255, 255, 255, 0.6)',
+                  boxShadow: 'inset 0 2px 8px rgba(0, 0, 0, 0.04)',
+                }}
+              >
                 {!imageLoaded && (
-                  <div className="absolute inset-0 bg-neutral-50 animate-pulse" />
+                  <div className="absolute inset-0 bg-white/50 animate-pulse" />
                 )}
                 {imageUrl && (
                   <img
                     src={imageUrl}
                     alt={product.name}
                     className={cn(
-                      'w-full h-full object-contain p-8 md:p-10 transition-opacity duration-300',
+                      'w-full h-full object-contain p-6 md:p-8 transition-opacity duration-300',
                       imageLoaded ? 'opacity-100' : 'opacity-0'
                     )}
                     onLoad={() => setImageLoaded(true)}
@@ -247,33 +298,39 @@ export function QuickViewModal({
                 )}
               </div>
 
-              {/* Details - minimal like their current site */}
+              {/* Details */}
               <div className="p-6 md:p-8 flex flex-col justify-between">
-                <div className="space-y-4">
-                  {/* Category */}
-                  <span className="text-[10px] uppercase tracking-[0.15em] text-charcoal/40">
+                <div className="space-y-3">
+                  {/* Category tag */}
+                  <span 
+                    className="inline-block px-2.5 py-1 text-[9px] uppercase tracking-[0.12em] text-charcoal/60 rounded-full"
+                    style={{
+                      background: 'rgba(0, 0, 0, 0.04)',
+                    }}
+                  >
                     {product.category}
                   </span>
 
                   {/* Name */}
                   <h2 
                     id="quick-view-title"
-                    className="font-display text-xl md:text-2xl tracking-wide text-charcoal uppercase"
+                    className="font-display text-xl md:text-2xl tracking-wide text-charcoal"
                     style={{ fontStyle: 'italic' }}
                   >
                     {product.name}
                   </h2>
 
-                  {/* Inventory details - matches their current site */}
-                  <div className="space-y-1.5 pt-2">
-                    {stockedQty !== undefined && stockedQty > 0 && (
-                      <p className="text-sm text-charcoal/70">
-                        Stocked Quantity: {stockedQty}
-                      </p>
+                  {/* Inventory details - matching their current site format */}
+                  <div className="space-y-1 pt-3 text-sm text-charcoal/70">
+                    {stockCount !== undefined && stockCount > 0 && (
+                      <p>Stocked Quantity: {stockCount}</p>
                     )}
                     {dimensions && (
-                      <p className="text-sm text-charcoal/70">
-                        {dimensions}
+                      <p>{dimensions}</p>
+                    )}
+                    {!stockCount && !dimensions && product.description && (
+                      <p className="text-charcoal/50 text-sm leading-relaxed">
+                        {product.description}
                       </p>
                     )}
                   </div>
@@ -283,10 +340,11 @@ export function QuickViewModal({
                 <div className="mt-8 space-y-3">
                   <button
                     className={cn(
-                      'w-full py-3 px-6',
-                      'bg-charcoal text-cream',
-                      'text-xs uppercase tracking-[0.15em]',
-                      'hover:bg-charcoal/90 active:scale-[0.99] transition-all duration-150'
+                      'w-full py-3.5 px-6 rounded-lg',
+                      'bg-charcoal text-white',
+                      'text-xs uppercase tracking-[0.12em] font-medium',
+                      'hover:bg-charcoal/90 active:scale-[0.98] transition-all duration-150',
+                      'shadow-sm'
                     )}
                   >
                     Add to Inquiry
@@ -297,6 +355,9 @@ export function QuickViewModal({
                 </div>
               </div>
             </div>
+
+            {/* Bottom padding */}
+            <div className="h-4" />
           </motion.div>
         </div>
       )}
