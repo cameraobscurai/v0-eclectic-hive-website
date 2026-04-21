@@ -1,9 +1,5 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  // Next.js 16 optimizations
-  // Note: reactCompiler requires babel-plugin-react-compiler to be installed
-  cacheComponents: true, // Granular 'use cache' directive support
-  
   typescript: {
     ignoreBuildErrors: true,
   },
