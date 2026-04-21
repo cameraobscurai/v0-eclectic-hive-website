@@ -42,6 +42,38 @@ const projects: Project[] = [
       '/images/gallery/amangiri/amangiri-lounge.jpg',
     ],
   },
+  {
+    id: '02',
+    slug: 'lynden-lane',
+    title: 'Lynden Lane',
+    location: 'Telluride, Colorado',
+    region: 'Colorado',
+    type: 'Wedding',
+    year: '2025',
+    image: '/images/gallery/lynden-lane/venue-exterior.webp',
+    images: [
+      '/images/gallery/lynden-lane/venue-exterior.webp',
+      '/images/gallery/lynden-lane/outdoor-lounge-bar.webp',
+      '/images/gallery/lynden-lane/reception-wide.webp',
+      '/images/gallery/lynden-lane/dining-pendants.webp',
+      '/images/gallery/lynden-lane/dj-booth.webp',
+      '/images/gallery/lynden-lane/bar-florals.webp',
+      '/images/gallery/lynden-lane/bar-artwork.webp',
+      '/images/gallery/lynden-lane/table-dusk.webp',
+      '/images/gallery/lynden-lane/bar-candles.webp',
+      '/images/gallery/lynden-lane/bar-full.webp',
+      '/images/gallery/lynden-lane/place-settings.webp',
+      '/images/gallery/lynden-lane/cowboy-art.webp',
+      '/images/gallery/lynden-lane/cocktail-hour.webp',
+      '/images/gallery/lynden-lane/seating-chart.webp',
+      '/images/gallery/lynden-lane/wall-sconces.webp',
+      '/images/gallery/lynden-lane/outdoor-lounge.webp',
+      '/images/gallery/lynden-lane/shelf-styling.webp',
+      '/images/gallery/lynden-lane/cowboy-hats.webp',
+      '/images/gallery/lynden-lane/shelf-detail.webp',
+      '/images/gallery/lynden-lane/hero-dining.webp',
+    ],
+  },
 ]
 
 // Extract unique regions for filtering
@@ -554,7 +586,7 @@ export default function GalleryPage() {
       
       {/* ─────────────────────────────────────────────────────────────
           Index List (Alternative View) - Only show when projects exist
-      ───────────────────────────────────────────────���───────────── */}
+      ──────────────────────��────────────────────────���───────────── */}
       {filteredProjects.length > 0 && (
         <section className="bg-cream/5 py-16 lg:py-24 px-6 lg:px-12">
           <div className="max-w-7xl mx-auto">
