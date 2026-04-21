@@ -37,9 +37,9 @@ export default function HomePage() {
     <main className="bg-charcoal min-h-screen">
       <Navigation />
       
-      {/* Hero - Full viewport with frosted glass + text knockout reveal */}
+      {/* Hero - Full viewport with subtle frosted glass effect */}
       <section className="relative h-[70vh] md:h-[80vh] flex flex-col items-center justify-center overflow-hidden">
-        {/* Layer 1: Sharp background image (revealed through knockout) */}
+        {/* Background image */}
         <div className="absolute inset-0">
           <Image
             src="/images/hero-desert-venue.jpg"
@@ -52,84 +52,37 @@ export default function HomePage() {
           />
         </div>
         
-        {/* Layer 2: Full frosted glass overlay - the "mystery" layer */}
-        <div className="absolute inset-0 backdrop-blur-[20px] bg-charcoal/40" />
+        {/* Frosted glass overlay - subtle, mysterious but still shows image */}
+        <div className="absolute inset-0 backdrop-blur-[8px] bg-charcoal/30" />
         
-        {/* Layer 3: Vignette for depth */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(20,20,20,0.4)_70%,rgba(20,20,20,0.7)_100%)]" />
+        {/* Vignette for depth */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_20%,rgba(20,20,20,0.5)_80%)]" />
         
-        {/* Layer 4: Bottom fade to charcoal */}
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent via-70% to-charcoal" />
+        {/* Bottom fade to charcoal */}
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent via-60% to-charcoal" />
 
-        {/* Content - Text knockout reveals sharp image */}
+        {/* Content */}
         <div className="relative z-10 text-center">
-          {/* SVG knockout mask - text reveals the sharp image beneath */}
-          <div className="relative">
-            {/* The reveal layer - sharp image clipped to text shape */}
-            <div 
-              className={cn(
-                "absolute inset-0 flex items-center justify-center transition-opacity duration-1000",
-                loaded ? "opacity-100" : "opacity-0"
-              )}
-              style={{ transitionDelay: '400ms' }}
-            >
-              <svg 
-                className="w-full h-full absolute inset-0" 
-                viewBox="0 0 800 200"
-                preserveAspectRatio="xMidYMid slice"
+          {/* Wordmark */}
+          <h1 className="font-display text-5xl md:text-7xl lg:text-[7rem] tracking-tight font-light italic text-cream mb-6 overflow-hidden normal-case">
+            {'Eclectic Hive'.split('').map((char, i) => (
+              <span
+                key={i}
+                className={cn(
+                  'inline-block transition-all duration-700',
+                  loaded ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'
+                )}
+                style={{ transitionDelay: `${300 + i * 35}ms` }}
               >
-                <defs>
-                  <mask id="textMask">
-                    <rect width="100%" height="100%" fill="black" />
-                    <text 
-                      x="50%" 
-                      y="55%" 
-                      textAnchor="middle" 
-                      dominantBaseline="middle"
-                      fill="white"
-                      fontFamily="var(--font-display), 'Saol Display', serif"
-                      fontSize="120"
-                      fontStyle="italic"
-                      fontWeight="300"
-                    >
-                      Eclectic Hive
-                    </text>
-                  </mask>
-                </defs>
-                {/* Sharp image revealed through text */}
-                <image 
-                  href="/images/hero-desert-venue.jpg"
-                  width="100%" 
-                  height="100%"
-                  preserveAspectRatio="xMidYMid slice"
-                  mask="url(#textMask)"
-                />
-              </svg>
-            </div>
-            
-            {/* Visible text with subtle glow */}
-            <h1 
-              className={cn(
-                "font-display text-5xl md:text-7xl lg:text-[7rem] tracking-tight font-light italic mb-6 overflow-hidden normal-case transition-all duration-1000",
-                loaded ? "opacity-100" : "opacity-0"
-              )}
-              style={{ 
-                transitionDelay: '300ms',
-                color: 'transparent',
-                WebkitBackgroundClip: 'text',
-                backgroundClip: 'text',
-                backgroundImage: 'linear-gradient(to bottom, rgba(255,255,255,0.15), rgba(255,255,255,0.05))',
-                textShadow: '0 0 80px rgba(255,255,255,0.3), 0 0 40px rgba(255,255,255,0.1)'
-              }}
-            >
-              Eclectic Hive
-            </h1>
-          </div>
+                {char === ' ' ? '\u00A0' : char}
+              </span>
+            ))}
+          </h1>
           
           {/* Tagline */}
           <p 
             className={cn(
-              'text-xs md:text-sm uppercase tracking-[0.4em] text-cream/40 transition-all duration-700',
+              'text-xs md:text-sm uppercase tracking-[0.4em] text-cream/50 transition-all duration-700',
               loaded ? 'opacity-100' : 'opacity-0'
             )}
             style={{ transitionDelay: '800ms' }}
