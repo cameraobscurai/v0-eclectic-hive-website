@@ -1,9 +1,9 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import Link from 'next/link'
 import Image from 'next/image'
 import { Navigation } from '@/components/navigation'
+import { TransitionLink, usePageTransition } from '@/components/page-transition'
 import { cn } from '@/lib/utils'
 
 // Navigation destinations
@@ -12,56 +12,50 @@ const DESTINATIONS = [
     href: '/atelier',
     label: 'Design + Fabrication',
     title: 'Atelier',
-    description: 'Custom creations',
   },
   {
     href: '/collection',
     label: 'Signature Inventory',
     title: 'Collection',
-    description: 'Curated pieces',
   },
   {
     href: '/gallery',
     label: 'Selected Work',
     title: 'Gallery',
-    description: 'Our portfolio',
   },
 ]
 
 export default function HomePage() {
   const [loaded, setLoaded] = useState(false)
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
-  const [scrollY, setScrollY] = useState(0)
-  const ctaSectionRef = useRef<HTMLElement>(null)
+  const ctaSectionRef = useRef<HTMLDivElement>(null)
   const [ctaVisible, setCtaVisible] = useState(false)
+  const cardsSectionRef = useRef<HTMLDivElement>(null)
+  const [cardsVisible, setCardsVisible] = useState(false)
 
   useEffect(() => {
-    setLoaded(true)
+    // Stagger the initial load animation
+    const timer = setTimeout(() => setLoaded(true), 100)
     
-    // Parallax scroll listener
-    const handleScroll = () => {
-      setScrollY(window.scrollY)
-    }
+    // Intersection observers for scroll animations
+    const observerOptions = { threshold: 0.2, rootMargin: '-50px 0px' }
     
-    // Intersection observer for CTA section
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setCtaVisible(true)
-          }
-        })
-      },
-      { threshold: 0.3 }
-    )
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.target === ctaSectionRef.current && entry.isIntersecting) {
+          setCtaVisible(true)
+        }
+        if (entry.target === cardsSectionRef.current && entry.isIntersecting) {
+          setCardsVisible(true)
+        }
+      })
+    }, observerOptions)
     
-    if (ctaSectionRef.current) {
-      observer.observe(ctaSectionRef.current)
-    }
+    if (ctaSectionRef.current) observer.observe(ctaSectionRef.current)
+    if (cardsSectionRef.current) observer.observe(cardsSectionRef.current)
     
-    window.addEventListener('scroll', handleScroll, { passive: true })
     return () => {
-      window.removeEventListener('scroll', handleScroll)
+      clearTimeout(timer)
       observer.disconnect()
     }
   }, [])
@@ -72,11 +66,8 @@ export default function HomePage() {
       
       {/* ========== HERO - First Fold ========== */}
       <section className="relative h-[100svh] min-h-[600px] flex flex-col items-center justify-center overflow-hidden">
-        {/* Background image with subtle parallax */}
-        <div 
-          className="absolute inset-0 scale-110"
-          style={{ transform: `translateY(${scrollY * 0.15}px) scale(1.1)` }}
-        >
+        {/* Background image */}
+        <div className="absolute inset-0">
           <Image
             src="/images/hero-desert-venue.jpg"
             alt="Luxury desert event venue at twilight"
@@ -128,22 +119,23 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ========== UNIFIED NAVIGATION + CTA SECTION ========== */}
-      {/* Cards and CTA are now visually connected as one cohesive unit */}
+      {/* ========== NAVIGATION CARDS ========== */}
       <section className="bg-charcoal">
-        {/* Navigation Cards */}
-        <div className="container-padding max-w-5xl mx-auto pt-0 pb-16 md:pb-24">
-          {/* Cards Grid - responsive with perfect spacing */}
+        <div 
+          ref={cardsSectionRef}
+          className="container-padding max-w-5xl mx-auto pt-0 pb-16 md:pb-24"
+        >
+          {/* Cards Grid - scroll-triggered stagger animation */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
             {DESTINATIONS.map((dest, i) => (
-              <Link
+              <TransitionLink
                 key={dest.href}
                 href={dest.href}
                 className={cn(
-                  'group relative transition-all duration-700',
-                  loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+                  'group relative transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]',
+                  cardsVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
                 )}
-                style={{ transitionDelay: `${600 + i * 100}ms` }}
+                style={{ transitionDelay: cardsVisible ? `${i * 120}ms` : '0ms' }}
                 onMouseEnter={() => setHoveredIndex(i)}
                 onMouseLeave={() => setHoveredIndex(null)}
               >
@@ -187,67 +179,56 @@ export default function HomePage() {
                     </div>
                   </div>
                 </div>
-              </Link>
+              </TransitionLink>
             ))}
-          </div>
-          
-          {/* Connecting visual element - links cards to CTA */}
-          <div className="flex justify-center py-12 md:py-16">
-            <div className="w-px h-16 md:h-24 bg-gradient-to-b from-cream/20 via-cream/10 to-transparent" />
           </div>
         </div>
 
-        {/* CTA Section - Integrated with cards above */}
-        <section 
+        {/* CTA Section with scroll-triggered animation */}
+        <div 
           ref={ctaSectionRef}
-          className="relative overflow-hidden"
+          className="glass-subtle mx-5 md:mx-8 rounded-sm"
         >
-          {/* Glassmorphic container spanning full width */}
-          <div className="glass-subtle mx-5 md:mx-8 lg:mx-12 rounded-sm">
-            <div 
+          <div 
+            className={cn(
+              'py-14 md:py-20 text-center transition-all duration-1000 ease-[cubic-bezier(0.22,1,0.36,1)]',
+              ctaVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+            )}
+          >
+            <p 
               className={cn(
-                'py-16 md:py-20 lg:py-24 text-center transition-all duration-1000',
-                ctaVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+                'text-cream/40 text-xs sm:text-sm mb-6 tracking-wide max-w-md mx-auto px-5 transition-all duration-700',
+                ctaVisible ? 'opacity-100' : 'opacity-0'
               )}
+              style={{ transitionDelay: ctaVisible ? '150ms' : '0ms' }}
             >
-              {/* Tagline with parallax-like entrance */}
-              <p 
-                className={cn(
-                  'text-cream/40 text-xs sm:text-sm mb-6 md:mb-8 tracking-wide max-w-md mx-auto px-5 transition-all duration-700 delay-200',
-                  ctaVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-                )}
-              >
-                Two parts luxe, one part regal, and a dash of edge.
-              </p>
-              
-              {/* CTA Link */}
-              <Link
-                href="/contact"
-                className={cn(
-                  'inline-flex flex-col sm:flex-row items-center gap-3 sm:gap-4 group transition-all duration-700 delay-300',
-                  ctaVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-                )}
-              >
-                <span className="font-display text-xl sm:text-2xl md:text-3xl tracking-[0.08em] sm:tracking-[0.1em] font-light uppercase text-cream group-hover:text-cream/80 transition-colors duration-300">
-                  Start a Conversation
-                </span>
-                <span className="hidden sm:block w-6 h-px bg-cream/40 group-hover:w-10 transition-all duration-300" />
-              </Link>
-            </div>
+              Two parts luxe, one part regal, and a dash of edge.
+            </p>
+            
+            <TransitionLink
+              href="/contact"
+              className={cn(
+                'inline-flex flex-col sm:flex-row items-center gap-3 sm:gap-4 group transition-all duration-700',
+                ctaVisible ? 'opacity-100' : 'opacity-0'
+              )}
+              style={{ transitionDelay: ctaVisible ? '250ms' : '0ms' }}
+            >
+              <span className="font-display text-xl sm:text-2xl md:text-3xl tracking-[0.08em] sm:tracking-[0.1em] font-light uppercase text-cream group-hover:text-cream/80 transition-colors duration-300">
+                Start a Conversation
+              </span>
+              <span className="hidden sm:block w-6 h-px bg-cream/40 group-hover:w-10 transition-all duration-300" />
+            </TransitionLink>
           </div>
-          
-          {/* Bottom spacing */}
-          <div className="h-16 md:h-24 lg:h-32" />
-        </section>
+        </div>
       </section>
 
       {/* ========== FOOTER ========== */}
-      <footer className="bg-charcoal border-t border-cream/[0.06] py-8 md:py-10">
+      <footer className="bg-charcoal border-t border-cream/[0.06] py-8 md:py-10 mt-16 md:mt-24">
         <div className="container-padding max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 md:gap-6">
           <p className="text-[10px] md:text-xs text-cream/25 tracking-wide order-2 md:order-1">Denver, Colorado</p>
-          <Link href="/" className="font-display text-lg md:text-xl tracking-tight font-light italic text-cream/40 hover:text-cream/70 transition-colors normal-case order-1 md:order-2">
+          <TransitionLink href="/" className="font-display text-lg md:text-xl tracking-tight font-light italic text-cream/40 hover:text-cream/70 transition-colors normal-case order-1 md:order-2">
             Eclectic Hive
-          </Link>
+          </TransitionLink>
           <p className="text-[10px] md:text-xs text-cream/25 order-3">&copy; {new Date().getFullYear()}</p>
         </div>
       </footer>

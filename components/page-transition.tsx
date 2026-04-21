@@ -2,66 +2,182 @@
 
 import { motion, AnimatePresence } from 'framer-motion'
 import { usePathname } from 'next/navigation'
-import { ReactNode, useEffect, useState } from 'react'
+import { ReactNode, useEffect, useState, createContext, useContext, useCallback } from 'react'
+import { useRouter } from 'next/navigation'
 import { EASINGS, DURATIONS, prefersReducedMotion } from '@/lib/animations'
+
+// =============================================================================
+// PAGE TRANSITION CONTEXT
+// Enables programmatic navigation with cinematic wipe
+// =============================================================================
+
+interface TransitionContextType {
+  navigateWithTransition: (href: string) => void
+  isTransitioning: boolean
+}
+
+const TransitionContext = createContext<TransitionContextType>({
+  navigateWithTransition: () => {},
+  isTransitioning: false,
+})
+
+export const usePageTransition = () => useContext(TransitionContext)
+
+// =============================================================================
+// CINEMATIC WIPE TRANSITION
+// Theatrical bars that slide across screen
+// =============================================================================
+
+const WIPE_BAR_COUNT = 5
+
+// Wipe bar animation - staggered entrance/exit
+const wipeBarVariants = {
+  hidden: (i: number) => ({
+    y: '100%',
+    transition: {
+      duration: 0.6,
+      ease: EASINGS.cinematic,
+      delay: i * 0.06,
+    },
+  }),
+  visible: (i: number) => ({
+    y: '0%',
+    transition: {
+      duration: 0.6,
+      ease: EASINGS.cinematic,
+      delay: i * 0.06,
+    },
+  }),
+  exit: (i: number) => ({
+    y: '-100%',
+    transition: {
+      duration: 0.5,
+      ease: EASINGS.cinematic,
+      delay: (WIPE_BAR_COUNT - 1 - i) * 0.04, // Reverse stagger
+    },
+  }),
+}
+
+// Page content variants
+const pageVariants = {
+  initial: {
+    opacity: 0,
+  },
+  enter: {
+    opacity: 1,
+    transition: {
+      duration: 0.4,
+      ease: EASINGS.cinematic,
+      delay: 0.3,
+    },
+  },
+  exit: {
+    opacity: 0,
+    transition: {
+      duration: 0.2,
+      ease: EASINGS.cinematic,
+    },
+  },
+}
+
+// Reduced motion variants
+const reducedMotionVariants = {
+  initial: { opacity: 0 },
+  enter: { opacity: 1, transition: { duration: 0.15 } },
+  exit: { opacity: 0, transition: { duration: 0.1 } },
+}
 
 interface PageTransitionProps {
   children: ReactNode
 }
 
-// Cinematic page transition variants
-const pageVariants = {
-  initial: {
-    opacity: 0,
-    y: 20,
-    filter: 'blur(4px)',
-  },
-  enter: {
-    opacity: 1,
-    y: 0,
-    filter: 'blur(0px)',
-    transition: {
-      duration: DURATIONS.slow,
-      ease: EASINGS.cinematic,
-      staggerChildren: 0.1,
-    },
-  },
-  exit: {
-    opacity: 0,
-    y: -10,
-    filter: 'blur(2px)',
-    transition: {
-      duration: DURATIONS.normal,
-      ease: EASINGS.cinematic,
-    },
-  },
-}
+export function PageTransitionProvider({ children }: { children: ReactNode }) {
+  const router = useRouter()
+  const pathname = usePathname()
+  const [isTransitioning, setIsTransitioning] = useState(false)
+  const [showWipe, setShowWipe] = useState(false)
+  const [wipePhase, setWipePhase] = useState<'idle' | 'enter' | 'exit'>('idle')
+  const [pendingHref, setPendingHref] = useState<string | null>(null)
+  const [reducedMotion, setReducedMotion] = useState(false)
 
-// Overlay transition for dramatic effect
-const overlayVariants = {
-  initial: { scaleY: 1 },
-  enter: { 
-    scaleY: 0,
-    transition: {
-      duration: DURATIONS.slower,
-      ease: EASINGS.cinematic,
-      delay: 0.1,
-    }
-  },
-  exit: { 
-    scaleY: 1,
-    transition: {
-      duration: DURATIONS.slow,
-      ease: EASINGS.cinematic,
-    }
-  },
-}
+  useEffect(() => {
+    setReducedMotion(prefersReducedMotion())
+  }, [])
 
-// Reduced motion variants - instant transition
-const reducedMotionVariants = {
-  initial: { opacity: 0 },
-  enter: { opacity: 1, transition: { duration: 0.01 } },
-  exit: { opacity: 0, transition: { duration: 0.01 } },
+  const navigateWithTransition = useCallback((href: string) => {
+    if (href === pathname || isTransitioning) return
+    
+    if (reducedMotion) {
+      router.push(href)
+      return
+    }
+
+    setIsTransitioning(true)
+    setShowWipe(true)
+    setWipePhase('enter')
+    setPendingHref(href)
+  }, [pathname, isTransitioning, reducedMotion, router])
+
+  // Handle wipe phases
+  useEffect(() => {
+    if (wipePhase === 'enter' && pendingHref) {
+      const timer = setTimeout(() => {
+        router.push(pendingHref)
+      }, 450) // Wait for bars to cover screen
+      return () => clearTimeout(timer)
+    }
+  }, [wipePhase, pendingHref, router])
+
+  // When pathname changes after navigation
+  useEffect(() => {
+    if (isTransitioning && pendingHref === pathname) {
+      // Small delay then exit
+      const timer = setTimeout(() => {
+        setWipePhase('exit')
+      }, 100)
+      return () => clearTimeout(timer)
+    }
+  }, [pathname, isTransitioning, pendingHref])
+
+  // Cleanup after exit
+  useEffect(() => {
+    if (wipePhase === 'exit') {
+      const timer = setTimeout(() => {
+        setShowWipe(false)
+        setWipePhase('idle')
+        setIsTransitioning(false)
+        setPendingHref(null)
+      }, 500)
+      return () => clearTimeout(timer)
+    }
+  }, [wipePhase])
+
+  return (
+    <TransitionContext.Provider value={{ navigateWithTransition, isTransitioning }}>
+      {children}
+      
+      {/* Cinematic Wipe Overlay */}
+      <AnimatePresence>
+        {showWipe && (
+          <div className="fixed inset-0 z-[9999] pointer-events-none flex" aria-hidden="true">
+            {Array.from({ length: WIPE_BAR_COUNT }).map((_, i) => (
+              <motion.div
+                key={i}
+                custom={i}
+                initial="hidden"
+                animate={wipePhase === 'exit' ? 'exit' : 'visible'}
+                variants={wipeBarVariants}
+                className="flex-1 h-full"
+                style={{
+                  backgroundColor: `hsl(30, 8%, ${8 + i * 1.5}%)`, // Subtle charcoal variations
+                }}
+              />
+            ))}
+          </div>
+        )}
+      </AnimatePresence>
+    </TransitionContext.Provider>
+  )
 }
 
 export function PageTransition({ children }: PageTransitionProps) {
@@ -70,15 +186,11 @@ export function PageTransition({ children }: PageTransitionProps) {
   const [reducedMotion, setReducedMotion] = useState(false)
 
   useEffect(() => {
-    // Check for reduced motion preference
     setReducedMotion(prefersReducedMotion())
-    
-    // Skip dramatic transition on first load
     const timer = setTimeout(() => setIsFirstLoad(false), 100)
     return () => clearTimeout(timer)
   }, [])
 
-  // Use instant transition for reduced motion
   const variants = reducedMotion ? reducedMotionVariants : pageVariants
 
   return (
@@ -96,21 +208,45 @@ export function PageTransition({ children }: PageTransitionProps) {
   )
 }
 
-// Dramatic overlay transition (optional - for more cinematic effect)
+// Legacy export for backwards compatibility
 export function PageOverlay() {
-  const pathname = usePathname()
+  return null // Replaced by wipe bars in PageTransitionProvider
+}
+
+// =============================================================================
+// TRANSITION LINK
+// Drop-in link with cinematic wipe transition
+// =============================================================================
+
+interface TransitionLinkProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
+  href: string
+  children: React.ReactNode
+  className?: string
+}
+
+export function TransitionLink({ href, children, className, onClick, ...props }: TransitionLinkProps) {
+  const { navigateWithTransition, isTransitioning } = usePageTransition()
+  
+  const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
+    // Allow cmd/ctrl click for new tab
+    if (e.metaKey || e.ctrlKey) return
+    
+    e.preventDefault()
+    if (!isTransitioning) {
+      onClick?.(e)
+      navigateWithTransition(href)
+    }
+  }
   
   return (
-    <AnimatePresence mode="wait">
-      <motion.div
-        key={`overlay-${pathname}`}
-        className="fixed inset-0 z-[60] bg-charcoal origin-top pointer-events-none"
-        initial="initial"
-        animate="enter"
-        exit="exit"
-        variants={overlayVariants}
-      />
-    </AnimatePresence>
+    <a 
+      href={href} 
+      onClick={handleClick} 
+      className={className}
+      {...props}
+    >
+      {children}
+    </a>
   )
 }
 

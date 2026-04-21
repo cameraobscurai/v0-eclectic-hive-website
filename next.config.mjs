@@ -7,6 +7,8 @@ const nextConfig = {
   images: {
     // Prefer AVIF (40-55% smaller than JPEG), fallback to WebP
     formats: ['image/avif', 'image/webp'],
+    // Quality levels for responsive images
+    qualities: [75, 90],
     // Optimized device sizes for responsive images
     deviceSizes: [640, 750, 828, 1080, 1200],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],

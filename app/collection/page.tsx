@@ -4,20 +4,23 @@ import { useState, useEffect, useMemo, useCallback } from 'react'
 import useSWR from 'swr'
 import { Navigation } from '@/components/navigation'
 import { Footer } from '@/components/footer'
+import { QuickViewModal } from '@/components/quick-view-modal'
 import { cn } from '@/lib/utils'
 
 // Track broken images globally to avoid re-checking
 const brokenImages = new Set<string>()
 
-// Optimized ProductCard with loading states
+// Optimized ProductCard with loading states and click handler
 function ProductCard({ 
   product, 
   imageUrl, 
-  onImageError 
+  onImageError,
+  onClick
 }: { 
   product: Product
   imageUrl: string
-  onImageError: (id: string, url: string) => void 
+  onImageError: (id: string, url: string) => void
+  onClick: () => void
 }) {
   const [loaded, setLoaded] = useState(false)
   const [error, setError] = useState(false)
@@ -33,7 +36,10 @@ function ProductCard({
   if (error) return null
   
   return (
-    <div className="group relative cursor-pointer border-r border-b border-charcoal/5">
+    <button 
+      onClick={onClick}
+      className="group relative cursor-pointer border-r border-b border-charcoal/5 text-left w-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-charcoal/20"
+    >
       {/* Image container */}
       <div className="aspect-square bg-white p-4 lg:p-6 relative">
         {/* Skeleton placeholder */}
@@ -54,15 +60,18 @@ function ProductCard({
         />
       </div>
       
-      {/* Hover overlay with name */}
+      {/* Hover overlay with name + quick view hint */}
       <div className="absolute inset-0 flex items-end justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
         <div className="bg-white/95 backdrop-blur-sm w-full py-3 px-2 text-center">
           <p className="text-[10px] tracking-[0.08em] text-charcoal uppercase truncate">
             {product.name}
           </p>
+          <p className="text-[8px] tracking-[0.1em] text-charcoal/40 uppercase mt-0.5">
+            Quick View
+          </p>
         </div>
       </div>
-    </div>
+    </button>
   )
 }
 
@@ -217,6 +226,10 @@ export default function CollectionPage() {
   const [hiddenProducts, setHiddenProducts] = useState<Set<string>>(new Set())
   const [sortBy, setSortBy] = useState<'type' | 'name' | 'newest' | 'oldest'>('type')
   
+  // Quick View Modal state
+  const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null)
+  const [isQuickViewOpen, setIsQuickViewOpen] = useState(false)
+  
   // Set initial category to highest priority category with images
   useEffect(() => {
     if (!activeCategory && products.length > 0) {
@@ -243,10 +256,38 @@ export default function CollectionPage() {
   
   // Reset all filters
   const resetFilters = useCallback(() => {
-  setActiveSubCategory('All')
-  setSearchQuery('')
-  setSortBy('type')
+    setActiveSubCategory('All')
+    setSearchQuery('')
+    setSortBy('type')
   }, [])
+  
+  // Quick View handlers
+  const openQuickView = useCallback((product: Product) => {
+    setQuickViewProduct(product)
+    setIsQuickViewOpen(true)
+  }, [])
+  
+  const closeQuickView = useCallback(() => {
+    setIsQuickViewOpen(false)
+    // Delay clearing product to allow exit animation
+    setTimeout(() => setQuickViewProduct(null), 400)
+  }, [])
+  
+  const goToNextProduct = useCallback(() => {
+    if (!quickViewProduct) return
+    const currentIndex = filteredProducts.findIndex(p => p.id === quickViewProduct.id)
+    if (currentIndex < filteredProducts.length - 1) {
+      setQuickViewProduct(filteredProducts[currentIndex + 1])
+    }
+  }, [quickViewProduct, filteredProducts])
+  
+  const goToPreviousProduct = useCallback(() => {
+    if (!quickViewProduct) return
+    const currentIndex = filteredProducts.findIndex(p => p.id === quickViewProduct.id)
+    if (currentIndex > 0) {
+      setQuickViewProduct(filteredProducts[currentIndex - 1])
+    }
+  }, [quickViewProduct, filteredProducts])
   
   // Handle broken images - hide them from the grid
   const handleImageError = useCallback((productId: string, imageUrl: string) => {
@@ -564,6 +605,7 @@ export default function CollectionPage() {
                 product={product} 
                 imageUrl={getImageUrl(product)}
                 onImageError={handleImageError}
+                onClick={() => openQuickView(product)}
               />
             ))}
           </div>
@@ -584,6 +626,16 @@ export default function CollectionPage() {
       </section>
       
       <Footer />
+      
+      {/* Quick View Modal */}
+      <QuickViewModal
+        product={quickViewProduct}
+        isOpen={isQuickViewOpen}
+        onClose={closeQuickView}
+        onNext={quickViewProduct && filteredProducts.findIndex(p => p.id === quickViewProduct.id) < filteredProducts.length - 1 ? goToNextProduct : undefined}
+        onPrevious={quickViewProduct && filteredProducts.findIndex(p => p.id === quickViewProduct.id) > 0 ? goToPreviousProduct : undefined}
+        imageUrl={quickViewProduct ? getImageUrl(quickViewProduct) : undefined}
+      />
     </main>
   )
 }
