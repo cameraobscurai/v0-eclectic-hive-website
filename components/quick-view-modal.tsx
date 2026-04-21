@@ -3,11 +3,11 @@
 import { useEffect, useCallback, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
-import { EASINGS } from '@/lib/animations'
 
 // =============================================================================
 // QUICK VIEW MODAL
-// Centered glassmorphic modal with modern snap-back animation
+// Centered glassmorphic modal - single frosted glass panel
+// Matches Eclectic Hive's minimal product info style
 // =============================================================================
 
 interface Product {
@@ -17,9 +17,13 @@ interface Product {
   category: string
   sub_category?: string
   primary_image_url?: string
-  description?: string
+  // Inventory fields
+  quantity?: number
+  stocked_quantity?: number
   dimensions?: string
-  quantity_available?: number
+  width?: string
+  depth?: string
+  height?: string
 }
 
 interface QuickViewModalProps {
@@ -34,52 +38,37 @@ interface QuickViewModalProps {
 // Smooth, cinematic easing
 const modalEasing = [0.32, 0.72, 0, 1]
 
-// Animation variants - centered scale + fade
+// Animation variants
 const backdropVariants = {
   hidden: { opacity: 0 },
   visible: { 
     opacity: 1,
-    transition: { duration: 0.35, ease: modalEasing }
+    transition: { duration: 0.3, ease: modalEasing }
   },
   exit: { 
     opacity: 0,
-    transition: { duration: 0.25, ease: modalEasing }
+    transition: { duration: 0.2, ease: modalEasing }
   },
 }
 
 const modalVariants = {
   hidden: { 
     opacity: 0,
-    scale: 0.92,
-    y: 20,
+    scale: 0.94,
   },
   visible: { 
     opacity: 1,
     scale: 1,
-    y: 0,
     transition: { 
-      duration: 0.4, 
+      duration: 0.35, 
       ease: modalEasing,
     }
   },
   exit: { 
     opacity: 0,
-    scale: 0.95,
-    y: 10,
+    scale: 0.96,
     transition: { 
-      duration: 0.25, 
-      ease: modalEasing,
-    }
-  },
-}
-
-const contentVariants = {
-  hidden: { opacity: 0 },
-  visible: { 
-    opacity: 1, 
-    transition: { 
-      duration: 0.3, 
-      delay: 0.1,
+      duration: 0.2, 
       ease: modalEasing,
     }
   },
@@ -136,61 +125,77 @@ export function QuickViewModal({
 
   if (!product) return null
 
+  // Build dimensions string from individual fields or use dimensions field
+  const getDimensions = () => {
+    if (product.dimensions) return product.dimensions
+    if (product.width || product.depth || product.height) {
+      const parts = []
+      if (product.width) parts.push(`${product.width}"W`)
+      if (product.depth) parts.push(`${product.depth}"D`)
+      if (product.height) parts.push(`${product.height}"H`)
+      return parts.join(' x ')
+    }
+    return null
+  }
+
+  const dimensions = getDimensions()
+  const stockedQty = product.stocked_quantity ?? product.quantity
+
   return (
     <AnimatePresence>
       {isOpen && (
         <div 
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6 md:p-8" 
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6" 
           role="dialog" 
           aria-modal="true" 
           aria-labelledby="quick-view-title"
         >
-          {/* Backdrop - click to close */}
+          {/* Backdrop - frosted blur */}
           <motion.div
             variants={backdropVariants}
             initial="hidden"
             animate="visible"
             exit="exit"
-            className="absolute inset-0 bg-charcoal/70 backdrop-blur-sm"
+            className="absolute inset-0 bg-charcoal/60 backdrop-blur-md"
             onClick={onClose}
           />
 
-          {/* Modal Container */}
+          {/* Modal - single glassmorphic panel */}
           <motion.div
             variants={modalVariants}
             initial="hidden"
             animate="visible"
             exit="exit"
             className={cn(
-              'relative w-full max-w-3xl max-h-[90vh]',
-              'glass-card rounded-lg overflow-hidden',
-              'bg-cream/95 backdrop-blur-xl',
-              'shadow-2xl shadow-black/20',
-              'flex flex-col'
+              'relative w-full max-w-[720px]',
+              // TRUE GLASSMORPHIC - single color, frosted glass
+              'bg-cream backdrop-blur-xl',
+              'border border-cream/20',
+              'shadow-2xl shadow-charcoal/30',
+              'overflow-hidden'
             )}
             onClick={(e) => e.stopPropagation()}
           >
-            {/* Drag handle indicator */}
-            <div className="flex justify-center pt-3 pb-1">
-              <div className="w-10 h-1 rounded-full bg-charcoal/15" />
+            {/* Drag handle */}
+            <div className="flex justify-center pt-3">
+              <div className="w-8 h-0.5 rounded-full bg-charcoal/10" />
             </div>
 
-            {/* Header with nav arrows and close */}
-            <div className="flex items-center justify-between px-4 sm:px-6 pb-3">
-              {/* Navigation arrows */}
-              <div className="flex items-center gap-1">
+            {/* Header - nav + close */}
+            <div className="flex items-center justify-between px-4 py-2">
+              <div className="flex items-center gap-0.5">
                 <button
                   onClick={onPrevious}
                   disabled={!onPrevious}
                   className={cn(
-                    'p-2 rounded-full transition-all duration-200',
+                    'p-2 transition-colors',
                     onPrevious 
-                      ? 'hover:bg-charcoal/5 text-charcoal/60 hover:text-charcoal' 
-                      : 'text-charcoal/20 cursor-not-allowed'
+                      ? 'text-charcoal/50 hover:text-charcoal' 
+                      : 'text-charcoal/15 cursor-not-allowed'
                   )}
                   aria-label="Previous product"
                 >
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
                   </svg>
                 </button>
@@ -198,124 +203,100 @@ export function QuickViewModal({
                   onClick={onNext}
                   disabled={!onNext}
                   className={cn(
-                    'p-2 rounded-full transition-all duration-200',
+                    'p-2 transition-colors',
                     onNext 
-                      ? 'hover:bg-charcoal/5 text-charcoal/60 hover:text-charcoal' 
-                      : 'text-charcoal/20 cursor-not-allowed'
+                      ? 'text-charcoal/50 hover:text-charcoal' 
+                      : 'text-charcoal/15 cursor-not-allowed'
                   )}
                   aria-label="Next product"
                 >
-                  <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                  <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
                   </svg>
                 </button>
               </div>
 
-              {/* Close button */}
               <button
                 onClick={onClose}
-                className="p-2 hover:bg-charcoal/5 rounded-full transition-all duration-200 text-charcoal/60 hover:text-charcoal"
-                aria-label="Close quick view"
+                className="p-2 text-charcoal/50 hover:text-charcoal transition-colors"
+                aria-label="Close"
               >
-                <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                 </svg>
               </button>
             </div>
 
-            {/* Content - horizontal layout on larger screens */}
-            <motion.div 
-              variants={contentVariants}
-              initial="hidden"
-              animate="visible"
-              className="flex-1 overflow-y-auto"
-            >
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-0">
-                {/* Image */}
-                <div className="aspect-square bg-white relative">
-                  {!imageLoaded && (
-                    <div className="absolute inset-0 bg-neutral-100 animate-pulse" />
-                  )}
-                  {imageUrl && (
-                    <img
-                      src={imageUrl}
-                      alt={product.name}
-                      className={cn(
-                        'w-full h-full object-contain p-6 md:p-8 transition-opacity duration-300',
-                        imageLoaded ? 'opacity-100' : 'opacity-0'
-                      )}
-                      onLoad={() => setImageLoaded(true)}
-                    />
-                  )}
-                </div>
+            {/* Content - image left, details right */}
+            <div className="grid grid-cols-1 md:grid-cols-[1.2fr_1fr]">
+              {/* Image - clean white background */}
+              <div className="aspect-square md:aspect-auto md:min-h-[350px] bg-white relative">
+                {!imageLoaded && (
+                  <div className="absolute inset-0 bg-neutral-50 animate-pulse" />
+                )}
+                {imageUrl && (
+                  <img
+                    src={imageUrl}
+                    alt={product.name}
+                    className={cn(
+                      'w-full h-full object-contain p-8 md:p-10 transition-opacity duration-300',
+                      imageLoaded ? 'opacity-100' : 'opacity-0'
+                    )}
+                    onLoad={() => setImageLoaded(true)}
+                  />
+                )}
+              </div>
 
-                {/* Details */}
-                <div className="p-5 sm:p-6 flex flex-col justify-between bg-cream">
-                  <div className="space-y-4">
-                    {/* Category tag */}
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="px-2.5 py-1 text-[9px] uppercase tracking-[0.12em] bg-charcoal/5 text-charcoal/70 rounded-sm">
-                        {product.category}
-                      </span>
-                      {product.sub_category && (
-                        <span className="px-2.5 py-1 text-[9px] uppercase tracking-[0.12em] bg-charcoal/5 text-charcoal/50 rounded-sm">
-                          {product.sub_category}
-                        </span>
-                      )}
-                    </div>
+              {/* Details - minimal like their current site */}
+              <div className="p-6 md:p-8 flex flex-col justify-between">
+                <div className="space-y-4">
+                  {/* Category */}
+                  <span className="text-[10px] uppercase tracking-[0.15em] text-charcoal/40">
+                    {product.category}
+                  </span>
 
-                    {/* Name */}
-                    <h2 
-                      id="quick-view-title"
-                      className="font-display text-xl sm:text-2xl md:text-[1.75rem] tracking-tight text-charcoal leading-tight uppercase"
-                      style={{ fontStyle: 'italic' }}
-                    >
-                      {product.name}
-                    </h2>
+                  {/* Name */}
+                  <h2 
+                    id="quick-view-title"
+                    className="font-display text-xl md:text-2xl tracking-wide text-charcoal uppercase"
+                    style={{ fontStyle: 'italic' }}
+                  >
+                    {product.name}
+                  </h2>
 
-                    {/* Description or specs */}
-                    {product.description ? (
-                      <p className="text-sm text-charcoal/60 leading-relaxed">
-                        {product.description}
+                  {/* Inventory details - matches their current site */}
+                  <div className="space-y-1.5 pt-2">
+                    {stockedQty !== undefined && stockedQty > 0 && (
+                      <p className="text-sm text-charcoal/70">
+                        Stocked Quantity: {stockedQty}
                       </p>
-                    ) : (
-                      <div className="space-y-2 text-sm">
-                        {product.dimensions && (
-                          <p className="text-charcoal/50">
-                            <span className="text-charcoal/30 uppercase text-[10px] tracking-wide">Size:</span>{' '}
-                            {product.dimensions}
-                          </p>
-                        )}
-                        {product.quantity_available !== undefined && product.quantity_available > 0 && (
-                          <p className="text-charcoal/50">
-                            <span className="text-charcoal/30 uppercase text-[10px] tracking-wide">Qty:</span>{' '}
-                            {product.quantity_available} available
-                          </p>
-                        )}
-                      </div>
+                    )}
+                    {dimensions && (
+                      <p className="text-sm text-charcoal/70">
+                        {dimensions}
+                      </p>
                     )}
                   </div>
+                </div>
 
-                  {/* CTA */}
-                  <div className="mt-6 space-y-3">
-                    <button
-                      className={cn(
-                        'w-full py-3.5 px-6',
-                        'bg-charcoal text-cream',
-                        'text-xs uppercase tracking-[0.15em]',
-                        'hover:bg-charcoal/85 active:scale-[0.98] transition-all duration-200',
-                        'focus:outline-none focus:ring-2 focus:ring-charcoal/20 focus:ring-offset-2'
-                      )}
-                    >
-                      Add to Inquiry
-                    </button>
-                    <p className="text-[9px] text-charcoal/35 text-center tracking-wide uppercase">
-                      Use arrow keys to browse • ESC to close
-                    </p>
-                  </div>
+                {/* CTA */}
+                <div className="mt-8 space-y-3">
+                  <button
+                    className={cn(
+                      'w-full py-3 px-6',
+                      'bg-charcoal text-cream',
+                      'text-xs uppercase tracking-[0.15em]',
+                      'hover:bg-charcoal/90 active:scale-[0.99] transition-all duration-150'
+                    )}
+                  >
+                    Add to Inquiry
+                  </button>
+                  <p className="text-[9px] text-charcoal/30 text-center tracking-wider uppercase">
+                    Use arrow keys to browse • ESC to close
+                  </p>
                 </div>
               </div>
-            </motion.div>
+            </div>
           </motion.div>
         </div>
       )}

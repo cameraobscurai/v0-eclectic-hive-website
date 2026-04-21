@@ -75,7 +75,7 @@ function ProductCard({
   )
 }
 
-// Product type from Supabase
+// Product type from Supabase (full schema)
 type Product = {
   id: string
   slug: string
@@ -86,6 +86,16 @@ type Product = {
   display_type: string
   is_featured?: boolean
   updated_at?: string
+  // Inventory details
+  quantity?: number
+  stocked_quantity?: number
+  dimensions?: string
+  width?: string
+  depth?: string
+  height?: string
+  color?: string
+  finish?: string
+  description?: string
 }
 
 // SWR fetcher with caching headers
