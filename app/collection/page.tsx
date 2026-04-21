@@ -1,17 +1,11 @@
 'use client'
 
 import { useState, useEffect, useMemo, useCallback } from 'react'
-import dynamic from 'next/dynamic'
 import useSWR from 'swr'
 import { Navigation } from '@/components/navigation'
 import { Footer } from '@/components/footer'
+import { QuickViewModal } from '@/components/quick-view-modal'
 import { cn } from '@/lib/utils'
-
-// B4: Lazy load QuickViewModal (heavy component with framer-motion)
-const QuickViewModal = dynamic(
-  () => import('@/components/quick-view-modal').then(mod => ({ default: mod.QuickViewModal })),
-  { ssr: false }
-)
 
 // Track broken images globally to avoid re-checking
 const brokenImages = new Set<string>()
