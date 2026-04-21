@@ -154,21 +154,18 @@ const SUB_CATEGORY_KEYWORDS: Record<string, string[]> = {
 
 
 export default function CollectionPage() {
-  // SWR for products - cached, instant on revisit
-  // Fetch all products with images (no pagination for now - client filters)
-  const { data: productsData } = useSWR('/api/products?imagesOnly=true&limit=500', fetcher, {
-    revalidateOnFocus: false,
-    revalidateOnReconnect: false,
-    dedupingInterval: 300000, // Cache for 5 minutes
-    keepPreviousData: true, // Keep showing old data while revalidating
+  // SWR for products - short cache for fresh data after uploads
+  const { data: productsData, mutate: mutateProducts } = useSWR('/api/products?imagesOnly=true&limit=500', fetcher, {
+    revalidateOnFocus: true,
+    revalidateOnReconnect: true,
+    dedupingInterval: 10000, // 10 second cache
   })
   
-  // SWR for categories - cached
+  // SWR for categories - short cache
   const { data: categoriesData } = useSWR('/api/categories', fetcher, {
-    revalidateOnFocus: false,
-    revalidateOnReconnect: false,
-    dedupingInterval: 300000,
-    keepPreviousData: true,
+    revalidateOnFocus: true,
+    revalidateOnReconnect: true,
+    dedupingInterval: 10000,
   })
   
   const products: Product[] = productsData?.products || []
