@@ -1,13 +1,17 @@
 'use client'
 
-import { useState, useEffect, useMemo, useCallback, lazy, Suspense } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
+import dynamic from 'next/dynamic'
 import useSWR from 'swr'
 import { Navigation } from '@/components/navigation'
 import { Footer } from '@/components/footer'
 import { cn } from '@/lib/utils'
 
 // B4: Lazy load QuickViewModal (heavy component with framer-motion)
-const QuickViewModal = lazy(() => import('@/components/quick-view-modal').then(m => ({ default: m.QuickViewModal })))
+const QuickViewModal = dynamic(
+  () => import('@/components/quick-view-modal').then(mod => mod.QuickViewModal),
+  { ssr: false }
+)
 
 // Track broken images globally to avoid re-checking
 const brokenImages = new Set<string>()
@@ -660,18 +664,14 @@ export default function CollectionPage() {
       <Footer />
       
       {/* Quick View Modal - lazy loaded (B4 performance) */}
-      {isQuickViewOpen && (
-        <Suspense fallback={null}>
-          <QuickViewModal
-            product={quickViewProduct}
-            isOpen={isQuickViewOpen}
-            onClose={closeQuickView}
-            onNext={quickViewProduct && filteredProducts.findIndex(p => p.id === quickViewProduct.id) < filteredProducts.length - 1 ? goToNextProduct : undefined}
-            onPrevious={quickViewProduct && filteredProducts.findIndex(p => p.id === quickViewProduct.id) > 0 ? goToPreviousProduct : undefined}
-            imageUrl={quickViewProduct ? getImageUrl(quickViewProduct) : undefined}
-          />
-        </Suspense>
-      )}
+      <QuickViewModal
+        product={quickViewProduct}
+        isOpen={isQuickViewOpen}
+        onClose={closeQuickView}
+        onNext={quickViewProduct && filteredProducts.findIndex(p => p.id === quickViewProduct.id) < filteredProducts.length - 1 ? goToNextProduct : undefined}
+        onPrevious={quickViewProduct && filteredProducts.findIndex(p => p.id === quickViewProduct.id) > 0 ? goToPreviousProduct : undefined}
+        imageUrl={quickViewProduct ? getImageUrl(quickViewProduct) : undefined}
+      />
     </main>
   )
 }
