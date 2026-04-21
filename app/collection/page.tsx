@@ -273,22 +273,6 @@ export default function CollectionPage() {
     setTimeout(() => setQuickViewProduct(null), 400)
   }, [])
   
-  const goToNextProduct = useCallback(() => {
-    if (!quickViewProduct) return
-    const currentIndex = filteredProducts.findIndex(p => p.id === quickViewProduct.id)
-    if (currentIndex < filteredProducts.length - 1) {
-      setQuickViewProduct(filteredProducts[currentIndex + 1])
-    }
-  }, [quickViewProduct, filteredProducts])
-  
-  const goToPreviousProduct = useCallback(() => {
-    if (!quickViewProduct) return
-    const currentIndex = filteredProducts.findIndex(p => p.id === quickViewProduct.id)
-    if (currentIndex > 0) {
-      setQuickViewProduct(filteredProducts[currentIndex - 1])
-    }
-  }, [quickViewProduct, filteredProducts])
-  
   // Handle broken images - hide them from the grid
   const handleImageError = useCallback((productId: string, imageUrl: string) => {
     brokenImages.add(imageUrl)
@@ -403,6 +387,23 @@ export default function CollectionPage() {
       return categoryProducts.some(p => detectSubCategory(p.name) === sub)
     })
   }, [products, activeCategory])
+  
+  // Quick View navigation (must be after filteredProducts is defined)
+  const goToNextProduct = useCallback(() => {
+    if (!quickViewProduct) return
+    const currentIndex = filteredProducts.findIndex(p => p.id === quickViewProduct.id)
+    if (currentIndex < filteredProducts.length - 1) {
+      setQuickViewProduct(filteredProducts[currentIndex + 1])
+    }
+  }, [quickViewProduct, filteredProducts])
+  
+  const goToPreviousProduct = useCallback(() => {
+    if (!quickViewProduct) return
+    const currentIndex = filteredProducts.findIndex(p => p.id === quickViewProduct.id)
+    if (currentIndex > 0) {
+      setQuickViewProduct(filteredProducts[currentIndex - 1])
+    }
+  }, [quickViewProduct, filteredProducts])
   
   // Reset sub-category when main category changes
   useEffect(() => {
