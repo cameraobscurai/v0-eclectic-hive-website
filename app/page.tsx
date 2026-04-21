@@ -50,14 +50,18 @@ export default function HomePage() {
             className="object-cover object-center"
             sizes="100vw"
           />
-          {/* Dark overlay for text readability */}
-          <div className="absolute inset-0 bg-gradient-to-b from-black/50 via-black/30 to-charcoal" />
+          {/* Subtle vignette - darker edges, lighter center to draw focus */}
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_0%,rgba(0,0,0,0.3)_70%,rgba(0,0,0,0.6)_100%)]" />
+          {/* Bottom fade to charcoal - smooth transition */}
+          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-charcoal/95" style={{ backgroundSize: '100% 100%', backgroundPosition: 'bottom' }} />
         </div>
 
-        {/* Content */}
-        <div className="relative z-10 text-center">
+        {/* Content with glassmorphic backdrop */}
+        <div className="relative z-10 text-center px-8 py-10 md:px-16 md:py-14">
+          {/* Frosted glass panel - subtle, elegant */}
+          <div className="absolute inset-0 backdrop-blur-[12px] bg-white/[0.04] rounded-2xl border border-white/[0.08] shadow-2xl shadow-black/20" />
           {/* Wordmark */}
-          <h1 className="font-display text-5xl md:text-7xl lg:text-8xl tracking-tight font-light italic text-cream mb-4 overflow-hidden normal-case">
+          <h1 className="relative font-display text-5xl md:text-7xl lg:text-8xl tracking-tight font-light italic text-cream mb-4 overflow-hidden normal-case">
             {'Eclectic Hive'.split('').map((char, i) => (
               <span
                 key={i}
@@ -75,7 +79,7 @@ export default function HomePage() {
           {/* Tagline */}
           <p 
             className={cn(
-              'text-xs md:text-sm uppercase tracking-[0.4em] text-cream/40 transition-all duration-700',
+              'relative text-xs md:text-sm uppercase tracking-[0.4em] text-cream/50 transition-all duration-700',
               loaded ? 'opacity-100' : 'opacity-0'
             )}
             style={{ transitionDelay: '900ms' }}
@@ -85,8 +89,8 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Navigation Cards - Glassmorphic buttons */}
-      <section className="bg-charcoal pb-24 lg:pb-32">
+      {/* Navigation Cards */}
+      <section className="bg-charcoal pt-8 pb-24 lg:pb-32">
         <div className="max-w-4xl mx-auto px-6">
           {/* Mobile: stacked | Desktop: side by side - tightened spacing */}
           <div className="flex flex-col lg:flex-row gap-3 lg:gap-3">
