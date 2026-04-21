@@ -634,3 +634,111 @@ img {
     transition: none !important;
   }
 }
+
+/* =============================================================================
+   GLASSMORPHIC DESIGN SYSTEM
+   Elegant frosted glass effects - globally available
+   ============================================================================= */
+
+/* Base glass panel - subtle frost */
+.glass {
+  @apply backdrop-blur-[12px] bg-white/[0.04] border border-white/[0.08];
+}
+
+/* Glass on dark backgrounds */
+.glass-dark {
+  @apply backdrop-blur-[12px] bg-charcoal/40 border border-cream/[0.08];
+}
+
+/* Glass on light backgrounds */
+.glass-light {
+  @apply backdrop-blur-[12px] bg-cream/60 border border-charcoal/[0.08];
+}
+
+/* Interactive glass - hover states */
+.glass-interactive {
+  @apply glass transition-all duration-300;
+}
+
+.glass-interactive:hover {
+  @apply bg-white/[0.08] border-white/[0.15];
+}
+
+/* Glass card with shadow */
+.glass-card {
+  @apply glass shadow-xl shadow-black/10;
+}
+
+/* Subtle glass - very minimal effect */
+.glass-subtle {
+  @apply backdrop-blur-[8px] bg-white/[0.02] border border-white/[0.05];
+}
+
+/* =============================================================================
+   PARALLAX & SCROLL ANIMATIONS
+   ============================================================================= */
+
+/* Parallax container */
+.parallax-container {
+  perspective: 1000px;
+  transform-style: preserve-3d;
+}
+
+/* Slow parallax movement */
+.parallax-slow {
+  transform: translateZ(-200px) scale(1.2);
+}
+
+/* Medium parallax movement */
+.parallax-medium {
+  transform: translateZ(-100px) scale(1.1);
+}
+
+/* Scroll-triggered reveal */
+.scroll-reveal {
+  opacity: 0;
+  transform: translateY(40px);
+  transition: opacity 0.8s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 0.8s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.scroll-reveal.is-visible {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Staggered scroll reveal for children */
+.scroll-reveal-stagger > * {
+  opacity: 0;
+  transform: translateY(30px);
+  transition: opacity 0.6s cubic-bezier(0.22, 1, 0.36, 1),
+              transform 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.scroll-reveal-stagger.is-visible > *:nth-child(1) { transition-delay: 0s; opacity: 1; transform: translateY(0); }
+.scroll-reveal-stagger.is-visible > *:nth-child(2) { transition-delay: 0.1s; opacity: 1; transform: translateY(0); }
+.scroll-reveal-stagger.is-visible > *:nth-child(3) { transition-delay: 0.2s; opacity: 1; transform: translateY(0); }
+.scroll-reveal-stagger.is-visible > *:nth-child(4) { transition-delay: 0.3s; opacity: 1; transform: translateY(0); }
+
+/* =============================================================================
+   AAA SPACING SYSTEM
+   Consistent vertical rhythm
+   ============================================================================= */
+
+/* Section spacing - mobile first */
+.section-padding {
+  @apply py-16 md:py-24 lg:py-32;
+}
+
+.section-padding-sm {
+  @apply py-10 md:py-16 lg:py-20;
+}
+
+.section-padding-lg {
+  @apply py-20 md:py-32 lg:py-40;
+}
+
+/* Container with responsive padding */
+.container-padding {
+  @apply px-5 md:px-8 lg:px-12;
+}

@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { Navigation } from '@/components/navigation'
@@ -12,35 +12,71 @@ const DESTINATIONS = [
     href: '/atelier',
     label: 'Design + Fabrication',
     title: 'Atelier',
+    description: 'Custom creations',
   },
   {
     href: '/collection',
     label: 'Signature Inventory',
     title: 'Collection',
+    description: 'Curated pieces',
   },
   {
     href: '/gallery',
     label: 'Selected Work',
     title: 'Gallery',
+    description: 'Our portfolio',
   },
 ]
 
 export default function HomePage() {
   const [loaded, setLoaded] = useState(false)
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
+  const [scrollY, setScrollY] = useState(0)
+  const ctaSectionRef = useRef<HTMLElement>(null)
+  const [ctaVisible, setCtaVisible] = useState(false)
 
   useEffect(() => {
     setLoaded(true)
+    
+    // Parallax scroll listener
+    const handleScroll = () => {
+      setScrollY(window.scrollY)
+    }
+    
+    // Intersection observer for CTA section
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setCtaVisible(true)
+          }
+        })
+      },
+      { threshold: 0.3 }
+    )
+    
+    if (ctaSectionRef.current) {
+      observer.observe(ctaSectionRef.current)
+    }
+    
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+      observer.disconnect()
+    }
   }, [])
 
   return (
     <main className="bg-charcoal min-h-screen">
       <Navigation />
       
-      {/* Hero - Full viewport with subtle frosted glass effect */}
-      <section className="relative h-[70vh] md:h-[80vh] flex flex-col items-center justify-center overflow-hidden">
-        {/* Background image */}
-        <div className="absolute inset-0">
+      {/* ========== HERO - First Fold ========== */}
+      <section className="relative h-[100svh] min-h-[600px] flex flex-col items-center justify-center overflow-hidden">
+        {/* Background image with subtle parallax */}
+        <div 
+          className="absolute inset-0 scale-110"
+          style={{ transform: `translateY(${scrollY * 0.15}px) scale(1.1)` }}
+        >
           <Image
             src="/images/hero-desert-venue.jpg"
             alt="Luxury desert event venue at twilight"
@@ -52,19 +88,19 @@ export default function HomePage() {
           />
         </div>
         
-        {/* Frosted glass overlay - subtle, mysterious but still shows image */}
-        <div className="absolute inset-0 backdrop-blur-[8px] bg-charcoal/30" />
+        {/* Frosted glass overlay - elegant mystery */}
+        <div className="absolute inset-0 backdrop-blur-[6px] bg-charcoal/25" />
         
-        {/* Vignette for depth */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_20%,rgba(20,20,20,0.5)_80%)]" />
+        {/* Vignette for depth and focus */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,rgba(20,20,20,0.6)_100%)]" />
         
-        {/* Bottom fade to charcoal */}
-        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent via-60% to-charcoal" />
+        {/* Bottom gradient - seamless transition */}
+        <div className="absolute inset-0 bg-gradient-to-b from-transparent via-transparent via-70% to-charcoal" />
 
-        {/* Content */}
-        <div className="relative z-10 text-center">
+        {/* Hero Content */}
+        <div className="relative z-10 text-center px-5">
           {/* Wordmark */}
-          <h1 className="font-display text-5xl md:text-7xl lg:text-[7rem] tracking-tight font-light italic text-cream mb-6 overflow-hidden normal-case">
+          <h1 className="font-display text-[2.75rem] sm:text-6xl md:text-7xl lg:text-[7rem] tracking-tight font-light italic text-cream mb-4 md:mb-6 overflow-hidden normal-case">
             {'Eclectic Hive'.split('').map((char, i) => (
               <span
                 key={i}
@@ -82,69 +118,82 @@ export default function HomePage() {
           {/* Tagline */}
           <p 
             className={cn(
-              'text-xs md:text-sm uppercase tracking-[0.4em] text-cream/50 transition-all duration-700',
+              'text-[10px] sm:text-xs md:text-sm uppercase tracking-[0.3em] sm:tracking-[0.4em] text-cream/50 transition-all duration-700',
               loaded ? 'opacity-100' : 'opacity-0'
             )}
             style={{ transitionDelay: '800ms' }}
           >
             Design + Production
           </p>
+          
+          {/* Scroll indicator */}
+          <div 
+            className={cn(
+              'absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 transition-all duration-700',
+              loaded ? 'opacity-100' : 'opacity-0'
+            )}
+            style={{ transitionDelay: '1200ms' }}
+          >
+            <span className="text-[9px] uppercase tracking-[0.3em] text-cream/30">Explore</span>
+            <div className="w-px h-8 bg-gradient-to-b from-cream/30 to-transparent" />
+          </div>
         </div>
       </section>
 
-      {/* Navigation Cards */}
-      <section className="bg-charcoal pt-8 pb-24 lg:pb-32">
-        <div className="max-w-4xl mx-auto px-6">
-          {/* Mobile: stacked | Desktop: side by side - tightened spacing */}
-          <div className="flex flex-col lg:flex-row gap-3 lg:gap-3">
+      {/* ========== UNIFIED NAVIGATION + CTA SECTION ========== */}
+      {/* Cards and CTA are now visually connected as one cohesive unit */}
+      <section className="bg-charcoal">
+        {/* Navigation Cards */}
+        <div className="container-padding max-w-5xl mx-auto pt-0 pb-16 md:pb-24">
+          {/* Cards Grid - responsive with perfect spacing */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
             {DESTINATIONS.map((dest, i) => (
               <Link
                 key={dest.href}
                 href={dest.href}
                 className={cn(
-                  'group relative flex-1 transition-all duration-700',
-                  loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+                  'group relative transition-all duration-700',
+                  loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
                 )}
                 style={{ transitionDelay: `${600 + i * 100}ms` }}
                 onMouseEnter={() => setHoveredIndex(i)}
                 onMouseLeave={() => setHoveredIndex(null)}
               >
-                {/* Glassmorphic container */}
+                {/* Glassmorphic card */}
                 <div className={cn(
-                  'relative h-full py-8 px-6 lg:py-12 lg:px-8 border transition-all duration-300',
-                  'bg-white/[0.03] backdrop-blur-sm',
-                  hoveredIndex === i 
-                    ? 'border-cream/20 bg-white/[0.06]' 
-                    : 'border-cream/[0.08]'
+                  'relative h-full glass-interactive',
+                  'py-6 px-5 md:py-10 md:px-6 lg:py-12 lg:px-8',
+                  'touch-target',
+                  hoveredIndex === i && 'bg-white/[0.08] border-cream/20'
                 )}>
-                  {/* Mobile: row layout | Desktop: centered column */}
-                  <div className="flex items-center justify-between lg:flex-col lg:items-center lg:justify-center lg:text-center lg:min-h-[140px]">
-                    {/* Title + Label */}
-                    <div className="lg:flex lg:flex-col lg:items-center">
+                  {/* Mobile: horizontal | Desktop: vertical centered */}
+                  <div className="flex items-center justify-between md:flex-col md:items-center md:justify-center md:text-center md:min-h-[160px] lg:min-h-[180px]">
+                    {/* Text content */}
+                    <div className="md:flex md:flex-col md:items-center">
                       <h2 className={cn(
-                        'font-display text-2xl lg:text-3xl tracking-[0.15em] font-light uppercase transition-colors duration-300',
-                        hoveredIndex === i ? 'text-cream' : 'text-cream/70'
+                        'font-display text-xl sm:text-2xl md:text-2xl lg:text-3xl tracking-[0.12em] md:tracking-[0.15em] font-light uppercase transition-colors duration-300',
+                        hoveredIndex === i ? 'text-cream' : 'text-cream/80'
                       )}>
                         {dest.title}
                       </h2>
                       <p className={cn(
-                        'text-[10px] uppercase tracking-[0.2em] transition-colors duration-300 mt-1 lg:mt-3',
-                        hoveredIndex === i ? 'text-cream/50' : 'text-cream/30'
+                        'text-[9px] sm:text-[10px] uppercase tracking-[0.15em] md:tracking-[0.2em] transition-colors duration-300 mt-1 md:mt-3',
+                        hoveredIndex === i ? 'text-cream/60' : 'text-cream/35'
                       )}>
                         {dest.label}
                       </p>
                     </div>
                     
-                    {/* Arrow - shows on mobile right side, desktop below text */}
+                    {/* Arrow indicator */}
                     <div className={cn(
-                      'flex items-center gap-2 transition-all duration-300 lg:mt-6',
-                      hoveredIndex === i ? 'opacity-100' : 'opacity-40'
+                      'flex items-center gap-2 transition-all duration-300 md:mt-6',
+                      hoveredIndex === i ? 'opacity-100' : 'opacity-50'
                     )}>
                       <span className={cn(
-                        'h-px bg-cream/40 transition-all duration-300',
-                        hoveredIndex === i ? 'w-8' : 'w-4'
+                        'h-px bg-cream/50 transition-all duration-300',
+                        hoveredIndex === i ? 'w-6 md:w-8' : 'w-3 md:w-4'
                       )} />
-                      <svg className="w-4 h-4 text-cream/60" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
+                      <svg className="w-3.5 h-3.5 md:w-4 md:h-4 text-cream/70" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
                       </svg>
                     </div>
@@ -153,35 +202,65 @@ export default function HomePage() {
               </Link>
             ))}
           </div>
+          
+          {/* Connecting visual element - links cards to CTA */}
+          <div className="flex justify-center py-12 md:py-16">
+            <div className="w-px h-16 md:h-24 bg-gradient-to-b from-cream/20 via-cream/10 to-transparent" />
+          </div>
         </div>
+
+        {/* CTA Section - Integrated with cards above */}
+        <section 
+          ref={ctaSectionRef}
+          className="relative overflow-hidden"
+        >
+          {/* Glassmorphic container spanning full width */}
+          <div className="glass-subtle mx-5 md:mx-8 lg:mx-12 rounded-sm">
+            <div 
+              className={cn(
+                'py-16 md:py-20 lg:py-24 text-center transition-all duration-1000',
+                ctaVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+              )}
+            >
+              {/* Tagline with parallax-like entrance */}
+              <p 
+                className={cn(
+                  'text-cream/40 text-xs sm:text-sm mb-6 md:mb-8 tracking-wide max-w-md mx-auto px-5 transition-all duration-700 delay-200',
+                  ctaVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+                )}
+              >
+                Two parts luxe, one part regal, and a dash of edge.
+              </p>
+              
+              {/* CTA Link */}
+              <Link
+                href="/contact"
+                className={cn(
+                  'inline-flex flex-col sm:flex-row items-center gap-3 sm:gap-4 group transition-all duration-700 delay-300',
+                  ctaVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+                )}
+              >
+                <span className="font-display text-xl sm:text-2xl md:text-3xl tracking-[0.08em] sm:tracking-[0.1em] font-light uppercase text-cream group-hover:text-cream/80 transition-colors duration-300">
+                  Start a Conversation
+                </span>
+                <span className="hidden sm:block w-6 h-px bg-cream/40 group-hover:w-10 transition-all duration-300" />
+              </Link>
+            </div>
+          </div>
+          
+          {/* Bottom spacing */}
+          <div className="h-16 md:h-24 lg:h-32" />
+        </section>
       </section>
 
-      {/* Contact CTA - Minimal */}
-      <section className="bg-cream py-20 lg:py-24">
-        <div className="max-w-3xl mx-auto px-6 text-center">
-          <p className="text-charcoal/40 text-sm mb-4 tracking-wide">
-            Two parts luxe, one part regal, and a dash of edge.
-          </p>
-          <Link
-            href="/contact"
-            className="inline-flex items-center gap-4 group"
-          >
-            <span className="font-display text-2xl md:text-3xl tracking-[0.1em] font-light uppercase text-charcoal group-hover:text-charcoal/70 transition-colors">
-              Start a Conversation
-            </span>
-            <span className="w-8 h-px bg-charcoal/30 group-hover:w-12 transition-all duration-300" />
-          </Link>
-        </div>
-      </section>
-
-      {/* Minimal Footer */}
-      <footer className="bg-charcoal py-10">
-        <div className="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center justify-between gap-6">
-          <p className="text-xs text-cream/25 tracking-wide">Denver, Colorado</p>
-          <Link href="/" className="font-display text-xl tracking-tight font-light italic text-cream/40 hover:text-cream/70 transition-colors normal-case">
+      {/* ========== FOOTER ========== */}
+      <footer className="bg-charcoal border-t border-cream/[0.06] py-8 md:py-10">
+        <div className="container-padding max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 md:gap-6">
+          <p className="text-[10px] md:text-xs text-cream/25 tracking-wide order-2 md:order-1">Denver, Colorado</p>
+          <Link href="/" className="font-display text-lg md:text-xl tracking-tight font-light italic text-cream/40 hover:text-cream/70 transition-colors normal-case order-1 md:order-2">
             Eclectic Hive
           </Link>
-          <p className="text-xs text-cream/25">&copy; {new Date().getFullYear()}</p>
+          <p className="text-[10px] md:text-xs text-cream/25 order-3">&copy; {new Date().getFullYear()}</p>
         </div>
       </footer>
     </main>
