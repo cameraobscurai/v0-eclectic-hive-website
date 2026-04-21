@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import { Navigation } from '@/components/navigation'
-import { TransitionLink, usePageTransition } from '@/components/page-transition'
+import { TransitionLink } from '@/components/page-transition'
 import { cn } from '@/lib/utils'
 
 // Navigation destinations
