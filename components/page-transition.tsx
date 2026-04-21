@@ -1,6 +1,6 @@
 'use client'
 
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { usePathname } from 'next/navigation'
 import { ReactNode, useEffect, useState, createContext, useContext, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
