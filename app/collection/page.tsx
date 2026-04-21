@@ -155,7 +155,8 @@ const SUB_CATEGORY_KEYWORDS: Record<string, string[]> = {
 
 export default function CollectionPage() {
   // SWR for products - cached, instant on revisit
-  const { data: productsData } = useSWR('/api/products', fetcher, {
+  // Fetch all products with images (no pagination for now - client filters)
+  const { data: productsData } = useSWR('/api/products?imagesOnly=true&limit=500', fetcher, {
     revalidateOnFocus: false,
     revalidateOnReconnect: false,
     dedupingInterval: 300000, // Cache for 5 minutes
