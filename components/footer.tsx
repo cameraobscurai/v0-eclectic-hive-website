@@ -126,7 +126,7 @@ export function Footer() {
                 <ul className="flex flex-col gap-4">
                   <li>
                     <a 
-                      href="https://instagram.com" 
+                      href="https://www.instagram.com/eclectichive/" 
                       target="_blank" 
                       rel="noopener noreferrer"
                       className="text-cream/70 hover:text-cream transition-colors duration-300 relative inline-block group"
@@ -137,7 +137,7 @@ export function Footer() {
                   </li>
                   <li>
                     <a 
-                      href="https://pinterest.com" 
+                      href="https://www.pinterest.com/eclectichive/" 
                       target="_blank" 
                       rel="noopener noreferrer"
                       className="text-cream/70 hover:text-cream transition-colors duration-300 relative inline-block group"

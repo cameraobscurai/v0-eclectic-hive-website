@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import { Navigation } from '@/components/navigation'
+import { Footer } from '@/components/footer'
 import { TransitionLink } from '@/components/page-transition'
 import { cn } from '@/lib/utils'
 
@@ -223,15 +224,7 @@ export default function HomePage() {
       </section>
 
       {/* ========== FOOTER ========== */}
-      <footer className="bg-charcoal border-t border-cream/[0.06] py-8 md:py-10 mt-16 md:mt-24">
-        <div className="container-padding max-w-7xl mx-auto flex flex-col md:flex-row items-center justify-between gap-4 md:gap-6">
-          <p className="text-[10px] md:text-xs text-cream/25 tracking-wide order-2 md:order-1">Denver, Colorado</p>
-          <TransitionLink href="/" className="font-display text-lg md:text-xl tracking-tight font-light italic text-cream/40 hover:text-cream/70 transition-colors normal-case order-1 md:order-2">
-            Eclectic Hive
-          </TransitionLink>
-          <p className="text-[10px] md:text-xs text-cream/25 order-3">&copy; {new Date().getFullYear()}</p>
-        </div>
-      </footer>
+      <Footer />
     </main>
   )
 }
