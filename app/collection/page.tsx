@@ -109,6 +109,25 @@ const CATEGORY_DISPLAY: Record<string, string> = {
 // Get display name for a category (falls back to raw name if not mapped)
 const getCategoryDisplay = (cat: string): string => CATEGORY_DISPLAY[cat] || cat
 
+// Category priority order (most important first, matching reference site hierarchy)
+const CATEGORY_PRIORITY = [
+  'Seating',           // Lounge Seating - primary focus
+  'Tables',            // Lounge Tables
+  'Bars',              // Cocktail & Bar
+  'Tableware',         // Tableware (Dining)
+  'Serveware',         // Serveware
+  'Lighting',          // Lighting
+  'Chandeliers',       // Chandeliers (part of lighting)
+  'Pillows',           // Textiles
+  'Rugs',              // Rugs
+  'Styling',           // Styling
+  'Storage',           // Storage
+  'Candlelight',       // Candlelight
+  'Large Decor & Dividers', // Large Decor - lowest priority
+  'Furs & Pelts',
+  'Subrentals',
+]
+
 // Sub-categories by main category (detected from product names)
 const SUB_CATEGORIES: Record<string, string[]> = {
   'Seating': ['All', 'Sofas', 'Chairs', 'Benches', 'Ottomans', 'Stools'],
@@ -198,14 +217,23 @@ export default function CollectionPage() {
   const [hiddenProducts, setHiddenProducts] = useState<Set<string>>(new Set())
   const [sortBy, setSortBy] = useState<'type' | 'name' | 'newest' | 'oldest'>('type')
   
-  // Set initial category to first one with images once products load
+  // Set initial category to highest priority category with images
   useEffect(() => {
     if (!activeCategory && products.length > 0) {
-      const firstCategoryWithImages = Object.entries(categoryCounts)
+      // Find first category in priority order that has images
+      const categoriesWithImages = Object.entries(categoryCounts)
         .filter(([cat, count]) => cat !== 'All' && count > 0)
-        .sort((a, b) => b[1] - a[1])[0]
-      if (firstCategoryWithImages) {
-        setActiveCategory(firstCategoryWithImages[0])
+        .map(([cat]) => cat)
+      
+      const firstPriorityCategory = CATEGORY_PRIORITY.find(cat => 
+        categoriesWithImages.includes(cat)
+      )
+      
+      if (firstPriorityCategory) {
+        setActiveCategory(firstPriorityCategory)
+      } else if (categoriesWithImages.length > 0) {
+        // Fallback to first available if none in priority list
+        setActiveCategory(categoriesWithImages[0])
       }
     }
   }, [products, categoryCounts, activeCategory])
@@ -355,7 +383,14 @@ export default function CollectionPage() {
           <div className="flex items-center justify-center gap-1 py-4 px-4 overflow-x-auto scrollbar-hide">
             {Object.entries(categoryCounts)
               .filter(([_, count]) => count > 0)
-              .sort((a, b) => b[1] - a[1]) // Sort by count descending
+              .sort((a, b) => {
+                // Sort by priority order (Seating first, Large Decor last)
+                const aIndex = CATEGORY_PRIORITY.indexOf(a[0])
+                const bIndex = CATEGORY_PRIORITY.indexOf(b[0])
+                const aPriority = aIndex === -1 ? 999 : aIndex
+                const bPriority = bIndex === -1 ? 999 : bIndex
+                return aPriority - bPriority
+              })
               .map(([cat]) => (
               <button
                 key={cat}
