@@ -1,9 +1,8 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { get } from '@vercel/blob'
 
-// Edge runtime for faster global delivery (45-80ms vs 200-400ms)
-export const runtime = 'edge'
-export const preferredRegion = 'auto'
+// Note: Using Node.js runtime as @vercel/blob's get() requires Node.js APIs
+// Images are still served fast via Vercel's CDN edge caching
 
 export async function GET(request: NextRequest) {
   try {
