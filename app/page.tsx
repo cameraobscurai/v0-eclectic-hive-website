@@ -125,18 +125,6 @@ export default function HomePage() {
           >
             Design + Production
           </p>
-          
-          {/* Scroll indicator */}
-          <div 
-            className={cn(
-              'absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 transition-all duration-700',
-              loaded ? 'opacity-100' : 'opacity-0'
-            )}
-            style={{ transitionDelay: '1200ms' }}
-          >
-            <span className="text-[9px] uppercase tracking-[0.3em] text-cream/30">Explore</span>
-            <div className="w-px h-8 bg-gradient-to-b from-cream/30 to-transparent" />
-          </div>
         </div>
       </section>
 
