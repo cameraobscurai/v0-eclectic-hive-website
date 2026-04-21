@@ -3,13 +3,14 @@
 import { useState, useEffect, useRef } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
+import { TransitionLink } from '@/components/page-transition'
 import { cn } from '@/lib/utils'
 
 const NAV_LINKS = [
   { href: '/atelier', label: 'Atelier by The Hive' },
   { href: '/collection', label: 'Hive Signature Collection' },
   { href: '/gallery', label: 'The Gallery' },
-  { href: '/studio', label: 'Studio' },
+  // { href: '/studio', label: 'Studio' }, // Hidden for now
   { href: '/contact', label: 'Contact' },
 ]
 
@@ -107,7 +108,7 @@ export function Navigation() {
                 : (active ? 'text-charcoal' : 'text-charcoal/70 hover:text-charcoal')
               const underlineColor = scrolled || !isLightPage ? 'bg-cream/50' : 'bg-charcoal/50'
               return (
-                <Link
+                <TransitionLink
                   key={link.href}
                   href={link.href}
                   className={cn(
@@ -125,7 +126,7 @@ export function Navigation() {
                         : 'scale-x-0 group-hover:scale-x-100'
                     )}
                   />
-                </Link>
+                </TransitionLink>
               )
             })}
           </div>
@@ -180,7 +181,7 @@ export function Navigation() {
         <div className="flex flex-col h-full pt-24 pb-12 px-6">
           <nav className="flex-1 flex flex-col justify-center">
             {/* Home link - minimum touch target */}
-            <Link
+            <TransitionLink
               href="/"
               onClick={() => setIsOpen(false)}
               className={cn(
@@ -194,11 +195,11 @@ export function Navigation() {
               <span className="text-cream font-display text-4xl md:text-5xl tracking-tight font-light italic hover:text-sand transition-colors">
                 Home
               </span>
-            </Link>
+            </TransitionLink>
 
             {/* Page links - minimum touch targets */}
             {NAV_LINKS.map((link, i) => (
-              <Link
+              <TransitionLink
                 key={link.href}
                 href={link.href}
                 onClick={() => setIsOpen(false)}
@@ -220,7 +221,7 @@ export function Navigation() {
                 >
                   {link.label}
                 </span>
-              </Link>
+              </TransitionLink>
             ))}
           </nav>
 

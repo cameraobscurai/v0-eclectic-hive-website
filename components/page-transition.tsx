@@ -28,32 +28,32 @@ export const usePageTransition = () => useContext(TransitionContext)
 // Theatrical bars that slide across screen
 // =============================================================================
 
-const WIPE_BAR_COUNT = 5
+const WIPE_BAR_COUNT = 4
 
-// Wipe bar animation - staggered entrance/exit
+// Wipe bar animation - faster, snappier
 const wipeBarVariants = {
   hidden: (i: number) => ({
     y: '100%',
     transition: {
-      duration: 0.6,
+      duration: 0.35,
       ease: EASINGS.cinematic,
-      delay: i * 0.06,
+      delay: i * 0.03,
     },
   }),
   visible: (i: number) => ({
     y: '0%',
     transition: {
-      duration: 0.6,
+      duration: 0.35,
       ease: EASINGS.cinematic,
-      delay: i * 0.06,
+      delay: i * 0.03,
     },
   }),
   exit: (i: number) => ({
     y: '-100%',
     transition: {
-      duration: 0.5,
+      duration: 0.3,
       ease: EASINGS.cinematic,
-      delay: (WIPE_BAR_COUNT - 1 - i) * 0.04, // Reverse stagger
+      delay: (WIPE_BAR_COUNT - 1 - i) * 0.025,
     },
   }),
 }
@@ -123,7 +123,7 @@ export function PageTransitionProvider({ children }: { children: ReactNode }) {
     if (wipePhase === 'enter' && pendingHref) {
       const timer = setTimeout(() => {
         router.push(pendingHref)
-      }, 450) // Wait for bars to cover screen
+      }, 280) // Faster - bars cover screen quicker
       return () => clearTimeout(timer)
     }
   }, [wipePhase, pendingHref, router])
@@ -147,7 +147,7 @@ export function PageTransitionProvider({ children }: { children: ReactNode }) {
         setWipePhase('idle')
         setIsTransitioning(false)
         setPendingHref(null)
-      }, 500)
+      }, 320) // Faster cleanup
       return () => clearTimeout(timer)
     }
   }, [wipePhase])
@@ -169,7 +169,7 @@ export function PageTransitionProvider({ children }: { children: ReactNode }) {
                 variants={wipeBarVariants}
                 className="flex-1 h-full"
                 style={{
-                  backgroundColor: `hsl(30, 8%, ${8 + i * 1.5}%)`, // Subtle charcoal variations
+                  backgroundColor: `hsl(0, 0%, ${6 + i * 2}%)`, // Pure greyscale - monochromatic
                 }}
               />
             ))}
