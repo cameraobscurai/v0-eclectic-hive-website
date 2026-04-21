@@ -1,18 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
+import { escapeIlike } from '@/lib/utils'
 
 const DEFAULT_PAGE_SIZE = 48
-
-// ============================================================================
-// SECURITY: Escape SQL wildcards in ILIKE queries
-// Prevents users from injecting % or _ to manipulate search behavior
-// ============================================================================
-function escapeIlike(str: string): string {
-  return str
-    .replace(/\\/g, '\\\\')  // Escape backslash first
-    .replace(/%/g, '\\%')    // Escape percent
-    .replace(/_/g, '\\_')    // Escape underscore
-}
 
 export async function GET(request: NextRequest) {
   const supabase = await createClient()
