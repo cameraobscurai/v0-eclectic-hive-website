@@ -2,13 +2,25 @@ import { updateSession } from '@/lib/supabase/middleware'
 import { type NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 
-// Routes that require authentication
-// TODO: Re-enable auth after setting up admin account
-const protectedRoutes: string[] = [] // ['/admin'] - temporarily disabled
+// ============================================================================
+// ADMIN ALLOWLIST - Only these emails can access /admin
+// Add emails here to grant admin access
+// ============================================================================
+const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || '')
+  .split(',')
+  .map(e => e.trim().toLowerCase())
+  .filter(Boolean)
 
-// API routes that require authentication
-// TODO: Re-enable auth after setting up admin account
-const protectedApiRoutes: string[] = [] // temporarily disabled
+// Routes that require authentication
+const protectedRoutes = ['/admin']
+
+// API routes that require authentication (mutating endpoints)
+const protectedApiRoutes = [
+  '/api/upload-inventory',
+  '/api/upload-font',
+  '/api/import-inventory',
+  '/api/inventory-image/update',
+]
 
 export async function middleware(request: NextRequest) {
   // First, update the session
@@ -53,6 +65,19 @@ export async function middleware(request: NextRequest) {
       const loginUrl = new URL('/auth/login', request.url)
       loginUrl.searchParams.set('redirect', pathname)
       return NextResponse.redirect(loginUrl)
+    }
+
+    // Check admin allowlist - must be in ADMIN_EMAILS to access protected routes
+    const userEmail = user.email?.toLowerCase()
+    if (ADMIN_EMAILS.length > 0 && (!userEmail || !ADMIN_EMAILS.includes(userEmail))) {
+      if (isProtectedApi) {
+        return NextResponse.json(
+          { error: 'Forbidden: Admin access required' },
+          { status: 403 }
+        )
+      }
+      // Redirect non-admins to home page
+      return NextResponse.redirect(new URL('/', request.url))
     }
   }
 

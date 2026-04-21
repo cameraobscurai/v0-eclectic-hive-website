@@ -1,20 +1,34 @@
 import { type NextRequest, NextResponse } from 'next/server'
+import { z } from 'zod'
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+// ─── XSS Protection ───────────────────────────────────────────────────────────
 
-interface InquiryPayload {
-  clientType: 'planner' | 'direct' | null
-  name: string
-  company: string
-  eventType: 'wedding' | 'corporate' | 'social' | 'nonprofit' | null
-  serviceType: 'full-design' | 'production' | 'rental' | null
-  eventDate: string
-  location: string
-  budgetRange: string | null
-  vision: string
-  email: string
-  phone: string
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;')
 }
+
+// ─── Zod Schema with length limits ────────────────────────────────────────────
+
+const InquirySchema = z.object({
+  clientType: z.enum(['planner', 'direct']).nullable(),
+  name: z.string().min(2).max(100),
+  company: z.string().max(100).default(''),
+  eventType: z.enum(['wedding', 'corporate', 'social', 'nonprofit']).nullable(),
+  serviceType: z.enum(['full-design', 'production', 'rental']).nullable(),
+  eventDate: z.string().max(50).default(''),
+  location: z.string().max(200).default(''),
+  budgetRange: z.enum(['under-10k', '10-25k', '25-50k', '50-100k', 'over-100k']).nullable(),
+  vision: z.string().min(1).max(2000),
+  email: z.string().email().max(254),
+  phone: z.string().max(30).default(''),
+})
+
+type InquiryPayload = z.infer<typeof InquirySchema>
 
 // ─── Label maps ───────────────────────────────────────────────────────────────
 
@@ -44,17 +58,26 @@ const BUDGET: Record<string, string> = {
 // ─── Email HTML ───────────────────────────────────────────────────────────────
 
 function buildEmailHtml(d: InquiryPayload): string {
+  // Escape all user-provided values to prevent XSS
+  const safeName = escapeHtml(d.name)
+  const safeCompany = escapeHtml(d.company)
+  const safeDate = escapeHtml(d.eventDate)
+  const safeLocation = escapeHtml(d.location)
+  const safeEmail = escapeHtml(d.email)
+  const safePhone = escapeHtml(d.phone)
+  const safeVision = escapeHtml(d.vision)
+
   const rows: [string, string][] = [
     ['Type', d.clientType ? CLIENT[d.clientType] : '—'],
-    ['Name', d.name || '—'],
-    ...(d.company ? [['Studio', d.company] as [string, string]] : []),
+    ['Name', safeName || '—'],
+    ...(safeCompany ? [['Studio', safeCompany] as [string, string]] : []),
     ['Event', d.eventType ? EVENT[d.eventType] : '—'],
     ['Service', d.serviceType ? SERVICE[d.serviceType] : '—'],
-    ['Date', d.eventDate || '—'],
-    ['Location', d.location || '—'],
+    ['Date', safeDate || '—'],
+    ['Location', safeLocation || '—'],
     ['Budget', d.budgetRange ? BUDGET[d.budgetRange] : '—'],
-    ['Email', d.email || '—'],
-    ...(d.phone ? [['Phone', d.phone] as [string, string]] : []),
+    ['Email', safeEmail || '—'],
+    ...(safePhone ? [['Phone', safePhone] as [string, string]] : []),
   ]
 
   const tableRows = rows
@@ -106,7 +129,7 @@ function buildEmailHtml(d: InquiryPayload): string {
           <p style="margin:0 0 8px;font-size:10px;letter-spacing:0.3em;
                     text-transform:uppercase;color:#8a8a8a">Vision</p>
           <p style="margin:0;font-size:14px;color:#1a1a1a;line-height:1.8;
-                    font-style:italic">"${d.vision}"</p>
+                    font-style:italic">"${safeVision}"</p>
         </td>
       </tr>`
           : ''
@@ -115,11 +138,11 @@ function buildEmailHtml(d: InquiryPayload): string {
       <!-- CTA -->
       <tr>
         <td style="padding:32px 48px 40px;border-top:1px solid #e8e2da">
-          <a href="mailto:${d.email}?subject=Re: Your Eclectic Hive Inquiry"
+          <a href="mailto:${safeEmail}?subject=Re: Your Eclectic Hive Inquiry"
              style="display:inline-block;padding:12px 24px;background:#1a1a1a;
                     color:#f5f2ed;font-size:11px;letter-spacing:0.2em;
                     text-transform:uppercase;text-decoration:none">
-            Reply to ${d.name.split(' ')[0]}
+            Reply to ${safeName.split(' ')[0]}
           </a>
         </td>
       </tr>
@@ -140,21 +163,6 @@ function buildEmailHtml(d: InquiryPayload): string {
 </html>`
 }
 
-// ─── Validation ───────────────────────────────────────────────────────────────
-
-function isValid(data: unknown): data is InquiryPayload {
-  if (!data || typeof data !== 'object') return false
-  const d = data as Partial<InquiryPayload>
-  return (
-    typeof d.name === 'string' &&
-    d.name.trim().length > 1 &&
-    typeof d.email === 'string' &&
-    d.email.includes('@') &&
-    typeof d.vision === 'string' &&
-    d.vision.trim().length > 0
-  )
-}
-
 // ─── Handler ──────────────────────────────────────────────────────────────────
 
 export async function POST(request: NextRequest) {
@@ -165,27 +173,33 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'Invalid JSON' }, { status: 400 })
   }
 
-  if (!isValid(body)) {
+  // Validate with Zod schema (includes type checking and length limits)
+  const parsed = InquirySchema.safeParse(body)
+  if (!parsed.success) {
     return NextResponse.json(
-      { error: 'Missing required fields' },
+      { error: 'Validation failed', details: parsed.error.flatten() },
       { status: 422 }
     )
   }
 
-  const data = body
+  const data = parsed.data
 
-  // ── Dev fallback ────────────────────────────────────────────────────────
-  // If RESEND_API_KEY isn't set, log to console and return success.
-  // You won't lose leads — check Vercel function logs.
+  // ── RESEND_API_KEY handling ─────────────────────────────────────────────
   const RESEND_API_KEY = process.env.RESEND_API_KEY
-  const TO_EMAIL =
-    process.env.INQUIRY_TO_EMAIL ?? 'hello@eclectichive.com'
+  const TO_EMAIL = process.env.INQUIRY_TO_EMAIL ?? 'hello@eclectichive.com'
+  const isProduction = process.env.NODE_ENV === 'production'
 
   if (!RESEND_API_KEY) {
-    console.log(
-      '[inquiry] No RESEND_API_KEY — logging submission:\n',
-      JSON.stringify(data, null, 2)
-    )
+    if (isProduction) {
+      // FAIL LOUDLY in production - don't silently drop leads
+      console.error('[inquiry] CRITICAL: RESEND_API_KEY is not set in production!')
+      return NextResponse.json(
+        { error: 'Email service misconfigured' },
+        { status: 500 }
+      )
+    }
+    // Dev fallback: log and return success
+    console.log('[inquiry] No RESEND_API_KEY — logging submission:\n', JSON.stringify(data, null, 2))
     return NextResponse.json({ ok: true, dev: true })
   }
 

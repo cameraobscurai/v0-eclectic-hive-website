@@ -4,6 +4,9 @@ import { get } from '@vercel/blob'
 // Note: Using Node.js runtime as @vercel/blob's get() requires Node.js APIs
 // Images are still served fast via Vercel's CDN edge caching
 
+// Allowed path prefixes - whitelist approach
+const ALLOWED_PREFIXES = ['inventory/', 'fonts/']
+
 export async function GET(request: NextRequest) {
   try {
     const pathname = request.nextUrl.searchParams.get('pathname')
@@ -12,10 +15,18 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Missing pathname' }, { status: 400 })
     }
 
-    // Security: Validate pathname to prevent path traversal
-    // Only allow paths within inventory/ or fonts/ directories
-    const normalizedPath = pathname.replace(/\.\./g, '').replace(/\/+/g, '/')
-    if (!normalizedPath.startsWith('inventory/') && !normalizedPath.startsWith('fonts/')) {
+    // Security: Strict path validation to prevent path traversal attacks
+    // 1. Reject any path containing .. (even encoded)
+    if (pathname.includes('..') || decodeURIComponent(pathname).includes('..')) {
+      return NextResponse.json({ error: 'Invalid path' }, { status: 403 })
+    }
+    
+    // 2. Normalize the path (collapse multiple slashes)
+    const normalizedPath = pathname.replace(/\/+/g, '/')
+    
+    // 3. Must start with an allowed prefix (whitelist)
+    const isAllowed = ALLOWED_PREFIXES.some(prefix => normalizedPath.startsWith(prefix))
+    if (!isAllowed) {
       return NextResponse.json({ error: 'Invalid path' }, { status: 403 })
     }
 

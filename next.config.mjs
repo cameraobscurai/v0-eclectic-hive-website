@@ -1,8 +1,7 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  typescript: {
-    ignoreBuildErrors: true,
-  },
+  // TypeScript errors now fail the build (security best practice)
+  // Run `tsc --noEmit` locally to catch errors before deploying
   
   images: {
     // Prefer AVIF (40-55% smaller than JPEG), fallback to WebP

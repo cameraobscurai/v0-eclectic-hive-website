@@ -4,6 +4,47 @@ import sharp from 'sharp'
 import { createClient } from '@/lib/supabase/server'
 
 // ============================================================================
+// SECURITY: Category Allowlist
+// ============================================================================
+const ALLOWED_CATEGORIES = [
+  'seating', 'tables', 'lighting', 'decor', 'bars', 
+  'serveware', 'styling', 'storage', 'chandeliers', 'uncategorized'
+] as const
+
+function isValidCategory(category: string): boolean {
+  return ALLOWED_CATEGORIES.includes(category.toLowerCase() as typeof ALLOWED_CATEGORIES[number])
+}
+
+// ============================================================================
+// SECURITY: Filename Sanitization
+// ============================================================================
+function sanitizeFilename(filename: string): string {
+  // Remove path traversal attempts
+  let safe = filename.replace(/\.\./g, '').replace(/[\/\\]/g, '')
+  // Keep only alphanumeric, dash, underscore, dot
+  safe = safe.replace(/[^a-zA-Z0-9._-]/g, '_')
+  // Ensure it has a valid extension
+  if (!safe.match(/\.(png|jpg|jpeg|gif|webp)$/i)) {
+    safe = safe.replace(/\.[^.]+$/, '') + '.png'
+  }
+  // Limit length
+  if (safe.length > 200) {
+    safe = safe.substring(0, 200)
+  }
+  return safe || 'image.png'
+}
+
+// ============================================================================
+// SECURITY: Escape SQL wildcards in ILIKE queries
+// ============================================================================
+function escapeIlike(str: string): string {
+  return str
+    .replace(/\\/g, '\\\\')
+    .replace(/%/g, '\\%')
+    .replace(/_/g, '\\_')
+}
+
+// ============================================================================
 // IMAGE PROCESSING CONFIG
 // ============================================================================
 const CANVAS_SIZE = 1200        // Output: 1200x1200 square
@@ -107,7 +148,13 @@ export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData()
     const files = formData.getAll('files') as File[]
-    const category = formData.get('category') as string || 'uncategorized'
+    const categoryRaw = formData.get('category') as string || 'uncategorized'
+    
+    // Validate category against allowlist
+    if (!isValidCategory(categoryRaw)) {
+      return NextResponse.json({ error: 'Invalid category' }, { status: 400 })
+    }
+    const category = categoryRaw.toLowerCase()
     
     if (!files.length) {
       return NextResponse.json({ error: 'No files provided' }, { status: 400 })
@@ -120,7 +167,9 @@ export async function POST(request: NextRequest) {
         const buffer = Buffer.from(await file.arrayBuffer())
         const processed = await processImage(buffer)
         
-        const pathname = `inventory/${category}/${file.name.replace(/\.[^.]+$/, '.png')}`
+        // Sanitize filename to prevent path traversal and injection
+        const safeFilename = sanitizeFilename(file.name)
+        const pathname = `inventory/${category}/${safeFilename.replace(/\.[^.]+$/, '.png')}`
         
         const blob = await put(pathname, processed, {
           access: 'private',
@@ -136,10 +185,11 @@ export async function POST(request: NextRequest) {
           .replace(/[-_]/g, ' ')   // Replace dashes/underscores with spaces
         
         const supabase = await createClient()
+        const safeSearchName = escapeIlike(searchName)
         const { data: matchedProducts } = await supabase
           .from('products')
           .select('id, name')
-          .ilike('name', `%${searchName}%`)
+          .ilike('name', `%${safeSearchName}%`)
           .limit(1)
         
         let dbUpdated = false
@@ -221,11 +271,12 @@ export async function PATCH() {
         .replace(/\.[^.]+$/, '') // Remove extension
         .replace(/[-_]/g, ' ')   // Replace dashes/underscores with spaces
       
-      // Find matching product
+      // Find matching product (with escaped wildcards)
+      const safeSearchName = escapeIlike(searchName)
       const { data: matchedProducts } = await supabase
         .from('products')
         .select('id, name')
-        .ilike('name', `%${searchName}%`)
+        .ilike('name', `%${safeSearchName}%`)
         .limit(1)
       
       if (matchedProducts && matchedProducts.length > 0) {

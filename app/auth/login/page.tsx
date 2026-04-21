@@ -1,8 +1,28 @@
 'use client'
 
 import { createClient } from '@/lib/supabase/client'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { useState } from 'react'
+
+// ============================================================================
+// SAFE REDIRECT VALIDATION
+// Prevents open redirect attacks by only allowing internal paths
+// ============================================================================
+function getSafeRedirect(redirectParam: string | null): string {
+  if (!redirectParam) return '/admin'
+  
+  // Only allow paths starting with / (no protocol, no host)
+  // Reject anything that could be an external URL
+  if (
+    redirectParam.startsWith('/') &&
+    !redirectParam.startsWith('//') &&
+    !redirectParam.includes(':')
+  ) {
+    return redirectParam
+  }
+  
+  return '/admin'
+}
 
 export default function AdminLoginPage() {
   const [email, setEmail] = useState('')
@@ -10,6 +30,7 @@ export default function AdminLoginPage() {
   const [error, setError] = useState<string | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
+  const searchParams = useSearchParams()
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -23,7 +44,10 @@ export default function AdminLoginPage() {
         password,
       })
       if (error) throw error
-      router.push('/admin')
+      
+      // Safely redirect after login (prevents open redirect attacks)
+      const redirectTo = getSafeRedirect(searchParams.get('redirect'))
+      router.push(redirectTo)
     } catch (error: unknown) {
       setError(error instanceof Error ? error.message : 'Invalid credentials')
     } finally {
