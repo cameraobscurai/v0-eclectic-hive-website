@@ -151,6 +151,15 @@ const SUB_CATEGORY_KEYWORDS: Record<string, string[]> = {
   'Sconces': ['sconce', 'wall lamp'],
 }
 
+// Sub-category sort order for better visual flow (larger items first, then smaller)
+const SUB_CATEGORY_SORT_ORDER: Record<string, string[]> = {
+  'Seating': ['Sofas', 'Benches', 'Chairs', 'Ottomans', 'Stools'],
+  'Tables': ['Dining Tables', 'Coffee Tables', 'Consoles', 'Side Tables'],
+  'Bars': ['Bars', 'Back Bars', 'Carts'],
+  'Large Decor & Dividers': ['Screens', 'Arches', 'Mirrors', 'Planters'],
+  'Lighting': ['Floor Lamps', 'Table Lamps', 'Sconces'],
+}
+
 
 
 export default function CollectionPage() {
@@ -187,7 +196,7 @@ export default function CollectionPage() {
   const [searchQuery, setSearchQuery] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [hiddenProducts, setHiddenProducts] = useState<Set<string>>(new Set())
-  const [sortBy, setSortBy] = useState<'name' | 'newest' | 'oldest'>('name')
+  const [sortBy, setSortBy] = useState<'type' | 'name' | 'newest' | 'oldest'>('type')
   
   // Set initial category to first one with images once products load
   useEffect(() => {
@@ -206,9 +215,9 @@ export default function CollectionPage() {
   
   // Reset all filters
   const resetFilters = useCallback(() => {
-    setActiveSubCategory('All')
-    setSearchQuery('')
-    setSortBy('name')
+  setActiveSubCategory('All')
+  setSearchQuery('')
+  setSortBy('type')
   }, [])
   
   // Handle broken images - hide them from the grid
@@ -284,6 +293,22 @@ export default function CollectionPage() {
     } else {
       // Apply sort when not searching
       switch (sortBy) {
+        case 'type':
+          // Sort by sub-category for better visual flow (sofas, then benches, then chairs, etc.)
+          const sortOrder = SUB_CATEGORY_SORT_ORDER[activeCategory] || []
+          results.sort((a, b) => {
+            const aSubCat = detectSubCategory(a.name)
+            const bSubCat = detectSubCategory(b.name)
+            const aIndex = sortOrder.indexOf(aSubCat)
+            const bIndex = sortOrder.indexOf(bSubCat)
+            // Items not in sort order go to end
+            const aOrder = aIndex === -1 ? 999 : aIndex
+            const bOrder = bIndex === -1 ? 999 : bIndex
+            // Primary sort by sub-category, secondary by name
+            if (aOrder !== bOrder) return aOrder - bOrder
+            return a.name.localeCompare(b.name)
+          })
+          break
         case 'name':
           results.sort((a, b) => a.name.localeCompare(b.name))
           break
@@ -391,13 +416,14 @@ export default function CollectionPage() {
               {/* Sort dropdown */}
               <select
                 value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as 'name' | 'newest' | 'oldest')}
-                className="text-[10px] tracking-wide bg-transparent border border-charcoal/10 rounded-full px-2.5 py-1.5 focus:outline-none focus:border-charcoal/30 text-charcoal/60 cursor-pointer"
-              >
-                <option value="name">A-Z</option>
-                <option value="newest">Newest</option>
-                <option value="oldest">Oldest</option>
-              </select>
+  onChange={(e) => setSortBy(e.target.value as 'type' | 'name' | 'newest' | 'oldest')}
+  className="text-[10px] tracking-wide bg-transparent border border-charcoal/10 rounded-full px-2.5 py-1.5 focus:outline-none focus:border-charcoal/30 text-charcoal/60 cursor-pointer"
+  >
+  <option value="type">By Type</option>
+  <option value="name">A-Z</option>
+  <option value="newest">Newest</option>
+  <option value="oldest">Oldest</option>
+  </select>
               
               {/* Search */}
               <div className="relative hidden sm:block">
