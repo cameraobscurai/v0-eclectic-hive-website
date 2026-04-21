@@ -642,36 +642,57 @@ img {
 
 /* Base glass panel - subtle frost */
 .glass {
-  @apply backdrop-blur-[12px] bg-white/[0.04] border border-white/[0.08];
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  background-color: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
 }
 
 /* Glass on dark backgrounds */
 .glass-dark {
-  @apply backdrop-blur-[12px] bg-charcoal/40 border border-cream/[0.08];
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  background-color: rgba(20, 20, 20, 0.4);
+  border: 1px solid rgba(245, 241, 235, 0.08);
 }
 
 /* Glass on light backgrounds */
 .glass-light {
-  @apply backdrop-blur-[12px] bg-cream/60 border border-charcoal/[0.08];
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  background-color: rgba(245, 241, 235, 0.6);
+  border: 1px solid rgba(20, 20, 20, 0.08);
 }
 
 /* Interactive glass - hover states */
 .glass-interactive {
-  @apply glass transition-all duration-300;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  background-color: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  transition: all 0.3s ease;
 }
 
 .glass-interactive:hover {
-  @apply bg-white/[0.08] border-white/[0.15];
+  background-color: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.15);
 }
 
 /* Glass card with shadow */
 .glass-card {
-  @apply glass shadow-xl shadow-black/10;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  background-color: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.1);
 }
 
 /* Subtle glass - very minimal effect */
 .glass-subtle {
-  @apply backdrop-blur-[8px] bg-white/[0.02] border border-white/[0.05];
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  background-color: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 /* =============================================================================
