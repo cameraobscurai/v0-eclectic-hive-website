@@ -17,8 +17,8 @@ type Project = {
   id: string
   slug: string
   title: string
-  planner: string
-  location: string
+  location: string // Full location (e.g., "Canyon Point, Utah")
+  region: string // State/country for filtering (e.g., "Utah")
   type: string
   year: string
   image: string // Cover image for the filmstrip
@@ -30,8 +30,8 @@ const projects: Project[] = [
     id: '01',
     slug: 'amangiri',
     title: 'Amangiri',
-    planner: 'Eclectic Hive',
     location: 'Canyon Point, Utah',
+    region: 'Utah',
     type: 'Private Celebration',
     year: '2024',
     image: '/images/gallery/amangiri/amangiri-landscape.jpg',
@@ -44,8 +44,8 @@ const projects: Project[] = [
   },
 ]
 
-// Extract unique planners for filtering
-const allPlanners = ['All', ...Array.from(new Set(projects.map(p => p.planner)))]
+// Extract unique regions for filtering
+const allRegions = ['All', ...Array.from(new Set(projects.map(p => p.region))).sort()]
 
 // Press logos - where their work has been featured
 const PRESS_LOGOS = [
@@ -81,13 +81,13 @@ function ProjectCard({
         'transition-all duration-500',
         isActive ? 'opacity-100' : 'opacity-70 hover:opacity-90'
       )}
-      aria-label={`View ${project.title} by ${project.planner}`}
+      aria-label={`View ${project.title} in ${project.region}`}
     >
       {/* Image Container */}
       <div className="relative aspect-[4/5] overflow-hidden bg-charcoal/50">
-        <Image
-          src={project.image}
-          alt={`${project.title} - ${project.planner}`}
+          <Image
+            src={project.image}
+            alt={`${project.title} - ${project.location}`}
           fill
           className={cn(
             'object-cover transition-all duration-700',
@@ -111,7 +111,7 @@ function ProjectCard({
         {/* Project Info */}
         <div className="absolute bottom-0 left-0 right-0 p-6 lg:p-8">
           <p className="text-cream/60 text-xs uppercase tracking-[0.2em] mb-2">
-            {project.planner}
+            {project.region}
           </p>
           <h3 className="font-display text-2xl lg:text-3xl text-cream font-light tracking-tight">
             {project.title}
@@ -286,9 +286,9 @@ function ProjectPanel({
               {project.id} / {projects.length.toString().padStart(2, '0')}
             </span>
             
-            {/* Planner */}
+            {/* Region */}
             <p className="text-sand text-xs uppercase tracking-[0.2em] mt-8 mb-3">
-              {project.planner}
+              {project.region}
             </p>
             
             {/* Title */}
@@ -308,9 +308,9 @@ function ProjectPanel({
             {/* Divider */}
             <div className="w-12 h-px bg-cream/20 my-8" />
             
-            {/* Description placeholder */}
+            {/* Description */}
             <p className="text-cream/60 leading-relaxed">
-              A bespoke environment designed in collaboration with {project.planner}, 
+              A bespoke environment crafted by Eclectic Hive, 
               bringing intentional design and material intelligence to {project.location}.
             </p>
             
@@ -367,10 +367,10 @@ export default function GalleryPage() {
   const [activeIndex, setActiveIndex] = useState(0)
   const scrollRef = useRef<HTMLDivElement>(null)
   
-  // Filter projects
+  // Filter projects by region
   const filteredProjects = activeFilter === 'All' 
     ? projects 
-    : projects.filter(p => p.planner === activeFilter)
+    : projects.filter(p => p.region === activeFilter)
   
   // Get current project index in filtered list
   const selectedIndex = selectedProject 
@@ -407,9 +407,9 @@ export default function GalleryPage() {
     return () => container.removeEventListener('scroll', handleScroll)
   }, [filteredProjects.length])
   
-  // Count by planner for filter badges
-  const plannerCounts = projects.reduce((acc, p) => {
-    acc[p.planner] = (acc[p.planner] || 0) + 1
+  // Count by region for filter badges
+  const regionCounts = projects.reduce((acc, p) => {
+    acc[p.region] = (acc[p.region] || 0) + 1
     return acc
   }, {} as Record<string, number>)
 
@@ -441,19 +441,19 @@ export default function GalleryPage() {
       </section>
       
       {/* ─────────────────────────────────────────────────────────────
-          Filter Pills - Only show when projects exist
+          Filter Pills - By Region/Location
       ───────────────────────────────────────────────────────────── */}
-      {projects.length > 0 && (
+      {projects.length > 0 && allRegions.length > 2 && (
         <section className="pb-8 lg:pb-12 px-6 lg:px-12">
           <div className="max-w-7xl mx-auto">
             <div className="flex flex-wrap gap-3">
-              {allPlanners.map((planner) => {
-              const isActive = activeFilter === planner
-              const count = planner === 'All' ? projects.length : plannerCounts[planner]
+              {allRegions.map((region) => {
+              const isActive = activeFilter === region
+              const count = region === 'All' ? projects.length : regionCounts[region]
               return (
                 <button
-                  key={planner}
-                  onClick={() => setActiveFilter(planner)}
+                  key={region}
+                  onClick={() => setActiveFilter(region)}
                   className={cn(
                     'px-4 py-2 text-xs uppercase tracking-[0.15em] transition-all duration-300 border',
                     isActive
@@ -461,7 +461,7 @@ export default function GalleryPage() {
                       : 'bg-transparent text-cream/60 border-cream/20 hover:border-cream/40 hover:text-cream'
                   )}
                 >
-                  {planner}
+                  {region}
                   {count > 1 && (
                     <span className={cn(
                       'ml-2 opacity-50',
@@ -554,7 +554,7 @@ export default function GalleryPage() {
       
       {/* ─────────────────────────────────────────────────────────────
           Index List (Alternative View) - Only show when projects exist
-      ───────────────────────────────────────────────────────────── */}
+      ───────────────────────────────────────────────���───────────── */}
       {filteredProjects.length > 0 && (
         <section className="bg-cream/5 py-16 lg:py-24 px-6 lg:px-12">
           <div className="max-w-7xl mx-auto">
