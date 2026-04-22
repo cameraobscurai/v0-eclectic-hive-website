@@ -176,15 +176,29 @@ function StepActions({
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-export function InquiryFlow({ onSuccess }: { onSuccess?: () => void }) {
+type InquiryItem = {
+  id: string
+  name: string
+  quantity: number
+  category?: string
+  imageUrl?: string
+}
+
+interface InquiryFlowProps {
+  onSuccess?: () => void
+  preselectedItems?: InquiryItem[]
+}
+
+export function InquiryFlow({ onSuccess, preselectedItems = [] }: InquiryFlowProps) {
   const [step, setStep] = useState(1)
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const topRef = useRef<HTMLDivElement>(null)
   
-  // Get shortlisted items from collection
-  const { items: shortlistedItems, clear: clearShortlist } = useInquiryStore()
+  // Get shortlisted items from collection - merge with any preselected items
+  const { items: storeItems, clear: clearShortlist } = useInquiryStore()
+  const shortlistedItems = preselectedItems.length > 0 ? preselectedItems : storeItems
 
   const [state, setState] = useState<InquiryState>({
     clientType: null,

@@ -54,7 +54,7 @@ export async function GET(request: NextRequest) {
       headers: {
         'Content-Type': result.blob.contentType,
         ETag: result.blob.etag,
-        'Cache-Control': 'private, no-cache, must-revalidate', // Always validate with server
+        'Cache-Control': 'public, s-maxage=86400, stale-while-revalidate=604800', // CDN cache 1 day, stale 7 days
       },
     })
   } catch (error) {

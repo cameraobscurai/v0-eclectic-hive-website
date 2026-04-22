@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { Navigation } from '@/components/navigation'
 import { Footer } from '@/components/footer'
-import { InquiryFlow } from '@/components/inquiry-flow'
+import { InquiryFlowWrapper } from '@/components/inquiry-flow-wrapper'
 
 export const metadata: Metadata = {
   title: 'Contact | Eclectic Hive',
@@ -60,8 +60,8 @@ export default function ContactPage() {
         </div>
       </section>
 
-      {/* Multi-step inquiry flow */}
-      <InquiryFlow />
+      {/* Multi-step inquiry flow - connected to inquiry store */}
+      <InquiryFlowWrapper />
 
       {/* Direct email fallback */}
       <section className="px-6 lg:px-12 pb-24">

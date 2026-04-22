@@ -116,17 +116,10 @@ export function PageTransitionProvider({ children }: { children: ReactNode }) {
     setShowWipe(true)
     setWipePhase('enter')
     setPendingHref(href)
+    
+    // Fire navigation immediately - wipe plays as overlay, doesn't block loading
+    router.push(href)
   }, [pathname, isTransitioning, reducedMotion, router])
-
-  // Handle wipe phases
-  useEffect(() => {
-    if (wipePhase === 'enter' && pendingHref) {
-      const timer = setTimeout(() => {
-        router.push(pendingHref)
-      }, 280) // Faster - bars cover screen quicker
-      return () => clearTimeout(timer)
-    }
-  }, [wipePhase, pendingHref, router])
 
   // When pathname changes after navigation
   useEffect(() => {
@@ -226,6 +219,7 @@ interface TransitionLinkProps extends React.AnchorHTMLAttributes<HTMLAnchorEleme
 
 export function TransitionLink({ href, children, className, onClick, ...props }: TransitionLinkProps) {
   const { navigateWithTransition, isTransitioning } = usePageTransition()
+  const router = useRouter()
   
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     // Allow cmd/ctrl click for new tab
@@ -238,10 +232,16 @@ export function TransitionLink({ href, children, className, onClick, ...props }:
     }
   }
   
+  // Prefetch on hover for instant navigation
+  const handleMouseEnter = () => {
+    router.prefetch(href)
+  }
+  
   return (
     <a 
       href={href} 
-      onClick={handleClick} 
+      onClick={handleClick}
+      onMouseEnter={handleMouseEnter}
       className={className}
       {...props}
     >
