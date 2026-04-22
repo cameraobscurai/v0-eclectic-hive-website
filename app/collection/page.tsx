@@ -90,7 +90,7 @@ type Product = {
   category: string
   sub_category?: string
   primary_image_url?: string
-  display_type: string
+  display_type?: 'single' | 'variants' | 'custom_inquiry'
   is_featured?: boolean
   updated_at?: string
   description?: string
