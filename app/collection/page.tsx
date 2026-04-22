@@ -1,13 +1,13 @@
 'use client'
 
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
+import { useState, useEffect, useMemo, useCallback } from 'react'
 import useSWR, { useSWRConfig } from 'swr'
 import dynamic from 'next/dynamic'
 import { useQueryState, parseAsString } from 'nuqs'
-import { motion, AnimatePresence, LayoutGroup } from 'framer-motion'
 import { Navigation } from '@/components/navigation'
 import { Footer } from '@/components/footer'
 import { cn } from '@/lib/utils'
+import { useRef } from 'react'
 
 // B4: Lazy-load QuickViewModal - defers large JS until actually needed
 const QuickViewModal = dynamic(
@@ -651,38 +651,19 @@ export default function CollectionPage() {
             ))}
           </div>
         ) : filteredProducts.length > 0 ? (
-          <LayoutGroup>
-            <motion.div 
-              className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
-              layout
-            >
-              <AnimatePresence mode="popLayout">
-                {filteredProducts.map((product, index) => (
-                  <motion.div
-                    key={product.id}
-                    layout
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    exit={{ opacity: 0, scale: 0.9 }}
-                    transition={{ 
-                      duration: 0.25,
-                      ease: [0.25, 0.1, 0.25, 1],
-                      layout: { duration: 0.3 }
-                    }}
-                  >
-                    <ProductCard 
-                      product={product} 
-                      imageUrl={getImageUrl(product)}
-                      onImageError={handleImageError}
-                      onClick={() => openQuickView(product)}
-                      index={index}
-                      brokenImagesRef={brokenImagesRef}
-                    />
-                  </motion.div>
-                ))}
-              </AnimatePresence>
-            </motion.div>
-          </LayoutGroup>
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+            {filteredProducts.map((product, index) => (
+              <ProductCard 
+                key={product.id} 
+                product={product} 
+                imageUrl={getImageUrl(product)}
+                onImageError={handleImageError}
+                onClick={() => openQuickView(product)}
+                index={index}
+                brokenImagesRef={brokenImagesRef}
+              />
+            ))}
+          </div>
         ) : (
           <div className="py-20 text-center">
             <p className="text-sm text-charcoal/40 mb-2">No pieces found.</p>
