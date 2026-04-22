@@ -15,7 +15,7 @@ const QuickViewModal = dynamic(
   { ssr: false }
 )
 
-// Optimized ProductCard with clip-path reveal hover (not scale-105)
+// Clean white ProductCard with clip-path reveal hover
 function ProductCard({ 
   product, 
   imageUrl, 
@@ -51,126 +51,44 @@ function ProductCard({
       onClick={onClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className="group relative cursor-pointer text-left w-full focus:outline-none product-card"
-      style={{ padding: '6px' }}
+      className="group relative cursor-pointer text-left w-full focus:outline-none product-card bg-white"
     >
-      {/* ── Dark liquid glass card ── */}
+      {/* Product image */}
+      <div className="relative aspect-square">
+        {!loaded && (
+          <div className="absolute inset-0 bg-cream/50 animate-pulse" />
+        )}
+        <img
+          src={imageUrl}
+          alt={product.name}
+          className={cn(
+            "w-full h-full object-contain p-4",
+            loaded ? "opacity-100" : "opacity-0",
+          )}
+          style={{ transition: 'opacity 0.3s ease' }}
+          loading={isAboveFold ? 'eager' : 'lazy'}
+          decoding={isAboveFold ? 'sync' : 'async'}
+          fetchPriority={index < 3 ? 'high' : 'auto'}
+          onLoad={() => setLoaded(true)}
+          onError={handleError}
+        />
+      </div>
+
+      {/* Clip-path reveal overlay on hover */}
       <div
-        className="relative overflow-hidden h-full"
+        className="absolute inset-x-0 bottom-0 pointer-events-none overflow-hidden"
         style={{
-          borderRadius: '16px',
-          // Dark charcoal tint — the glass itself is smoked/dark
-          background: isHovered
-            ? 'rgba(26, 26, 26, 0.09)'
-            : 'rgba(26, 26, 26, 0.05)',
-          backdropFilter: 'blur(20px) saturate(140%) brightness(0.97)',
-          WebkitBackdropFilter: 'blur(20px) saturate(140%) brightness(0.97)',
-          boxShadow: isHovered
-            ? `
-              /* Outer ring — thin dark refraction edge */
-              0 0 0 0.5px rgba(26, 26, 26, 0.14),
-              /* Top highlight — glass has a lit top edge even when dark */
-              inset 0 1px 0 rgba(255, 255, 255, 0.55),
-              /* Bottom inner shadow — depth/thickness of the glass */
-              inset 0 -1px 0 rgba(0, 0, 0, 0.12),
-              /* Left/right inner edges */
-              inset 1px 0 0 rgba(255, 255, 255, 0.08),
-              inset -1px 0 0 rgba(0, 0, 0, 0.06),
-              /* Lift shadow — card floats off white surface */
-              0 8px 24px rgba(0, 0, 0, 0.10),
-              0 3px 8px rgba(0, 0, 0, 0.07),
-              0 1px 2px rgba(0, 0, 0, 0.06)
-            `
-            : `
-              0 0 0 0.5px rgba(26, 26, 26, 0.08),
-              inset 0 1px 0 rgba(255, 255, 255, 0.45),
-              inset 0 -1px 0 rgba(0, 0, 0, 0.08),
-              inset 1px 0 0 rgba(255, 255, 255, 0.06),
-              inset -1px 0 0 rgba(0, 0, 0, 0.04),
-              0 2px 8px rgba(0, 0, 0, 0.06),
-              0 1px 2px rgba(0, 0, 0, 0.04)
-            `,
-          transition: 'box-shadow 0.4s cubic-bezier(0.22,1,0.36,1), background 0.4s cubic-bezier(0.22,1,0.36,1)',
+          clipPath: isHovered ? 'inset(0% 0% 0% 0%)' : 'inset(100% 0% 0% 0%)',
+          transition: 'clip-path 0.35s cubic-bezier(0.22, 1, 0.36, 1)',
         }}
       >
-        {/* Top specular highlight — bright rim on dark glass */}
-        <div
-          className="absolute inset-x-0 top-0 pointer-events-none z-10"
-          style={{
-            height: '1px',
-            background: 'linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.6) 20%, rgba(255,255,255,0.6) 80%, transparent 100%)',
-          }}
-        />
-
-        {/* Subtle inner vignette — dark glass absorbs light at edges */}
-        <div
-          className="absolute inset-0 pointer-events-none z-10"
-          style={{
-            background: 'radial-gradient(ellipse at 50% 0%, rgba(255,255,255,0.06) 0%, transparent 65%)',
-            borderRadius: '16px',
-          }}
-        />
-
-        {/* Product image */}
-        <div className="relative aspect-square p-4 lg:p-5">
-          {!loaded && (
-            <div className="absolute inset-4 lg:inset-5 rounded-lg" style={{ background: 'rgba(26,26,26,0.04)' }}>
-              <div className="absolute inset-0 rounded-lg bg-gradient-to-r from-transparent via-white/20 to-transparent -translate-x-full animate-[shimmer_1.5s_infinite]" />
-            </div>
-          )}
-          <img
-            src={imageUrl}
-            alt={product.name}
-            className={cn(
-              "relative w-full h-full object-contain",
-              loaded ? "opacity-100" : "opacity-0",
-            )}
-            style={{
-              transition: 'opacity 0.4s ease, transform 0.5s cubic-bezier(0.22,1,0.36,1)',
-              transform: isHovered ? 'scale(1.04)' : 'scale(1)',
-            }}
-            loading={isAboveFold ? 'eager' : 'lazy'}
-            decoding={isAboveFold ? 'sync' : 'async'}
-            fetchPriority={index < 3 ? 'high' : 'auto'}
-            onLoad={() => setLoaded(true)}
-            onError={handleError}
-          />
-        </div>
-
-        {/* Label tray — dark frosted glass panel */}
-        <div
-          className="relative px-3 pb-3"
-          style={{
-            transform: isHovered ? 'translateY(0)' : 'translateY(3px)',
-            opacity: isHovered ? 1 : 0.65,
-            transition: 'transform 0.4s cubic-bezier(0.22,1,0.36,1), opacity 0.4s ease',
-          }}
-        >
-          <div
-            style={{
-              borderRadius: '8px',
-              // Dark glass tray — charcoal with white top edge
-              background: 'rgba(26, 26, 26, 0.07)',
-              backdropFilter: 'blur(12px)',
-              WebkitBackdropFilter: 'blur(12px)',
-              boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.5), inset 0 -1px 0 rgba(0,0,0,0.08), 0 1px 3px rgba(0,0,0,0.06)',
-              padding: '7px 10px 8px',
-            }}
-          >
-            <p className="text-[10px] tracking-[0.1em] text-charcoal/75 uppercase font-medium truncate leading-tight">
-              {product.name}
-            </p>
-            <p
-              className="text-[9px] tracking-[0.12em] uppercase mt-0.5"
-              style={{
-                color: isHovered ? 'rgba(26,26,26,0.5)' : 'rgba(26,26,26,0.3)',
-                transition: 'color 0.3s ease',
-                fontWeight: 300,
-              }}
-            >
-              Quick View
-            </p>
-          </div>
+        <div className="bg-white/96 backdrop-blur-sm px-4 py-4 border-t border-charcoal/6">
+          <p className="text-[11px] tracking-[0.1em] text-charcoal uppercase font-medium truncate">
+            {product.name}
+          </p>
+          <p className="text-[9px] tracking-[0.12em] text-charcoal/40 uppercase mt-1">
+            Quick View
+          </p>
         </div>
       </div>
     </button>
