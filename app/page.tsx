@@ -5,6 +5,7 @@ import Image from 'next/image'
 import { Navigation } from '@/components/navigation'
 import { Footer } from '@/components/footer'
 import { TransitionLink } from '@/components/page-transition'
+import { MaterialPaletteSection } from '@/components/materials/material-palette-section'
 import { cn } from '@/lib/utils'
 
 // Navigation destinations
@@ -233,6 +234,9 @@ export default function HomePage() {
       </section>
 
       {/* ========== FOOTER ========== */}
+      {/* Material Palette - WebGL swatches */}
+      <MaterialPaletteSection />
+
       <Footer />
     </main>
   )
