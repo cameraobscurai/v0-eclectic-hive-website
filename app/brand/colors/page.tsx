@@ -106,25 +106,24 @@ export default function Colors() {
       </div>
 
       {/* Hero section */}
-      <section className="relative min-h-[60vh] flex items-end pb-16 px-8 lg:px-16 overflow-hidden">
+      <section className="relative min-h-[50vh] flex items-end pb-16 px-8 lg:px-16 overflow-hidden">
         {/* Large background color blocks */}
         <div className="absolute inset-0 flex">
-          <div className="flex-1 bg-charcoal" />
-          <div className="w-px bg-cream/10" />
-          <div className="flex-1 bg-cream" />
+          <div className="w-1/2 bg-charcoal" />
+          <div className="w-1/2 bg-cream" />
         </div>
         
         <div className="relative z-10 w-full max-w-6xl mx-auto">
-          <div className="flex items-end justify-between">
-            <div>
-              <p className="text-cream/40 text-xs font-mono uppercase tracking-[0.3em] mb-4">
-                Color System
-              </p>
-              <h1 className="font-serif text-6xl lg:text-8xl tracking-tight">
-                <span className="text-cream">Color</span>
-                <span className="text-charcoal ml-4">& Material</span>
-              </h1>
-            </div>
+          <p className="text-cream/40 text-xs font-mono uppercase tracking-[0.3em] mb-4">
+            Color System
+          </p>
+          <div className="flex flex-col lg:flex-row lg:items-baseline gap-2 lg:gap-0">
+            <h1 className="font-serif text-5xl lg:text-7xl xl:text-8xl tracking-tight text-cream">
+              COLOR
+            </h1>
+            <h1 className="font-serif text-5xl lg:text-7xl xl:text-8xl tracking-tight text-charcoal lg:ml-6">
+              MATERIAL
+            </h1>
           </div>
         </div>
       </section>
