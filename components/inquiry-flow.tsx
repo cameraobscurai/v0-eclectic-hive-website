@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect } from 'react'
 import { cn } from '@/lib/utils'
+import { useInquiryStore } from '@/lib/inquiry-store'
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -181,6 +182,9 @@ export function InquiryFlow({ onSuccess }: { onSuccess?: () => void }) {
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const topRef = useRef<HTMLDivElement>(null)
+  
+  // Get shortlisted items from collection
+  const { items: shortlistedItems, clear: clearShortlist } = useInquiryStore()
 
   const [state, setState] = useState<InquiryState>({
     clientType: null,
@@ -245,13 +249,21 @@ export function InquiryFlow({ onSuccess }: { onSuccess?: () => void }) {
     setSubmitting(true)
     setError(null)
     try {
+      // Include shortlisted items in submission
+      const payload = {
+        ...state,
+        shortlistedItems: shortlistedItems.length > 0 
+          ? shortlistedItems.map(i => `${i.quantity > 1 ? `${i.quantity}× ` : ''}${i.name}`).join(', ')
+          : undefined,
+      }
       const res = await fetch('/api/inquiry', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(state),
+        body: JSON.stringify(payload),
       })
       if (!res.ok) throw new Error('Failed')
       setSubmitted(true)
+      clearShortlist() // Clear the shortlist after successful submission
       onSuccess?.()
     } catch {
       setError(
@@ -495,6 +507,27 @@ export function InquiryFlow({ onSuccess }: { onSuccess?: () => void }) {
       {step === 7 && (
         <div>
           <Question>Tell us about your vision.</Question>
+          
+          {/* Shortlisted pieces summary */}
+          {shortlistedItems.length > 0 && (
+            <div className="mb-8 p-4 border border-charcoal/10 rounded-sm">
+              <p className="text-xs uppercase tracking-[0.15em] text-charcoal/50 mb-3">
+                Selected pieces from collection
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {shortlistedItems.map((item) => (
+                  <span 
+                    key={item.id}
+                    className="inline-flex items-center gap-2 px-3 py-1.5 bg-charcoal/5 text-xs text-charcoal/70"
+                  >
+                    {item.quantity > 1 && <span className="font-medium">{item.quantity}×</span>}
+                    {item.name}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+          
           <div className="flex flex-col gap-10">
             <textarea
               value={state.vision}

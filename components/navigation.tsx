@@ -7,15 +7,15 @@ import { TransitionLink } from '@/components/page-transition'
 import { cn } from '@/lib/utils'
 
 const NAV_LINKS = [
-  { href: '/atelier', label: 'Atelier by The Hive' },
-  { href: '/collection', label: 'Hive Signature Collection' },
-  { href: '/gallery', label: 'The Gallery' },
-  // { href: '/studio', label: 'Studio' }, // Hidden for now
+  { href: '/atelier', label: 'Atelier' },
+  { href: '/collection', label: 'Collection' },
+  { href: '/gallery', label: 'Gallery' },
+  { href: '/process', label: 'Process' },
   { href: '/contact', label: 'Contact' },
 ]
 
 // Pages with light (cream) backgrounds need dark nav text
-const LIGHT_BG_PAGES = ['/collection', '/contact', '/faq', '/privacy', '/studio']
+const LIGHT_BG_PAGES = ['/collection', '/contact', '/faq', '/privacy', '/studio', '/process']
 
 export function Navigation() {
   const [isOpen, setIsOpen] = useState(false)

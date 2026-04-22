@@ -120,6 +120,15 @@ export default function HomePage() {
         </div>
       </section>
 
+      {/* ========== VALUE PROPOSITION ========== */}
+      <section className="bg-charcoal py-16 md:py-20">
+        <div className="container-padding max-w-3xl mx-auto text-center">
+          <p className="font-display text-lg sm:text-xl md:text-2xl text-cream/80 italic tracking-wide leading-relaxed">
+            We design, build, and produce the environments you can&apos;t hire elsewhere.
+          </p>
+        </div>
+      </section>
+
       {/* ========== NAVIGATION CARDS ========== */}
       <section className="bg-charcoal">
         <div 

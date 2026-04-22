@@ -3,6 +3,7 @@
 import { useEffect, useCallback, useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
+import { useInquiryStore } from '@/lib/inquiry-store'
 
 // =============================================================================
 // LIQUID GLASS QUICK VIEW MODAL
@@ -20,6 +21,7 @@ interface Product {
   sub_category?: string
   primary_image_url?: string
   description?: string
+  display_type?: 'single' | 'variants' | 'custom_inquiry'
   // Variant data (if joined)
   stock_count?: number
   dims_display?: string
@@ -91,11 +93,17 @@ export function QuickViewModal({
   const [imageLoaded, setImageLoaded] = useState(false)
   const modalRef = useRef<HTMLDivElement>(null)
   const [mousePos, setMousePos] = useState({ x: 50, y: 50 })
+  const [qty, setQty] = useState(1)
+  
+  // Inquiry store
+  const { add, remove, has, getQuantity } = useInquiryStore()
+  const isAdded = product ? has(product.id) : false
 
-  // Reset image loaded state when product changes
+  // Reset state when product changes
   useEffect(() => {
     setImageLoaded(false)
-  }, [product?.id])
+    setQty(product ? getQuantity(product.id) || 1 : 1)
+  }, [product?.id, getQuantity])
 
   // Mouse tracking for specular highlight
   const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
@@ -336,19 +344,81 @@ export function QuickViewModal({
                   </div>
                 </div>
 
+                {/* Quantity selector - only for standard items with stock */}
+                {product.display_type !== 'custom_inquiry' && stockCount !== undefined && stockCount > 0 && (
+                  <div className="flex items-center gap-4 py-4 border-y border-charcoal/8">
+                    <span className="text-xs uppercase tracking-[0.15em] text-charcoal/50">
+                      Quantity
+                    </span>
+                    <div className="flex items-center gap-3">
+                      <motion.button
+                        type="button"
+                        whileTap={{ scale: 0.85 }}
+                        onClick={() => setQty(Math.max(1, qty - 1))}
+                        className="w-8 h-8 rounded-full border border-charcoal/15 flex items-center justify-center text-charcoal/60 hover:border-charcoal/40 transition-colors"
+                      >
+                        <span className="text-lg leading-none">−</span>
+                      </motion.button>
+                      <span className="text-charcoal font-display text-xl w-8 text-center tabular-nums">
+                        {qty}
+                      </span>
+                      <motion.button
+                        type="button"
+                        whileTap={{ scale: 0.85 }}
+                        onClick={() => setQty(Math.min(stockCount, qty + 1))}
+                        className="w-8 h-8 rounded-full border border-charcoal/15 flex items-center justify-center text-charcoal/60 hover:border-charcoal/40 transition-colors"
+                      >
+                        <span className="text-lg leading-none">+</span>
+                      </motion.button>
+                    </div>
+                    <span className="text-[10px] text-charcoal/30 uppercase tracking-wider">
+                      {stockCount} available
+                    </span>
+                  </div>
+                )}
+                
+                {/* Custom inquiry notice for bespoke items */}
+                {product.display_type === 'custom_inquiry' && (
+                  <div className="py-4 border-y border-charcoal/8">
+                    <p className="text-xs text-charcoal/50 leading-relaxed">
+                      This piece is custom-built in our Denver workshop. Add to inquiry for pricing and availability.
+                    </p>
+                  </div>
+                )}
+
                 {/* CTA */}
-                <div className="mt-8 space-y-3">
-                  <button
+                <div className="mt-6 space-y-3">
+                  <motion.button
+                    onClick={() => {
+                      if (!product) return
+                      if (isAdded) {
+                        remove(product.id)
+                      } else {
+                        add({
+                          id: product.id,
+                          name: product.name,
+                          category: product.category,
+                          imageUrl,
+                          dims_display: product.dims_display,
+                        }, product.display_type === 'custom_inquiry' ? 1 : qty)
+                      }
+                    }}
                     className={cn(
                       'w-full py-4 px-6 min-h-[48px] rounded-lg',
-                      'bg-charcoal text-white',
                       'text-xs uppercase tracking-[0.12em] font-medium',
-                      'hover:bg-charcoal/90 active:scale-[0.98] transition-all duration-150',
-                      'shadow-sm touch-manipulation'
+                      'transition-all duration-200 touch-manipulation',
+                      isAdded
+                        ? 'bg-cream text-charcoal border border-charcoal/20 hover:bg-sand/30'
+                        : 'bg-charcoal text-white hover:bg-charcoal/90'
                     )}
+                    whileTap={{ scale: 0.97 }}
+                    layoutId={`add-btn-${product?.id}`}
                   >
-                    Add to Inquiry
-                  </button>
+                    {product.display_type === 'custom_inquiry' 
+                      ? (isAdded ? 'Added to Inquiry' : 'Request Custom Pricing')
+                      : (isAdded ? `Added (${getQuantity(product?.id ?? '')})` : `Add ${qty > 1 ? `${qty}× ` : ''}to Inquiry`)
+                    }
+                  </motion.button>
                   <p className="text-[9px] text-charcoal/30 text-center tracking-wider uppercase hidden sm:block">
                     Use arrow keys to browse • ESC to close
                   </p>

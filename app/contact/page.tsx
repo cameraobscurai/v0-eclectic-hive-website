@@ -1,4 +1,5 @@
 import type { Metadata } from 'next'
+import Link from 'next/link'
 import { Navigation } from '@/components/navigation'
 import { Footer } from '@/components/footer'
 import { InquiryFlow } from '@/components/inquiry-flow'
@@ -23,11 +24,38 @@ export default function ContactPage() {
           <h1 className="font-display text-4xl md:text-5xl lg:text-6xl tracking-[0.2em] font-light uppercase text-charcoal mb-6">
             Start a Conversation
           </h1>
-          <p className="text-charcoal/60 max-w-lg leading-relaxed">
+          <p className="text-charcoal/60 max-w-lg leading-relaxed mb-6">
             We review every inquiry personally. A few questions help us
             understand your vision so our first conversation is as useful
             as possible.
           </p>
+          
+          {/* Two-audience pathways */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+            <div className="p-4 border border-charcoal/10 rounded-sm">
+              <p className="text-charcoal/80 mb-2">
+                <span className="font-medium">Event planners:</span> We specialize in production partnerships.
+              </p>
+              <Link 
+                href="/atelier" 
+                className="text-charcoal/50 hover:text-charcoal underline underline-offset-4 transition-colors"
+              >
+                See how that works →
+              </Link>
+            </div>
+            <div className="p-4 border border-charcoal/10 rounded-sm">
+              <p className="text-charcoal/80 mb-2">
+                <span className="font-medium">First time hiring a design firm?</span> Here&apos;s exactly what happens next.
+              </p>
+              <Link 
+                href="/process" 
+                className="text-charcoal/50 hover:text-charcoal underline underline-offset-4 transition-colors"
+              >
+                View our process →
+              </Link>
+            </div>
+          </div>
+          
           <div className="mt-12 h-px bg-charcoal/10" />
         </div>
       </section>

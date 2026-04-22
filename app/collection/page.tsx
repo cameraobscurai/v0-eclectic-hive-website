@@ -3,6 +3,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import useSWR, { useSWRConfig } from 'swr'
 import dynamic from 'next/dynamic'
+import { useQueryState, parseAsString } from 'nuqs'
 import { Navigation } from '@/components/navigation'
 import { Footer } from '@/components/footer'
 import { cn } from '@/lib/utils'
@@ -212,7 +213,8 @@ function detectSubCategory(name: string): string {
 
 export default function CollectionPage() {
   const { cache } = useSWRConfig()
-  const [activeCategory, setActiveCategory] = useState<string>('')
+  // URL state - shareable links for planners
+  const [activeCategory, setActiveCategory] = useQueryState('category', parseAsString.withDefault(''))
   
   // B1: Fetch categories first (long cache - rarely changes)
   const { data: categoriesData } = useSWR('/api/categories', fetcher, {
@@ -262,12 +264,14 @@ export default function CollectionPage() {
   })
   const categoryCounts: Record<string, number> = countsData?.counts || {}
   
-  const
-  const [activeSubCategory, setActiveSubCategory] = useState<string>('All')
-  const [searchQuery, setSearchQuery] = useState('')
+  // URL state for sub-category and sort
+  const [activeSubCategory, setActiveSubCategory] = useQueryState('sub', parseAsString.withDefault('All'))
+  const [searchQuery, setSearchQuery] = useQueryState('q', parseAsString.withDefault(''))
+  const [sortBy, setSortBy] = useQueryState('sort', parseAsString.withDefault('type'))
+  
+  // Local state (not worth persisting to URL)
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [hiddenProducts, setHiddenProducts] = useState<Set<string>>(new Set())
-  const [sortBy, setSortBy] = useState<'type' | 'name' | 'newest' | 'oldest'>('type')
   
   // Quick View Modal state
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null)
@@ -439,7 +443,7 @@ export default function CollectionPage() {
       
       {/* ─────────────────────────────────────────────────────────────
           Filter Header - Horizontal Two-Tier Navigation
-      ──────────────────────────────��────────────────────────────── */}
+      ───────────────────���──────────��────────────────────────────── */}
       <section className="sticky top-0 z-40 bg-white">
         {/* Row 1: Main Categories - dynamically shows categories with images */}
         <div className="border-b border-charcoal/10">
@@ -519,8 +523,8 @@ export default function CollectionPage() {
             <div className="flex items-center gap-2 flex-shrink-0 py-1">
               {/* Sort dropdown - 44px touch target */}
               <select
-                value={sortBy}
-                onChange={(e) => setSortBy(e.target.value as 'type' | 'name' | 'newest' | 'oldest')}
+                value={sortBy ?? 'type'}
+                onChange={(e) => setSortBy(e.target.value)}
                 className="text-[10px] tracking-wide bg-transparent border border-charcoal/10 rounded-full px-3 py-2 min-h-[36px] focus:outline-none focus:border-charcoal/30 text-charcoal/60 cursor-pointer touch-manipulation"
               >
                 <option value="type">By Type</option>
