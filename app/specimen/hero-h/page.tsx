@@ -1,12 +1,15 @@
 'use client'
 
 import { useState } from 'react'
+import { DownloadButton } from '@/components/specimen/download-button'
 
 export default function HeroH() {
   const [variant, setVariant] = useState<'light' | 'dark' | 'outline' | 'textured'>('dark')
   
   return (
-    <main className="min-h-screen">
+    <main id="specimen-content" className="min-h-screen">
+      <DownloadButton targetId="specimen-content" filename={`eclectic-hive-hero-h-${variant}`} />
+      
       {/* Controls */}
       <div className="fixed top-4 left-4 z-50 flex gap-2">
         {(['dark', 'light', 'outline', 'textured'] as const).map((v) => (

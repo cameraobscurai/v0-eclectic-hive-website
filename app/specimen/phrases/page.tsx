@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { DownloadButton } from '@/components/specimen/download-button'
 
 // All real Eclectic Hive phrases - no fake words
 const PHRASES = [
@@ -32,7 +33,9 @@ export default function Phrases() {
   const border = theme === 'dark' ? 'border-cream/10' : 'border-charcoal/10'
   
   return (
-    <main className={`min-h-screen ${bg}`}>
+    <main id="specimen-content" className={`min-h-screen ${bg}`}>
+      <DownloadButton targetId="specimen-content" filename={`eclectic-hive-phrases-${view}-${theme}`} />
+      
       {/* Controls */}
       <div className="fixed top-4 left-4 z-50 flex gap-2">
         {(['stack', 'hero', 'words'] as const).map((v) => (

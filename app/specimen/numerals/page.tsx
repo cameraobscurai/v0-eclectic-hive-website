@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { DownloadButton } from '@/components/specimen/download-button'
 
 const NUMERALS = '0123456789'.split('')
 const PUNCTUATION = ['.', ',', ':', ';', '!', '?', '"', '"', "'", "'", '—', '–', '-']
@@ -15,7 +16,9 @@ export default function Numerals() {
   const border = theme === 'dark' ? 'border-cream/10' : 'border-charcoal/10'
   
   return (
-    <main className={`min-h-screen ${bg} p-8 lg:p-16`}>
+    <main id="specimen-content" className={`min-h-screen ${bg} p-8 lg:p-16`}>
+      <DownloadButton targetId="specimen-content" filename={`eclectic-hive-numerals-${theme}`} />
+      
       {/* Controls */}
       <div className="fixed top-4 left-4 z-50">
         <button

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { DownloadButton } from '@/components/specimen/download-button'
 
 export default function GridSystem() {
   const [showBaseline, setShowBaseline] = useState(true)
@@ -8,7 +9,9 @@ export default function GridSystem() {
   const [showType, setShowType] = useState(true)
   
   return (
-    <main className="min-h-screen bg-cream relative overflow-hidden">
+    <main id="specimen-content" className="min-h-screen bg-cream relative overflow-hidden">
+      <DownloadButton targetId="specimen-content" filename="eclectic-hive-grid-system" />
+      
       {/* Controls */}
       <div className="fixed top-4 left-4 z-50 flex gap-2">
         <button

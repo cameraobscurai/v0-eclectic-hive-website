@@ -1,5 +1,7 @@
 'use client'
 
+import { DownloadButton } from '@/components/specimen/download-button'
+
 const COLORS = [
   { name: 'CHARCOAL', hex: '#1a1a1a', rgb: '26, 26, 26', usage: 'Primary text, backgrounds' },
   { name: 'CREAM', hex: '#f5f2ed', rgb: '245, 242, 237', usage: 'Primary backgrounds, reversed text' },
@@ -19,7 +21,8 @@ const MATERIALS = [
 
 export default function Colors() {
   return (
-    <main className="min-h-screen bg-cream p-8 lg:p-16">
+    <main id="specimen-content" className="min-h-screen bg-cream p-8 lg:p-16">
+      <DownloadButton targetId="specimen-content" filename="eclectic-hive-colors-materials" />
       <div className="max-w-6xl mx-auto pt-8">
         {/* Header */}
         <div className="text-charcoal/40 text-xs font-mono uppercase tracking-wider mb-16">

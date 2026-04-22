@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { DownloadButton } from '@/components/specimen/download-button'
 
 const UPPERCASE = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')
 const LOWERCASE = 'abcdefghijklmnopqrstuvwxyz'.split('')
@@ -14,7 +15,9 @@ export default function Alphabet() {
   const textMuted = theme === 'dark' ? 'text-cream/40' : 'text-charcoal/40'
   
   return (
-    <main className={`min-h-screen ${bg} p-8 lg:p-16`}>
+    <main id="specimen-content" className={`min-h-screen ${bg} p-8 lg:p-16`}>
+      <DownloadButton targetId="specimen-content" filename={`eclectic-hive-alphabet-${mode}-${theme}`} />
+      
       {/* Controls */}
       <div className="fixed top-4 left-4 z-50 flex gap-2">
         {(['upper', 'lower', 'both'] as const).map((m) => (

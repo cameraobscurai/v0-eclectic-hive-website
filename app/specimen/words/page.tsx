@@ -1,6 +1,7 @@
 'use client'
 
 import { useState } from 'react'
+import { DownloadButton } from '@/components/specimen/download-button'
 
 // Real Eclectic Hive vocabulary only
 const BRAND_NAME_PARTS = ['ECLECTIC', 'HIVE']
@@ -22,7 +23,9 @@ export default function Words() {
   const textMuted = theme === 'dark' ? 'text-cream/40' : 'text-charcoal/40'
   
   return (
-    <main className={`min-h-screen ${bg}`}>
+    <main id="specimen-content" className={`min-h-screen ${bg}`}>
+      <DownloadButton targetId="specimen-content" filename={`eclectic-hive-words-${view}-${theme}`} />
+      
       {/* Controls */}
       <div className="fixed top-4 left-4 z-50 flex gap-2 flex-wrap">
         {(['brand', 'categories', 'process', 'values'] as const).map((v) => (
