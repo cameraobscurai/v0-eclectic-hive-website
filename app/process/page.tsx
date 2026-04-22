@@ -390,7 +390,7 @@ export default function ProcessPage() {
             </p>
             <div className="mt-12">
               <Link 
-                href="/contact"
+                href="/contact#inquiry"
                 className="inline-flex items-center justify-center px-8 py-4 bg-charcoal text-cream text-sm uppercase tracking-widest hover:bg-charcoal/90 transition-colors"
               >
                 Start an Inquiry

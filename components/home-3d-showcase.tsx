@@ -267,7 +267,7 @@ export function Home3DShowcase() {
             Channel-tufted velvet with solid oak frame. Part of our curated rental collection.
           </p>
           <Link
-            href="/contact"
+            href="/contact#inquiry"
             className="inline-flex items-center gap-2 text-xs uppercase tracking-[0.12em] text-charcoal/60 hover:text-charcoal transition-colors group"
           >
             Inquire for your event

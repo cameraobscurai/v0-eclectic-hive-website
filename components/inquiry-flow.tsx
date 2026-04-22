@@ -187,14 +187,21 @@ type InquiryItem = {
 interface InquiryFlowProps {
   onSuccess?: () => void
   preselectedItems?: InquiryItem[]
+  autoFocus?: boolean
 }
 
-export function InquiryFlow({ onSuccess, preselectedItems = [] }: InquiryFlowProps) {
+export function InquiryFlow({ onSuccess, preselectedItems = [], autoFocus = false }: InquiryFlowProps) {
   const [step, setStep] = useState(1)
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [mounted, setMounted] = useState(false)
   const topRef = useRef<HTMLDivElement>(null)
+  
+  // Entry animation trigger
+  useEffect(() => {
+    setMounted(true)
+  }, [])
   
   // Get shortlisted items from collection - merge with any preselected items
   const { items: storeItems, clear: clearShortlist } = useInquiryStore()
@@ -336,14 +343,20 @@ export function InquiryFlow({ onSuccess, preselectedItems = [] }: InquiryFlowPro
   return (
     <div
       ref={topRef}
-      className="w-full max-w-2xl mx-auto px-6 py-16"
+      className={cn(
+        "w-full max-w-2xl mx-auto px-6 py-16 transition-all duration-700 ease-out",
+        mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+      )}
       onKeyDown={handleKeyDown}
     >
       <ProgressBar />
 
       {/* Step 1 — Who's reaching out */}
       {step === 1 && (
-        <div>
+        <div className={cn(
+          "transition-all duration-500 delay-200",
+          mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+        )}>
           <Question>Who&apos;s reaching out?</Question>
           <div className="flex flex-col gap-3">
             <OptionButton

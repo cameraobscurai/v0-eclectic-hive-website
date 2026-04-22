@@ -126,7 +126,7 @@ export default function FAQPage() {
             </p>
             <div className="mt-12">
               <Link 
-                href="/contact"
+                href="/contact#inquiry"
                 className="inline-flex items-center justify-center px-8 py-4 bg-cream text-charcoal text-sm uppercase tracking-widest hover:bg-cream/90 transition-colors"
               >
                 Get in Touch

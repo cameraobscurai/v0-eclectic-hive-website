@@ -33,7 +33,7 @@ export function InquirySection() {
           <FadeUp delay={0.5}>
             <div className="mt-14 flex flex-col sm:flex-row items-center justify-center gap-6">
               <Link 
-                href="/contact"
+                href="/contact#inquiry"
                 className="group relative inline-flex items-center justify-center px-10 py-5 bg-charcoal text-cream text-sm uppercase tracking-[0.2em] overflow-hidden transition-all duration-500 hover:bg-charcoal/90"
               >
                 <span className="relative z-10">Start an Inquiry</span>

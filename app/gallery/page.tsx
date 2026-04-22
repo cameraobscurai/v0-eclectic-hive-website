@@ -418,7 +418,7 @@ function ProjectPanel({
             {/* CTA */}
             <div className="mt-10">
               <Link
-                href="/contact"
+                href="/contact#inquiry"
                 className="inline-flex items-center gap-3 text-cream text-sm uppercase tracking-[0.15em] hover:text-sand transition-colors group"
               >
                 <span>Start Your Project</span>
@@ -725,7 +725,7 @@ export default function GalleryPage() {
             </p>
             <div className="mt-10">
               <Link 
-                href="/contact"
+                href="/contact#inquiry"
                 className="inline-flex items-center gap-3 px-8 py-4 bg-cream text-charcoal text-sm uppercase tracking-[0.15em] hover:bg-sand transition-colors group"
               >
                 <span>Start an Inquiry</span>

@@ -216,7 +216,7 @@ export default function HomePage() {
             </p>
             
             <TransitionLink
-              href="/contact"
+              href="/contact#inquiry"
               className={cn(
                 'inline-flex flex-col sm:flex-row items-center gap-3 sm:gap-4 group transition-all duration-700',
                 ctaVisible ? 'opacity-100' : 'opacity-0'

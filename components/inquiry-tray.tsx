@@ -81,7 +81,7 @@ export function InquiryTray() {
 
           {/* CTA */}
           <TransitionLink
-            href="/contact"
+            href="/contact#inquiry"
             className="bg-cream text-charcoal rounded-full
                        px-5 py-2.5 text-[10px] uppercase tracking-[0.15em] font-medium
                        hover:bg-cream/90 transition-colors"
