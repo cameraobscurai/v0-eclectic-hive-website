@@ -183,22 +183,16 @@ export default function ProcessPage() {
       {/* Hero */}
       <section className="bg-charcoal text-cream pt-32 pb-24 lg:pt-48 lg:pb-40">
         <div className="px-6 lg:px-12 max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-16">
-            <div className="lg:col-span-8">
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12">
+            <div className="lg:col-span-7">
               <p className="text-cream/50 text-xs uppercase tracking-[0.3em] mb-6">
                 Working With The Hive
               </p>
-              <LineReveal
-                text="From vision to realization"
-                tag="h1"
-                fontFamily="serif"
-                fontSize={64}
-                lineHeight={72}
-                className="text-4xl md:text-5xl lg:text-6xl xl:text-7xl tracking-tight"
-                staggerDelay={150}
-              />
+              <h1 className="font-serif text-4xl md:text-5xl lg:text-6xl xl:text-7xl tracking-tight">
+                From Vision to Realization
+              </h1>
             </div>
-            <div className="lg:col-span-4 flex items-end">
+            <div className="lg:col-span-5 flex items-end">
               <p className="text-cream/70 text-base lg:text-lg leading-relaxed">
                 Our process is designed to honor both{' '}
                 <HighlightReveal text="creative ambition" highlightColor="rgba(255,255,255,0.1)" />{' '}
@@ -220,15 +214,9 @@ export default function ProcessPage() {
               </p>
             </div>
             <div className="lg:col-span-6">
-              <LineReveal
-                text="Five phases. One authored outcome."
-                tag="h2"
-                fontFamily="serif"
-                fontSize={40}
-                lineHeight={48}
-                className="text-3xl md:text-4xl tracking-tight"
-                staggerDelay={100}
-              />
+              <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl tracking-tight">
+                Five Phases. One Authored Outcome.
+              </h2>
             </div>
           </div>
           
@@ -265,15 +253,9 @@ export default function ProcessPage() {
               </p>
             </div>
             <div className="lg:col-span-6">
-              <LineReveal
-                text="How we work with clients"
-                tag="h2"
-                fontFamily="serif"
-                fontSize={40}
-                lineHeight={48}
-                className="text-3xl md:text-4xl tracking-tight"
-                staggerDelay={100}
-              />
+              <h2 className="font-serif text-3xl md:text-4xl lg:text-5xl tracking-tight">
+                How We Work With Clients
+              </h2>
               <p className="mt-8 text-muted-foreground leading-relaxed">
                 Every project is different. We offer several engagement structures 
                 depending on your needs, timeline, and existing resources.
