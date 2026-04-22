@@ -1,13 +1,13 @@
 'use client'
 
-import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import useSWR, { useSWRConfig } from 'swr'
 import dynamic from 'next/dynamic'
 import { useQueryState, parseAsString } from 'nuqs'
+import { motion, AnimatePresence, LayoutGroup } from 'framer-motion'
 import { Navigation } from '@/components/navigation'
 import { Footer } from '@/components/footer'
 import { cn } from '@/lib/utils'
-import { useRef } from 'react'
 
 // B4: Lazy-load QuickViewModal - defers large JS until actually needed
 const QuickViewModal = dynamic(
