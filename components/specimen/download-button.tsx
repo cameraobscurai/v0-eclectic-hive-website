@@ -17,55 +17,37 @@ export function DownloadButton({ targetId, filename }: DownloadButtonProps) {
     setIsExporting(true)
     
     try {
-      // Dynamically import html2canvas to avoid SSR issues
-      const html2canvas = (await import('html2canvas')).default
+      // Use dom-to-image-more which has better CSS support
+      const domtoimage = await import('dom-to-image-more')
       
-      // Clone the element and convert oklab colors to rgb for html2canvas compatibility
-      const clone = element.cloneNode(true) as HTMLElement
-      clone.style.position = 'absolute'
-      clone.style.left = '-9999px'
-      clone.style.top = '0'
-      clone.style.width = `${element.offsetWidth}px`
-      clone.style.height = `${element.offsetHeight}px`
-      document.body.appendChild(clone)
+      // Get the element dimensions
+      const rect = element.getBoundingClientRect()
       
-      // Process all elements to convert oklab to fallback colors
-      const allElements = clone.querySelectorAll('*')
-      allElements.forEach((el) => {
-        const htmlEl = el as HTMLElement
-        const computed = window.getComputedStyle(htmlEl)
-        
-        // Force color values to computed RGB
-        if (computed.backgroundColor && computed.backgroundColor.includes('oklab')) {
-          htmlEl.style.backgroundColor = computed.backgroundColor
-        }
-        if (computed.color && computed.color.includes('oklab')) {
-          htmlEl.style.color = computed.color
+      const dataUrl = await domtoimage.toPng(element, {
+        width: rect.width * 2,
+        height: rect.height * 2,
+        style: {
+          transform: 'scale(2)',
+          transformOrigin: 'top left',
+        },
+        filter: (node: Node) => {
+          // Filter out fixed position elements (controls/buttons)
+          if (node instanceof HTMLElement) {
+            const style = window.getComputedStyle(node)
+            if (style.position === 'fixed') return false
+          }
+          return true
         }
       })
-      
-      const canvas = await html2canvas(clone, {
-        scale: 2,
-        useCORS: true,
-        backgroundColor: null,
-        logging: false,
-        // Ignore the fixed controls
-        ignoreElements: (el) => {
-          return el.classList?.contains('fixed') || false
-        }
-      })
-      
-      // Cleanup
-      document.body.removeChild(clone)
       
       const link = document.createElement('a')
       link.download = `${filename}.png`
-      link.href = canvas.toDataURL('image/png')
+      link.href = dataUrl
       link.click()
     } catch (error) {
-      console.error('Export failed:', error)
-      // Fallback: show instructions for manual screenshot
-      alert('Export failed. Use your browser\'s screenshot tool:\n\nMac: Cmd + Shift + 4\nWindows: Win + Shift + S')
+      console.error('[v0] Export failed:', error)
+      // Fallback to native screenshot instructions
+      alert(`Export failed. Please use your browser's screenshot tool:\n\nMac: Cmd + Shift + 4\nWindows: Win + Shift + S\n\nOr right-click the page and select "Save as image" if available.`)
     } finally {
       setIsExporting(false)
     }
@@ -75,10 +57,11 @@ export function DownloadButton({ targetId, filename }: DownloadButtonProps) {
     <button
       onClick={handleDownload}
       disabled={isExporting}
-      className="fixed top-6 right-6 z-50 px-4 py-2 text-xs uppercase tracking-[0.15em] transition-colors disabled:opacity-50 disabled:cursor-wait rounded"
+      className="fixed top-6 right-6 z-50 px-4 py-2 text-xs uppercase tracking-[0.15em] transition-colors disabled:opacity-50 disabled:cursor-wait rounded border"
       style={{
         backgroundColor: '#1a1a1a',
         color: '#f5f2ed',
+        borderColor: 'rgba(245, 242, 237, 0.2)',
       }}
     >
       {isExporting ? 'Exporting...' : 'Download PNG'}
