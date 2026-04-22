@@ -1,7 +1,7 @@
 'use client'
 
 import { useRef, useState, useEffect } from 'react'
-import { motion, useScroll, useTransform } from 'framer-motion'
+import { motion, useScroll } from 'framer-motion'
 import { Navigation } from '@/components/navigation'
 import { Footer } from '@/components/footer'
 import { ImagePlaceholder } from '@/components/ui/image-placeholder'
@@ -86,55 +86,25 @@ function ProcessTimeline() {
         }}
       />
 
-      {/* Each phase with scroll-activated dot */}
-      {processPhases.map((phase, i) => {
-        const phaseProgress = i / processPhases.length
-        
-        return (
-          <ProcessPhaseItem 
-            key={phase.number} 
-            phase={phase} 
-            index={i}
-            phaseProgress={phaseProgress}
-            scrollYProgress={scrollYProgress}
-          />
-        )
-      })}
+      {/* Each phase */}
+      {processPhases.map((phase) => (
+        <ProcessPhaseItem 
+          key={phase.number} 
+          phase={phase} 
+        />
+      ))}
     </div>
   )
 }
 
-// Individual phase item with scroll-linked dot activation
+// Individual phase item - clean layout, no dots
 function ProcessPhaseItem({ 
-  phase, 
-  index, 
-  phaseProgress, 
-  scrollYProgress 
+  phase 
 }: { 
   phase: typeof processPhases[0]
-  index: number
-  phaseProgress: number
-  scrollYProgress: ReturnType<typeof useScroll>['scrollYProgress']
 }) {
-  const dotOpacity = useTransform(
-    scrollYProgress,
-    [phaseProgress - 0.05, phaseProgress + 0.05],
-    [0.2, 1]
-  )
-  const dotScale = useTransform(
-    scrollYProgress,
-    [phaseProgress - 0.05, phaseProgress + 0.05],
-    [0.6, 1]
-  )
-
   return (
     <div className="relative mb-16 lg:mb-24">
-      {/* Dot on the timeline */}
-      <motion.div
-        style={{ opacity: dotOpacity, scale: dotScale }}
-        className="absolute -left-11 top-2 w-3 h-3 rounded-full border border-charcoal bg-cream"
-      />
-      
       {/* Content */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
         <div className="lg:col-span-1">
@@ -143,7 +113,7 @@ function ProcessPhaseItem({
           </span>
         </div>
         <div className="lg:col-span-3">
-          <h3 className="font-serif text-2xl lg:text-3xl tracking-tight">{phase.title}</h3>
+          <h3 className="font-display text-2xl lg:text-3xl tracking-[0.04em] uppercase">{phase.title}</h3>
           <p className="mt-2 text-sm text-muted-foreground">{phase.duration}</p>
         </div>
         <div className="lg:col-span-5">
