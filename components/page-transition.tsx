@@ -2,14 +2,32 @@
 
 import { motion, AnimatePresence } from 'framer-motion'
 import { usePathname } from 'next/navigation'
-import { ReactNode, useEffect, useState, createContext, useContext, useCallback } from 'react'
+import { ReactNode, useEffect, useState, createContext, useContext, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { prefersReducedMotion } from '@/lib/animations'
 
 // =============================================================================
-// PAGE TRANSITION CONTEXT
-// Enables programmatic navigation with subtle content swap
+// TIERED PAGE TRANSITION SYSTEM
+// 
+// 1. HOME & CONTACT: Dramatic vertical bars (cinematic entrance/exit)
+// 2. MIDDLE PAGES (Collection, Gallery, Process): Monochromatic wipe (visible but quick)
+// 3. DEFAULT: Subtle opacity breath (barely noticeable)
 // =============================================================================
+
+type TransitionTier = 'dramatic' | 'wipe' | 'subtle'
+
+function getTransitionTier(pathname: string): TransitionTier {
+  // Home and Contact get dramatic bar animation
+  if (pathname === '/' || pathname === '/contact') {
+    return 'dramatic'
+  }
+  // Middle pages get visible wipe
+  if (['/collection', '/gallery', '/process'].includes(pathname)) {
+    return 'wipe'
+  }
+  // Everything else (admin, etc) gets subtle
+  return 'subtle'
+}
 
 interface TransitionContextType {
   navigateWithTransition: (href: string) => void
@@ -24,64 +42,151 @@ const TransitionContext = createContext<TransitionContextType>({
 export const usePageTransition = () => useContext(TransitionContext)
 
 // =============================================================================
-// SUBTLE BREATH TRANSITION
-// Quick opacity dip that smooths the swap without demanding attention
+// PROVIDER - orchestrates transition timing based on destination tier
 // =============================================================================
-
-interface PageTransitionProps {
-  children: ReactNode
-}
 
 export function PageTransitionProvider({ children }: { children: ReactNode }) {
   const router = useRouter()
   const pathname = usePathname()
   const [isTransitioning, setIsTransitioning] = useState(false)
-  const [reducedMotion, setReducedMotion] = useState(false)
+  const [targetPath, setTargetPath] = useState<string | null>(null)
+  const [showOverlay, setShowOverlay] = useState(false)
+  const [overlayPhase, setOverlayPhase] = useState<'entering' | 'exiting' | null>(null)
+  const reducedMotion = useRef(false)
 
   useEffect(() => {
-    setReducedMotion(prefersReducedMotion())
+    reducedMotion.current = prefersReducedMotion()
   }, [])
 
   const navigateWithTransition = useCallback((href: string) => {
     if (href === pathname || isTransitioning) return
     
+    const tier = getTransitionTier(href)
     setIsTransitioning(true)
-    router.push(href)
+    setTargetPath(href)
     
-    // Brief transition state
-    setTimeout(() => {
-      setIsTransitioning(false)
-    }, 300)
+    if (reducedMotion.current || tier === 'subtle') {
+      // Subtle: just navigate
+      router.push(href)
+      setTimeout(() => setIsTransitioning(false), 200)
+    } else {
+      // Dramatic or Wipe: show overlay, then navigate
+      setShowOverlay(true)
+      setOverlayPhase('entering')
+      
+      const overlayDuration = tier === 'dramatic' ? 500 : 350
+      
+      setTimeout(() => {
+        router.push(href)
+        setOverlayPhase('exiting')
+        
+        setTimeout(() => {
+          setShowOverlay(false)
+          setOverlayPhase(null)
+          setIsTransitioning(false)
+          setTargetPath(null)
+        }, overlayDuration)
+      }, overlayDuration)
+    }
   }, [pathname, isTransitioning, router])
+
+  const tier = targetPath ? getTransitionTier(targetPath) : 'subtle'
 
   return (
     <TransitionContext.Provider value={{ navigateWithTransition, isTransitioning }}>
       {children}
+      
+      {/* Transition Overlays */}
+      <AnimatePresence>
+        {showOverlay && tier === 'dramatic' && (
+          <DramaticBarsOverlay phase={overlayPhase} />
+        )}
+        {showOverlay && tier === 'wipe' && (
+          <WipeOverlay phase={overlayPhase} />
+        )}
+      </AnimatePresence>
     </TransitionContext.Provider>
   )
 }
 
-export function PageTransition({ children }: PageTransitionProps) {
+// =============================================================================
+// DRAMATIC BARS - vertical bars sweep for Home/Contact
+// =============================================================================
+
+function DramaticBarsOverlay({ phase }: { phase: 'entering' | 'exiting' | null }) {
+  const barCount = 5
+  
+  return (
+    <motion.div
+      className="fixed inset-0 z-[9999] pointer-events-none flex"
+      initial={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      transition={{ duration: 0.1, delay: 0.4 }}
+    >
+      {Array.from({ length: barCount }).map((_, i) => (
+        <motion.div
+          key={i}
+          className="flex-1 bg-charcoal origin-top"
+          initial={{ scaleY: 0 }}
+          animate={{ 
+            scaleY: phase === 'entering' ? 1 : 0,
+            originY: phase === 'entering' ? 0 : 1,
+          }}
+          transition={{
+            duration: 0.4,
+            delay: phase === 'entering' ? i * 0.05 : (barCount - 1 - i) * 0.05,
+            ease: [0.76, 0, 0.24, 1],
+          }}
+        />
+      ))}
+    </motion.div>
+  )
+}
+
+// =============================================================================
+// WIPE OVERLAY - horizontal sweep for middle pages
+// =============================================================================
+
+function WipeOverlay({ phase }: { phase: 'entering' | 'exiting' | null }) {
+  return (
+    <motion.div
+      className="fixed inset-0 z-[9999] pointer-events-none bg-cream"
+      initial={{ x: '-100%' }}
+      animate={{ 
+        x: phase === 'entering' ? '0%' : '100%',
+      }}
+      transition={{
+        duration: 0.35,
+        ease: [0.76, 0, 0.24, 1],
+      }}
+    />
+  )
+}
+
+// =============================================================================
+// PAGE TRANSITION WRAPPER - subtle opacity for content
+// =============================================================================
+
+export function PageTransition({ children }: { children: ReactNode }) {
   const pathname = usePathname()
   const [isFirstLoad, setIsFirstLoad] = useState(true)
-  const [reducedMotion, setReducedMotion] = useState(false)
+  const reducedMotion = useRef(false)
 
   useEffect(() => {
-    setReducedMotion(prefersReducedMotion())
+    reducedMotion.current = prefersReducedMotion()
     const timer = setTimeout(() => setIsFirstLoad(false), 50)
     return () => clearTimeout(timer)
   }, [])
 
-  // Ultra-subtle: just a quick opacity breath
   const pageVariants = {
-    initial: { opacity: 0.92 },
+    initial: { opacity: 0.95 },
     enter: { 
       opacity: 1,
-      transition: { duration: 0.2, ease: 'easeOut' }
+      transition: { duration: 0.25, ease: 'easeOut' }
     },
     exit: { 
-      opacity: 0.92,
-      transition: { duration: 0.12, ease: 'easeIn' }
+      opacity: 0.95,
+      transition: { duration: 0.15, ease: 'easeIn' }
     },
   }
 
@@ -91,7 +196,7 @@ export function PageTransition({ children }: PageTransitionProps) {
     exit: { opacity: 1 },
   }
 
-  const variants = reducedMotion ? reducedMotionVariants : pageVariants
+  const variants = reducedMotion.current ? reducedMotionVariants : pageVariants
 
   return (
     <AnimatePresence mode="wait" initial={false}>
@@ -114,8 +219,7 @@ export function PageOverlay() {
 }
 
 // =============================================================================
-// TRANSITION LINK
-// Drop-in link with subtle transition
+// TRANSITION LINK - drop-in replacement for <a> with transitions
 // =============================================================================
 
 interface TransitionLinkProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
@@ -155,7 +259,10 @@ export function TransitionLink({ href, children, className, onClick, ...props }:
   )
 }
 
-// Animation variants for components
+// =============================================================================
+// ANIMATION VARIANTS - for component-level animations
+// =============================================================================
+
 export const staggerContainer = {
   hidden: { opacity: 0 },
   show: {
