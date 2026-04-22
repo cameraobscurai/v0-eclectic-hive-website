@@ -17,6 +17,7 @@ type Project = {
   id: string
   slug: string
   title: string
+  planner?: string // Optional planner/designer name
   location: string // Full location (e.g., "Canyon Point, Utah")
   region: string // State/country for filtering (e.g., "Utah")
   type: string
@@ -639,9 +640,11 @@ export default function GalleryPage() {
                   </span>
                   
                   {/* Planner */}
-                  <span className="hidden md:block text-cream/50 text-sm flex-1">
-                    {project.planner}
-                  </span>
+                  {project.planner && (
+                    <span className="hidden md:block text-cream/50 text-sm flex-1">
+                      {project.planner}
+                    </span>
+                  )}
                   
                   {/* Type */}
                   <span className="hidden lg:block text-cream/40 text-sm w-40">
@@ -721,7 +724,7 @@ export default function GalleryPage() {
       
       <Footer />
       
-      {/* ─────────────────────────────────────────────────────────────
+      {/* ───────────────────────────────��─────────────────────────────
           Project Detail Panel
       ───────────────────────────────────────────────────────────── */}
       <ProjectPanel
