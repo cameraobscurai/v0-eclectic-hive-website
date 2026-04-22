@@ -2,7 +2,7 @@
 
 import { createClient } from '@/lib/supabase/client'
 import { useRouter, useSearchParams } from 'next/navigation'
-import { useState } from 'react'
+import { useState, Suspense } from 'react'
 
 // ============================================================================
 // SAFE REDIRECT VALIDATION
@@ -24,7 +24,8 @@ function getSafeRedirect(redirectParam: string | null): string {
   return '/admin'
 }
 
-export default function AdminLoginPage() {
+// Wrap the main content in a separate component to use with Suspense
+function LoginForm() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState<string | null>(null)
@@ -129,5 +130,18 @@ export default function AdminLoginPage() {
         </div>
       </div>
     </div>
+  )
+}
+
+// Default export wraps LoginForm in Suspense for useSearchParams compatibility
+export default function AdminLoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen bg-cream flex items-center justify-center">
+        <div className="text-charcoal/50 text-sm">Loading...</div>
+      </div>
+    }>
+      <LoginForm />
+    </Suspense>
   )
 }
