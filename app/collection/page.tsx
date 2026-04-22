@@ -242,7 +242,6 @@ export default function CollectionPage() {
   // B1: Prefetch category on hover for instant tab switching
   const prefetchCategory = useCallback((cat: string) => {
     const url = `/api/products?imagesOnly=true&category=${encodeURIComponent(cat)}&limit=100`
-    // @ts-expect-error - SWR cache.get exists but types are incomplete
     if (!cache.get(url)) {
       fetcher(url) // warm the cache
     }
@@ -441,7 +440,7 @@ export default function CollectionPage() {
     <main className="min-h-screen bg-white pt-[72px] lg:pt-[88px]">
       <Navigation />
       
-      {/* ─────────────────────────────────────────────────────────────
+      {/* ─────��───────────────────────────────────────────────────────
           Filter Header - Horizontal Two-Tier Navigation
       ───────────────────���──────────��────────────────────────────── */}
       <section className="sticky top-0 z-40 bg-white">
