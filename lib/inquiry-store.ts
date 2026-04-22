@@ -1,5 +1,6 @@
 import { create } from 'zustand'
 import { persist, createJSONStorage } from 'zustand/middleware'
+import { trackInquiryAdd } from './analytics'
 
 export interface ShortlistedItem {
   id: string
@@ -38,6 +39,8 @@ export const useInquiryStore = create<InquiryStore>()(
             )
           }
         }
+        // Track new item adds with guaranteed delivery
+        trackInquiryAdd(item.id, item.name)
         return {
           items: [...s.items, { ...item, quantity }]
         }

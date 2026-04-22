@@ -169,6 +169,24 @@ export default function RootLayout({
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
         />
+        {/* Speculation Rules - prerender likely destinations for instant navigation */}
+        <script
+          type="speculationrules"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify({
+            prerender: [
+              {
+                where: { href_matches: ["/collection", "/gallery", "/process", "/contact"] },
+                eagerness: "moderate" // triggers on hover, not immediately
+              }
+            ],
+            prefetch: [
+              {
+                where: { href_matches: "/piece/*" },
+                eagerness: "conservative" // triggers on stronger intent signals
+              }
+            ]
+          }) }}
+        />
       </head>
       <body className="font-sans antialiased">
         <NuqsAdapter>
