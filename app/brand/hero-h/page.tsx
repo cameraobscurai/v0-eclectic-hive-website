@@ -328,50 +328,65 @@ export default function HeroH() {
 
       {/* Grid view - All 4 variants in 2x2 */}
       {variant === 'grid' && (
-        <div className="min-h-screen grid grid-cols-2 grid-rows-2">
+        <div className="h-screen w-screen grid grid-cols-2 grid-rows-2">
           {/* Dark */}
-          <div className="bg-charcoal flex items-center justify-center relative">
-            <span className="font-serif text-cream" style={{ fontSize: 'min(35vw, 35vh)', lineHeight: 0.85 }}>H</span>
-            <span className="absolute bottom-4 left-4 text-cream/40 text-[10px] font-mono uppercase tracking-wider">Dark</span>
+          <div className="bg-charcoal flex items-center justify-center relative p-8">
+            <span className="font-serif text-cream text-[15vw] leading-none">H</span>
+            <div className="absolute bottom-4 left-4">
+              <span className="text-cream/40 text-[10px] font-mono uppercase tracking-wider block">Dark</span>
+              <span className="text-cream/25 text-[8px] font-mono">Cream on Charcoal</span>
+            </div>
           </div>
           
           {/* Light */}
-          <div className="bg-cream flex items-center justify-center relative">
-            <span className="font-serif text-charcoal" style={{ fontSize: 'min(35vw, 35vh)', lineHeight: 0.85 }}>H</span>
-            <span className="absolute bottom-4 left-4 text-charcoal/40 text-[10px] font-mono uppercase tracking-wider">Light</span>
+          <div className="bg-cream flex items-center justify-center relative p-8">
+            <span className="font-serif text-charcoal text-[15vw] leading-none">H</span>
+            <div className="absolute bottom-4 left-4">
+              <span className="text-charcoal/40 text-[10px] font-mono uppercase tracking-wider block">Light</span>
+              <span className="text-charcoal/25 text-[8px] font-mono">Charcoal on Cream</span>
+            </div>
           </div>
           
           {/* Outline/Construction */}
-          <div className="bg-cream flex items-center justify-center relative">
-            <div className="absolute inset-0 grid grid-cols-6 pointer-events-none">
+          <div className="bg-cream flex items-center justify-center relative p-8">
+            <div className="absolute inset-0 grid grid-cols-6 pointer-events-none opacity-50">
               {Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} className="border-l border-charcoal/5 first:border-l-0" />
+                <div key={i} className="border-l border-charcoal/10 first:border-l-0" />
+              ))}
+            </div>
+            <div className="absolute inset-0 grid grid-rows-6 pointer-events-none opacity-50">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="border-t border-charcoal/10 first:border-t-0" />
               ))}
             </div>
             <span 
-              className="font-serif" 
+              className="font-serif text-[15vw] leading-none" 
               style={{ 
-                fontSize: 'min(35vw, 35vh)', 
-                lineHeight: 0.85,
                 color: 'transparent',
-                WebkitTextStroke: '1.5px rgba(26,26,26,0.3)',
+                WebkitTextStroke: '2px rgba(26,26,26,0.4)',
               }}
             >
               H
             </span>
-            <span className="absolute bottom-4 left-4 text-charcoal/40 text-[10px] font-mono uppercase tracking-wider">Construction</span>
+            <div className="absolute bottom-4 left-4">
+              <span className="text-charcoal/40 text-[10px] font-mono uppercase tracking-wider block">Construction</span>
+              <span className="text-charcoal/25 text-[8px] font-mono">Vector Outline</span>
+            </div>
           </div>
           
           {/* Textured */}
-          <div className="bg-charcoal flex items-center justify-center relative overflow-hidden">
+          <div className="bg-charcoal flex items-center justify-center relative p-8 overflow-hidden">
             <div 
-              className="absolute inset-0 opacity-[0.04] pointer-events-none"
+              className="absolute inset-0 opacity-[0.06] pointer-events-none"
               style={{
                 backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%' height='100%' filter='url(%23noise)'/%3E%3C/svg%3E")`,
               }}
             />
-            <span className="font-serif text-cream relative" style={{ fontSize: 'min(35vw, 35vh)', lineHeight: 0.85 }}>H</span>
-            <span className="absolute bottom-4 left-4 text-cream/40 text-[10px] font-mono uppercase tracking-wider">Textured</span>
+            <span className="font-serif text-cream relative text-[15vw] leading-none">H</span>
+            <div className="absolute bottom-4 left-4">
+              <span className="text-cream/40 text-[10px] font-mono uppercase tracking-wider block">Textured</span>
+              <span className="text-cream/25 text-[8px] font-mono">Noise Overlay</span>
+            </div>
           </div>
         </div>
       )}
