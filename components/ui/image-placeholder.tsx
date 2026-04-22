@@ -86,7 +86,7 @@ export function ImagePlaceholder({
 // Hero-specific placeholder with more visual interest
 export function HeroPlaceholder({ className }: { className?: string }) {
   return (
-    <div className={cn('absolute inset-0 bg-charcoal overflow-hidden', className)}>
+    <div className={cn('absolute inset-0 bg-charcoal overflow-hidden pointer-events-none', className)}>
       {/* Gradient base */}
       <div className="absolute inset-0 bg-gradient-to-br from-charcoal via-charcoal/95 to-charcoal" />
       

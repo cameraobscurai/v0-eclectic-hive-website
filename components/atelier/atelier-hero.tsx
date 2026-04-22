@@ -13,10 +13,10 @@ export function AtelierHero() {
   }, [])
 
   return (
-    <section className="relative min-h-[80vh] lg:min-h-screen bg-charcoal overflow-hidden">
-      {/* Background with Parallax */}
+    <section className="relative min-h-[80vh] lg:min-h-screen bg-charcoal">
+      {/* Background with Parallax - pointer-events-none ensures scroll gestures pass through */}
       <div 
-        className="absolute inset-0"
+        className="absolute inset-0 pointer-events-none"
         style={{ transform: `translateY(${scrollY * 0.25}px)` }}
       >
         <HeroPlaceholder />
