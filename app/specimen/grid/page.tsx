@@ -4,20 +4,27 @@ import { useState } from 'react'
 import { DownloadButton } from '@/components/specimen/download-button'
 
 export default function GridSystem() {
-  const [showBaseline, setShowBaseline] = useState(true)
-  const [showColumns, setShowColumns] = useState(true)
-  const [showType, setShowType] = useState(true)
-  
+  const [showGrid, setShowGrid] = useState(true)
+  const [showBaseline, setShowBaseline] = useState(false)
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark')
+
+  const bg = theme === 'dark' ? 'bg-charcoal' : 'bg-cream'
+  const gridColor = theme === 'dark' ? 'bg-cream/10' : 'bg-charcoal/10'
+  const text = theme === 'dark' ? 'text-cream' : 'text-charcoal'
+  const textMuted = theme === 'dark' ? 'text-cream/40' : 'text-charcoal/40'
+  const accent = theme === 'dark' ? 'bg-red-500/20 border-red-500/40' : 'bg-red-500/10 border-red-500/30'
+  const accentText = theme === 'dark' ? 'text-red-400' : 'text-red-600'
+
   return (
-    <main id="specimen-content" className="min-h-screen bg-cream relative overflow-hidden">
-      <DownloadButton targetId="specimen-content" filename="eclectic-hive-grid-system" />
+    <main id="specimen-content" className={`min-h-screen ${bg} relative overflow-hidden`}>
+      <DownloadButton targetId="specimen-content" filename={`eclectic-hive-grid-${theme}`} />
       
       {/* Controls */}
-      <div className="fixed top-4 left-4 z-50 flex gap-2">
+      <div className="fixed top-4 left-4 z-50 flex gap-2 flex-wrap">
         <button
-          onClick={() => setShowColumns(!showColumns)}
+          onClick={() => setShowGrid(!showGrid)}
           className={`px-3 py-1.5 text-xs uppercase tracking-widest rounded transition-colors ${
-            showColumns 
+            showGrid 
               ? 'bg-charcoal text-cream' 
               : 'bg-white/80 text-charcoal border border-charcoal/20'
           }`}
@@ -35,23 +42,23 @@ export default function GridSystem() {
           Baseline
         </button>
         <button
-          onClick={() => setShowType(!showType)}
-          className={`px-3 py-1.5 text-xs uppercase tracking-widest rounded transition-colors ${
-            showType 
-              ? 'bg-charcoal text-cream' 
-              : 'bg-white/80 text-charcoal border border-charcoal/20'
-          }`}
+          onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
+          className="px-3 py-1.5 text-xs uppercase tracking-widest rounded bg-white/80 text-charcoal border border-charcoal/20"
         >
-          Type
+          {theme === 'dark' ? 'Light' : 'Dark'}
         </button>
       </div>
 
       {/* 12-column grid overlay */}
-      {showColumns && (
-        <div className="absolute inset-0 pointer-events-none" style={{ padding: '0 48px' }}>
-          <div className="h-full grid grid-cols-12 gap-6">
+      {showGrid && (
+        <div className="absolute inset-0 px-8 lg:px-16 pointer-events-none">
+          <div className="h-full max-w-6xl mx-auto grid grid-cols-12 gap-4">
             {Array.from({ length: 12 }).map((_, i) => (
-              <div key={i} className="bg-red-500/5 border-l border-r border-red-500/10" />
+              <div key={i} className={`${gridColor} relative`}>
+                <span className={`absolute -top-6 left-1/2 -translate-x-1/2 text-[10px] font-mono ${textMuted}`}>
+                  {i + 1}
+                </span>
+              </div>
             ))}
           </div>
         </div>
@@ -59,106 +66,108 @@ export default function GridSystem() {
 
       {/* 8px baseline grid overlay */}
       {showBaseline && (
-        <div 
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            backgroundImage: 'repeating-linear-gradient(0deg, transparent, transparent 7px, rgba(26,26,26,0.03) 7px, rgba(26,26,26,0.03) 8px)'
-          }}
-        />
+        <div className="absolute inset-0 pointer-events-none" style={{ 
+          backgroundImage: `repeating-linear-gradient(0deg, transparent, transparent 7px, ${theme === 'dark' ? 'rgba(245,242,237,0.05)' : 'rgba(26,26,26,0.05)'} 7px, ${theme === 'dark' ? 'rgba(245,242,237,0.05)' : 'rgba(26,26,26,0.05)'} 8px)`,
+          backgroundSize: '100% 8px'
+        }} />
       )}
 
       {/* Content */}
-      <div className="relative z-10 p-12 lg:p-16 pt-24">
-        <div className="max-w-6xl mx-auto">
+      <div className="relative z-10 px-8 lg:px-16 py-24 min-h-screen flex flex-col justify-center">
+        <div className="max-w-6xl mx-auto w-full">
+          
           {/* Header */}
-          <div className="text-charcoal/40 text-xs font-mono uppercase tracking-wider mb-16">
-            <p>Grid System — 12 Columns / 8px Baseline</p>
-            <p>Margin: 48px / Gutter: 24px</p>
+          <div className="mb-24">
+            <p className={`${textMuted} text-xs font-mono uppercase tracking-[0.3em] mb-6`}>
+              Construction System
+            </p>
+            <h1 className={`font-serif ${text} text-6xl lg:text-8xl tracking-tight mb-4`}>
+              12-Column Grid
+            </h1>
+            <p className={`${textMuted} text-lg max-w-xl`}>
+              Flexible grid with 4-unit gutters and 8px baseline rhythm
+            </p>
           </div>
 
-          {showType && (
-            <>
-              {/* Type on grid */}
-              <div className="grid grid-cols-12 gap-6 mb-24">
-                <div className="col-span-8">
-                  <p className="text-charcoal/40 text-xs font-mono uppercase tracking-wider mb-4">
-                    H1 — Spans 8 columns
-                  </p>
-                  <h1 className="font-serif text-charcoal text-5xl lg:text-7xl tracking-[0.15em] uppercase">
-                    ECLECTIC HIVE
-                  </h1>
-                </div>
-                <div className="col-span-4 flex items-end">
-                  <p className="text-charcoal/40 text-xs font-mono uppercase tracking-wider">
-                    4-col offset for asymmetry
-                  </p>
-                </div>
+          {/* Grid specifications */}
+          <div className="grid grid-cols-12 gap-4 mb-24">
+            {/* Full width element */}
+            <div className={`col-span-12 h-16 ${accent} border rounded flex items-center justify-center`}>
+              <span className={`${accentText} text-xs font-mono uppercase tracking-wider`}>12 Columns — Full Width</span>
+            </div>
+            
+            {/* 6+6 split */}
+            <div className={`col-span-6 h-16 ${accent} border rounded flex items-center justify-center`}>
+              <span className={`${accentText} text-xs font-mono uppercase tracking-wider`}>6 Col</span>
+            </div>
+            <div className={`col-span-6 h-16 ${accent} border rounded flex items-center justify-center`}>
+              <span className={`${accentText} text-xs font-mono uppercase tracking-wider`}>6 Col</span>
+            </div>
+            
+            {/* 4+4+4 */}
+            <div className={`col-span-4 h-16 ${accent} border rounded flex items-center justify-center`}>
+              <span className={`${accentText} text-xs font-mono uppercase tracking-wider`}>4</span>
+            </div>
+            <div className={`col-span-4 h-16 ${accent} border rounded flex items-center justify-center`}>
+              <span className={`${accentText} text-xs font-mono uppercase tracking-wider`}>4</span>
+            </div>
+            <div className={`col-span-4 h-16 ${accent} border rounded flex items-center justify-center`}>
+              <span className={`${accentText} text-xs font-mono uppercase tracking-wider`}>4</span>
+            </div>
+            
+            {/* 3+3+3+3 */}
+            {Array.from({ length: 4 }).map((_, i) => (
+              <div key={i} className={`col-span-3 h-16 ${accent} border rounded flex items-center justify-center`}>
+                <span className={`${accentText} text-xs font-mono uppercase tracking-wider`}>3</span>
               </div>
+            ))}
+            
+            {/* Asymmetric 8+4 */}
+            <div className={`col-span-8 h-16 ${accent} border rounded flex items-center justify-center`}>
+              <span className={`${accentText} text-xs font-mono uppercase tracking-wider`}>8 Columns — Content</span>
+            </div>
+            <div className={`col-span-4 h-16 ${accent} border rounded flex items-center justify-center`}>
+              <span className={`${accentText} text-xs font-mono uppercase tracking-wider`}>4 — Sidebar</span>
+            </div>
+          </div>
 
-              {/* Body text grid */}
-              <div className="grid grid-cols-12 gap-6 mb-24">
-                <div className="col-span-3">
-                  <p className="text-charcoal/40 text-xs font-mono uppercase tracking-wider">
-                    Section Label
-                  </p>
+          {/* Spacing scale */}
+          <div className="mb-24">
+            <p className={`${textMuted} text-xs font-mono uppercase tracking-[0.3em] mb-8`}>
+              8px Baseline Spacing Scale
+            </p>
+            
+            <div className="flex items-end gap-6">
+              {[8, 16, 24, 32, 48, 64, 96, 128].map((size) => (
+                <div key={size} className="flex flex-col items-center">
+                  <div 
+                    className={`w-12 ${gridColor} rounded-sm`}
+                    style={{ height: size }}
+                  />
+                  <span className={`${textMuted} text-xs font-mono mt-3`}>{size}</span>
                 </div>
-                <div className="col-span-6">
-                  <p className="text-charcoal/40 text-xs font-mono uppercase tracking-wider mb-4">
-                    Body — Spans 6 columns (50%)
-                  </p>
-                  <p className="font-sans text-charcoal text-base leading-relaxed">
-                    Our process is designed to honor both creative ambition and practical reality. 
-                    We guide clients through a structured journey that transforms initial vision 
-                    into authored environment.
-                  </p>
-                </div>
-                <div className="col-span-3">
-                  <p className="text-charcoal/40 text-xs font-mono uppercase tracking-wider">
-                    3-col margin
-                  </p>
-                </div>
-              </div>
+              ))}
+            </div>
+          </div>
 
-              {/* Measurements */}
-              <div className="border-t border-charcoal/10 pt-12">
-                <p className="text-charcoal/40 text-xs font-mono uppercase tracking-wider mb-8">
-                  Spacing Scale — 8px increments
-                </p>
-                
-                <div className="flex items-end gap-4">
-                  {[8, 16, 24, 32, 48, 64, 96, 128].map((size) => (
-                    <div key={size} className="flex flex-col items-center">
-                      <div 
-                        className="w-12 bg-charcoal/20 relative"
-                        style={{ height: size }}
-                      >
-                        {/* Dimension line */}
-                        <div className="absolute -left-4 top-0 bottom-0 w-px bg-red-500/60" />
-                        <div className="absolute -left-5 top-0 w-2 h-px bg-red-500/60" />
-                        <div className="absolute -left-5 bottom-0 w-2 h-px bg-red-500/60" />
-                      </div>
-                      <span className="text-charcoal/50 text-xs font-mono mt-3">{size}px</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Column width spec */}
-              <div className="border-t border-charcoal/10 pt-12 mt-12">
-                <p className="text-charcoal/40 text-xs font-mono uppercase tracking-wider mb-4">
-                  Construction Notes
-                </p>
-                <div className="font-mono text-xs text-charcoal/60 space-y-1">
-                  <p>Grid: 12 columns</p>
-                  <p>Gutter: 24px</p>
-                  <p>Margin: 48px (desktop) / 24px (mobile)</p>
-                  <p>Max-width: 1280px</p>
-                  <p>Baseline: 8px</p>
-                  <p>Type scale: 8, 10, 12, 14, 16, 20, 24, 32, 40, 48, 64, 80, 96</p>
-                </div>
-              </div>
-            </>
-          )}
+          {/* Measurements */}
+          <div className="grid grid-cols-3 gap-8">
+            <div>
+              <p className={`${accentText} text-xs font-mono uppercase tracking-wider mb-2`}>Max Width</p>
+              <p className={`font-serif ${text} text-3xl tracking-tight`}>1152px</p>
+              <p className={`${textMuted} text-xs mt-2`}>6xl container</p>
+            </div>
+            <div>
+              <p className={`${accentText} text-xs font-mono uppercase tracking-wider mb-2`}>Gutter</p>
+              <p className={`font-serif ${text} text-3xl tracking-tight`}>16px</p>
+              <p className={`${textMuted} text-xs mt-2`}>gap-4</p>
+            </div>
+            <div>
+              <p className={`${accentText} text-xs font-mono uppercase tracking-wider mb-2`}>Margin</p>
+              <p className={`font-serif ${text} text-3xl tracking-tight`}>32—64px</p>
+              <p className={`${textMuted} text-xs mt-2`}>px-8 lg:px-16</p>
+            </div>
+          </div>
         </div>
       </div>
     </main>

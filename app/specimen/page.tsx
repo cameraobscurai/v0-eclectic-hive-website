@@ -1,99 +1,169 @@
 'use client'
 
-import { useState } from 'react'
 import Link from 'next/link'
+import { ArrowUpRight } from 'lucide-react'
 
-// All real Eclectic Hive words and phrases
-const BRAND_WORDS = {
-  tagline: 'Imagined. Refined. Crafted.',
-  mission: 'From Vision to Realization',
-  descriptor: 'Full-Service Design + Production',
-  studio: 'Atelier by The Hive',
-  collection: 'Hive Signature Collection',
-  process: 'Five Phases. One Authored Outcome.',
-  values: ['Authored', 'Curated', 'Refined', 'Crafted', 'Elevated'],
-  categories: ['Seating', 'Tables', 'Bars', 'Lounge', 'Lighting', 'Décor', 'Textiles'],
-}
+const PAGES = [
+  {
+    href: '/specimen/hero-h',
+    title: 'Hero Letterform',
+    subtitle: 'H',
+    description: 'Massive display treatment with construction, texture, and tone variants',
+    preview: 'serif',
+  },
+  {
+    href: '/specimen/alphabet',
+    title: 'Complete Alphabet',
+    subtitle: 'A—Z',
+    description: 'Full character set in display and text weights',
+    preview: 'serif',
+  },
+  {
+    href: '/specimen/hierarchy',
+    title: 'Type Hierarchy',
+    subtitle: 'H1—Body',
+    description: 'Complete typographic scale with specifications',
+    preview: 'system',
+  },
+  {
+    href: '/specimen/phrases',
+    title: 'Brand Language',
+    subtitle: 'Copy',
+    description: 'Taglines, mission statements, and brand voice',
+    preview: 'serif',
+  },
+  {
+    href: '/specimen/words',
+    title: 'Vocabulary',
+    subtitle: 'Words',
+    description: 'Categories, values, and key terminology',
+    preview: 'serif',
+  },
+  {
+    href: '/specimen/numerals',
+    title: 'Numerals',
+    subtitle: '0—9',
+    description: 'Figures, dimensions, and special characters',
+    preview: 'serif',
+  },
+  {
+    href: '/specimen/colors',
+    title: 'Color + Material',
+    subtitle: 'Palette',
+    description: 'Brand colors and material reference swatches',
+    preview: 'swatch',
+  },
+  {
+    href: '/specimen/grid',
+    title: 'Grid System',
+    subtitle: '12-Col',
+    description: 'Construction grid and spacing measurements',
+    preview: 'grid',
+  },
+]
 
 export default function SpecimenIndex() {
   return (
-    <main className="min-h-screen bg-cream p-12">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="font-serif text-4xl tracking-tight mb-2">Typography Specimen Pages</h1>
-        <p className="text-charcoal/60 mb-12">Isolated pages for image generation reference</p>
+    <main className="min-h-screen bg-charcoal">
+      {/* Hero */}
+      <section className="relative h-[50vh] min-h-[400px] flex items-end pb-16 px-8 lg:px-16 border-b border-cream/10">
+        <div className="absolute inset-0 bg-gradient-to-b from-charcoal via-charcoal/95 to-charcoal" />
         
-        <div className="grid grid-cols-2 gap-6">
-          <Link href="/specimen/hero-h" className="group">
-            <div className="aspect-video bg-charcoal rounded-lg flex items-center justify-center mb-3 group-hover:bg-charcoal/90 transition-colors">
-              <span className="font-serif text-cream text-8xl">H</span>
-            </div>
-            <p className="font-medium">Hero H Letterform</p>
-            <p className="text-sm text-charcoal/50">Massive display, multiple treatments</p>
-          </Link>
-          
-          <Link href="/specimen/alphabet" className="group">
-            <div className="aspect-video bg-charcoal rounded-lg flex items-center justify-center mb-3 group-hover:bg-charcoal/90 transition-colors">
-              <span className="font-serif text-cream text-2xl tracking-[0.3em]">ABCDEF</span>
-            </div>
-            <p className="font-medium">Full Alphabet</p>
-            <p className="text-sm text-charcoal/50">Complete A-Z specimen</p>
-          </Link>
-          
-          <Link href="/specimen/hierarchy" className="group">
-            <div className="aspect-video bg-cream border border-charcoal/10 rounded-lg flex flex-col items-start justify-center px-6 mb-3 group-hover:bg-sand/30 transition-colors">
-              <span className="font-serif text-charcoal text-xl">H1 Display</span>
-              <span className="font-serif text-charcoal/70 text-base">H2 Section</span>
-              <span className="text-charcoal/50 text-sm">Body text</span>
-            </div>
-            <p className="font-medium">Type Hierarchy</p>
-            <p className="text-sm text-charcoal/50">All text levels with specs</p>
-          </Link>
-          
-          <Link href="/specimen/phrases" className="group">
-            <div className="aspect-video bg-charcoal rounded-lg flex items-center justify-center mb-3 group-hover:bg-charcoal/90 transition-colors">
-              <span className="font-serif text-cream text-lg tracking-[0.2em] text-center px-4">IMAGINED.<br/>REFINED.<br/>CRAFTED.</span>
-            </div>
-            <p className="font-medium">Brand Phrases</p>
-            <p className="text-sm text-charcoal/50">Real taglines and copy</p>
-          </Link>
-          
-          <Link href="/specimen/words" className="group">
-            <div className="aspect-video bg-cream border border-charcoal/10 rounded-lg flex items-center justify-center mb-3 group-hover:bg-sand/30 transition-colors">
-              <span className="font-serif text-charcoal text-lg tracking-[0.15em]">ECLECTIC HIVE</span>
-            </div>
-            <p className="font-medium">Brand Words</p>
-            <p className="text-sm text-charcoal/50">Key vocabulary display</p>
-          </Link>
-          
-          <Link href="/specimen/numerals" className="group">
-            <div className="aspect-video bg-charcoal rounded-lg flex items-center justify-center mb-3 group-hover:bg-charcoal/90 transition-colors">
-              <span className="font-serif text-cream text-3xl tracking-[0.2em]">1234567890</span>
-            </div>
-            <p className="font-medium">Numerals + Symbols</p>
-            <p className="text-sm text-charcoal/50">Numbers, punctuation, glyphs</p>
-          </Link>
-          
-          <Link href="/specimen/colors" className="group">
-            <div className="aspect-video bg-gradient-to-r from-charcoal via-sand to-cream rounded-lg flex items-center justify-center mb-3">
-              <span className="text-white text-sm tracking-widest uppercase mix-blend-difference">Color System</span>
-            </div>
-            <p className="font-medium">Color Palette</p>
-            <p className="text-sm text-charcoal/50">Swatches with hex values</p>
-          </Link>
-          
-          <Link href="/specimen/grid" className="group">
-            <div className="aspect-video bg-cream border border-charcoal/10 rounded-lg flex items-center justify-center mb-3 relative overflow-hidden group-hover:bg-sand/30 transition-colors">
-              <div className="absolute inset-0 grid grid-cols-12 gap-px">
-                {Array.from({ length: 12 }).map((_, i) => (
-                  <div key={i} className="bg-charcoal/5" />
-                ))}
-              </div>
-            </div>
-            <p className="font-medium">Grid System</p>
-            <p className="text-sm text-charcoal/50">Construction lines and measurements</p>
-          </Link>
+        {/* Large background letter */}
+        <div className="absolute inset-0 flex items-center justify-center overflow-hidden pointer-events-none">
+          <span 
+            className="font-serif text-cream/[0.02] select-none"
+            style={{ fontSize: 'clamp(300px, 50vw, 600px)', lineHeight: 0.8 }}
+          >
+            Aa
+          </span>
         </div>
-      </div>
+        
+        <div className="relative z-10 max-w-6xl">
+          <p className="text-cream/40 text-xs font-mono uppercase tracking-[0.3em] mb-6">
+            Typography Specimen
+          </p>
+          <h1 className="font-serif text-cream text-5xl lg:text-7xl tracking-tight mb-4">
+            Eclectic Hive
+          </h1>
+          <p className="text-cream/50 text-lg max-w-xl">
+            Brand typography system. Isolated reference pages for design and image generation.
+          </p>
+        </div>
+      </section>
+
+      {/* Pages Grid */}
+      <section className="px-8 lg:px-16 py-16">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-px bg-cream/10">
+            {PAGES.map((page, i) => (
+              <Link
+                key={page.href}
+                href={page.href}
+                className="group relative bg-charcoal p-6 lg:p-8 hover:bg-charcoal/80 transition-colors"
+              >
+                {/* Preview area */}
+                <div className="aspect-[4/3] mb-6 flex items-center justify-center relative overflow-hidden rounded-sm bg-cream/5">
+                  {page.preview === 'serif' && (
+                    <span className="font-serif text-cream/80 text-4xl lg:text-5xl tracking-tight group-hover:scale-105 transition-transform duration-500">
+                      {page.subtitle}
+                    </span>
+                  )}
+                  {page.preview === 'system' && (
+                    <div className="text-left px-4">
+                      <p className="font-serif text-cream/80 text-xl">H1</p>
+                      <p className="font-serif text-cream/50 text-base">H2</p>
+                      <p className="text-cream/30 text-sm">Body</p>
+                    </div>
+                  )}
+                  {page.preview === 'swatch' && (
+                    <div className="flex gap-1">
+                      <div className="w-8 h-16 rounded-sm bg-[#1a1a1a] border border-cream/10" />
+                      <div className="w-8 h-16 rounded-sm bg-[#d4cdc4]" />
+                      <div className="w-8 h-16 rounded-sm bg-[#f5f2ed]" />
+                      <div className="w-8 h-16 rounded-sm bg-[#b8a88a]" />
+                    </div>
+                  )}
+                  {page.preview === 'grid' && (
+                    <div className="absolute inset-4 grid grid-cols-6 gap-px opacity-30">
+                      {Array.from({ length: 6 }).map((_, j) => (
+                        <div key={j} className="bg-cream/20 rounded-sm" />
+                      ))}
+                    </div>
+                  )}
+                  
+                  {/* Hover arrow */}
+                  <div className="absolute top-3 right-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                    <ArrowUpRight className="w-4 h-4 text-cream/60" />
+                  </div>
+                </div>
+                
+                {/* Title and description */}
+                <h2 className="font-serif text-cream text-lg tracking-tight mb-1 group-hover:text-cream/80 transition-colors">
+                  {page.title}
+                </h2>
+                <p className="text-cream/40 text-xs leading-relaxed">
+                  {page.description}
+                </p>
+                
+                {/* Index number */}
+                <span className="absolute top-6 left-6 lg:top-8 lg:left-8 text-cream/20 text-xs font-mono">
+                  {String(i + 1).padStart(2, '0')}
+                </span>
+              </Link>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Footer info */}
+      <section className="px-8 lg:px-16 pb-16">
+        <div className="max-w-6xl mx-auto border-t border-cream/10 pt-8">
+          <p className="text-cream/30 text-xs font-mono uppercase tracking-wider">
+            Each page includes theme toggles (dark/light) and 2x2 grid view options. Download as PNG available on all pages.
+          </p>
+        </div>
+      </section>
     </main>
   )
 }

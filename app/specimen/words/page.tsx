@@ -3,15 +3,10 @@
 import { useState } from 'react'
 import { DownloadButton } from '@/components/specimen/download-button'
 
-// Real Eclectic Hive vocabulary only
 const BRAND_NAME_PARTS = ['ECLECTIC', 'HIVE']
-
 const CATEGORIES = ['SEATING', 'TABLES', 'BARS', 'LOUNGE', 'LIGHTING', 'DÉCOR', 'TEXTILES']
-
 const PROCESS_WORDS = ['DISCOVERY', 'DESIGN', 'PRODUCTION', 'FABRICATION', 'INSTALLATION']
-
 const VALUE_WORDS = ['AUTHORED', 'CURATED', 'REFINED', 'CRAFTED', 'ELEVATED']
-
 const ACTION_WORDS = ['IMAGINED', 'REFINED', 'CRAFTED']
 
 export default function Words() {
@@ -21,6 +16,7 @@ export default function Words() {
   const bg = theme === 'dark' ? 'bg-charcoal' : 'bg-cream'
   const text = theme === 'dark' ? 'text-cream' : 'text-charcoal'
   const textMuted = theme === 'dark' ? 'text-cream/40' : 'text-charcoal/40'
+  const accent = theme === 'dark' ? 'text-red-400' : 'text-red-600'
   
   // Grid view - 2x2 showing brand name and categories in both themes
   if (view === 'grid') {
@@ -28,7 +24,6 @@ export default function Words() {
       <main id="specimen-content" className="min-h-screen grid grid-cols-2 grid-rows-2">
         <DownloadButton targetId="specimen-content" filename="eclectic-hive-words-grid" />
         
-        {/* Controls */}
         <div className="fixed top-4 left-4 z-50 flex gap-2 flex-wrap">
           {(['brand', 'categories', 'process', 'values', 'grid'] as const).map((v) => (
             <button
@@ -117,59 +112,71 @@ export default function Words() {
         </button>
       </div>
 
-      {/* Brand name hero */}
+      {/* Brand name hero - dramatic full screen */}
       {view === 'brand' && (
-        <div className="min-h-screen flex flex-col items-center justify-center p-8">
-          <div className="text-center">
-            <p className={`${textMuted} text-xs font-mono uppercase tracking-wider mb-8`}>
-              Brand Wordmark — Display Setting
+        <div className="min-h-screen flex flex-col items-center justify-center px-8 relative overflow-hidden">
+          {/* Ghost letters background */}
+          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+            <span 
+              className={`font-serif ${theme === 'dark' ? 'text-cream/[0.02]' : 'text-charcoal/[0.02]'} select-none`}
+              style={{ fontSize: 'clamp(300px, 45vw, 500px)', lineHeight: 0.8 }}
+            >
+              EH
+            </span>
+          </div>
+          
+          <div className="text-center relative z-10">
+            <p className={`${textMuted} text-xs font-mono uppercase tracking-[0.3em] mb-8`}>
+              Brand Wordmark
             </p>
             
-            {/* Stacked */}
+            {/* Stacked wordmark */}
             <div className="mb-16">
               {BRAND_NAME_PARTS.map((word) => (
                 <p 
                   key={word}
                   className={`${text} font-serif tracking-[0.2em]`}
-                  style={{ fontSize: 'clamp(48px, 12vw, 140px)', lineHeight: 1.1 }}
+                  style={{ fontSize: 'clamp(56px, 14vw, 160px)', lineHeight: 1.0 }}
                 >
                   {word}
                 </p>
               ))}
             </div>
 
-            {/* Inline */}
-            <p 
-              className={`${text} font-serif tracking-[0.25em]`}
-              style={{ fontSize: 'clamp(24px, 5vw, 64px)' }}
-            >
-              ECLECTIC HIVE
-            </p>
+            {/* Inline wordmark */}
+            <div className="mb-8">
+              <p 
+                className={`${text} font-serif tracking-[0.25em]`}
+                style={{ fontSize: 'clamp(28px, 6vw, 72px)' }}
+              >
+                ECLECTIC HIVE
+              </p>
+            </div>
             
-            <p className={`${textMuted} text-xs font-mono uppercase tracking-wider mt-8`}>
-              Tracking: 0.25em / Weight: Light / Case: Uppercase
+            <p className={`${accent} text-xs font-mono uppercase tracking-wider`}>
+              Saol Display Light / Tracking: 0.2-0.25em / Uppercase
             </p>
           </div>
         </div>
       )}
 
-      {/* Categories */}
+      {/* Categories - elegant numbered list */}
       {view === 'categories' && (
-        <div className="min-h-screen p-8 lg:p-16 pt-24">
-          <div className="max-w-4xl mx-auto">
-            <p className={`${textMuted} text-xs font-mono uppercase tracking-wider mb-12`}>
-              Product Categories — Navigation Vocabulary
+        <div className="min-h-screen px-8 lg:px-16 py-24">
+          <div className="max-w-5xl mx-auto">
+            <p className={`${textMuted} text-xs font-mono uppercase tracking-[0.3em] mb-16`}>
+              Product Categories
             </p>
             
-            <div className="space-y-6">
+            <div className="space-y-4">
               {CATEGORIES.map((cat, i) => (
-                <div key={cat} className="flex items-baseline gap-6">
-                  <span className={`${textMuted} font-mono text-xs w-8`}>
+                <div key={cat} className="flex items-baseline gap-8 group">
+                  <span className={`${textMuted} font-mono text-sm w-8 group-hover:text-red-400 transition-colors`}>
                     {String(i + 1).padStart(2, '0')}
                   </span>
                   <span 
-                    className={`${text} font-serif tracking-[0.2em]`}
-                    style={{ fontSize: 'clamp(32px, 6vw, 72px)' }}
+                    className={`${text} font-serif tracking-[0.15em]`}
+                    style={{ fontSize: 'clamp(36px, 7vw, 80px)' }}
                   >
                     {cat}
                   </span>
@@ -180,29 +187,34 @@ export default function Words() {
         </div>
       )}
 
-      {/* Process */}
+      {/* Process - numbered phases */}
       {view === 'process' && (
-        <div className="min-h-screen p-8 lg:p-16 pt-24">
-          <div className="max-w-4xl mx-auto">
-            <p className={`${textMuted} text-xs font-mono uppercase tracking-wider mb-12`}>
-              Process Phases — Sequential Vocabulary
+        <div className="min-h-screen px-8 lg:px-16 py-24">
+          <div className="max-w-5xl mx-auto">
+            <p className={`${textMuted} text-xs font-mono uppercase tracking-[0.3em] mb-16`}>
+              Five Phases. One Authored Outcome.
             </p>
             
-            <div className="space-y-8">
+            <div className="space-y-12">
               {PROCESS_WORDS.map((word, i) => (
-                <div key={word} className="flex items-center gap-8">
+                <div key={word} className="flex items-center gap-12">
                   <span 
-                    className={`${textMuted} font-serif text-6xl lg:text-8xl`}
-                    style={{ width: '1.5em', textAlign: 'right' }}
+                    className={`${textMuted} font-serif`}
+                    style={{ fontSize: 'clamp(48px, 8vw, 96px)', width: '1.2em', textAlign: 'right' }}
                   >
                     {i + 1}
                   </span>
-                  <span 
-                    className={`${text} font-serif tracking-[0.15em]`}
-                    style={{ fontSize: 'clamp(24px, 5vw, 56px)' }}
-                  >
-                    {word}
-                  </span>
+                  <div>
+                    <span 
+                      className={`${text} font-serif tracking-[0.1em]`}
+                      style={{ fontSize: 'clamp(28px, 5vw, 56px)' }}
+                    >
+                      {word}
+                    </span>
+                    <p className={`${textMuted} text-sm mt-2`}>
+                      Phase {i + 1} of 5
+                    </p>
+                  </div>
                 </div>
               ))}
             </div>
@@ -210,45 +222,48 @@ export default function Words() {
         </div>
       )}
 
-      {/* Values */}
+      {/* Values - tagline and core words */}
       {view === 'values' && (
-        <div className="min-h-screen p-8 lg:p-16 pt-24">
-          <div className="max-w-5xl mx-auto">
-            <p className={`${textMuted} text-xs font-mono uppercase tracking-wider mb-12`}>
-              Brand Values — Core Vocabulary
+        <div className="min-h-screen px-8 lg:px-16 py-24">
+          <div className="max-w-6xl mx-auto">
+            <p className={`${textMuted} text-xs font-mono uppercase tracking-[0.3em] mb-16`}>
+              Brand Values
             </p>
             
-            {/* Action words - tagline */}
-            <div className="mb-24">
-              <div className="flex flex-wrap gap-4 lg:gap-8 justify-center">
-                {ACTION_WORDS.map((word, i) => (
-                  <span key={word} className="flex items-center gap-4 lg:gap-8">
-                    <span 
-                      className={`${text} font-serif tracking-[0.2em]`}
-                      style={{ fontSize: 'clamp(28px, 5vw, 64px)' }}
-                    >
-                      {word}.
-                    </span>
+            {/* Tagline - hero treatment */}
+            <div className="mb-32 text-center">
+              <div className="flex flex-wrap justify-center gap-4 lg:gap-8">
+                {ACTION_WORDS.map((word) => (
+                  <span 
+                    key={word}
+                    className={`${text} font-serif tracking-[0.15em]`}
+                    style={{ fontSize: 'clamp(32px, 6vw, 72px)' }}
+                  >
+                    {word}.
                   </span>
                 ))}
               </div>
-              <p className={`${textMuted} text-xs font-mono uppercase tracking-wider mt-6 text-center`}>
+              <p className={`${accent} text-xs font-mono uppercase tracking-wider mt-8`}>
                 Primary Tagline
               </p>
             </div>
             
-            {/* Value words grid */}
-            <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
-              {VALUE_WORDS.map((word) => (
-                <div key={word} className="text-center">
+            {/* Value words - horizontal scroll */}
+            <div>
+              <p className={`${textMuted} text-xs font-mono uppercase tracking-[0.3em] mb-8`}>
+                Core Vocabulary
+              </p>
+              <div className="flex flex-wrap gap-x-12 gap-y-4">
+                {VALUE_WORDS.map((word) => (
                   <span 
-                    className={`${text} font-serif tracking-[0.15em]`}
-                    style={{ fontSize: 'clamp(16px, 2vw, 24px)' }}
+                    key={word}
+                    className={`${text} font-serif tracking-[0.2em]`}
+                    style={{ fontSize: 'clamp(20px, 3vw, 32px)' }}
                   >
                     {word}
                   </span>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           </div>
         </div>
