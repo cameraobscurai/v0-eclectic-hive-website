@@ -195,52 +195,24 @@ const SUB_CATEGORY_SORT_ORDER: Record<string, string[]> = {
   'Lighting': ['Floor Lamps', 'Table Lamps', 'Sconces'],
 }
 
-// ============================================================================
-// Pre-compute sub-category detection (moved outside component for performance)
-// ============================================================================
-function detectSubCategory(name: string): string {
-  const lowerName = name.toLowerCase()
-  for (const [subCat, keywords] of Object.entries(SUB_CATEGORY_KEYWORDS)) {
-    if (keywords.some(kw => lowerName.includes(kw))) {
-      return subCat
-    }
-  }
-  return 'Other'
-}
-
-// Pre-compute sub-categories for a list of products (call once per data load)
-function preComputeSubCategories(products: Product[]): Map<string, string> {
-  const map = new Map<string, string>()
-  for (const p of products) {
-    map.set(p.id, detectSubCategory(p.name))
-  }
-  return map
-}
-
 export default function CollectionPage() {
-  // SWR for products - disable revalidateOnFocus to prevent needless refetches
+  // SWR for products - short cache for fresh data after uploads
   const { data: productsData, mutate: mutateProducts } = useSWR('/api/products?imagesOnly=true&limit=500', fetcher, {
-    revalidateOnFocus: false,
-    revalidateOnReconnect: false,
-    dedupingInterval: 60000, // 60 second cache
+    revalidateOnFocus: true,
+    revalidateOnReconnect: true,
+    dedupingInterval: 10000, // 10 second cache
   })
   
-  // SWR for categories - disable revalidateOnFocus
+  // SWR for categories - short cache
   const { data: categoriesData } = useSWR('/api/categories', fetcher, {
-    revalidateOnFocus: false,
-    revalidateOnReconnect: false,
-    dedupingInterval: 60000,
+    revalidateOnFocus: true,
+    revalidateOnReconnect: true,
+    dedupingInterval: 10000,
   })
   
   const products: Product[] = productsData?.products || []
   const categories: string[] = categoriesData?.categories || ['All']
   const isLoading = !productsData
-  
-  // Pre-compute sub-categories once when products load (B2 performance fix)
-  const subCategoryMap = useMemo(() => preComputeSubCategories(products), [products])
-  
-  // Helper to get sub-category from the pre-computed map
-  const getSubCategory = useCallback((productId: string) => subCategoryMap.get(productId) || 'Other', [subCategoryMap])
   
   // Compute category counts (only for products with images)
   const categoryCounts = useMemo(() => {
@@ -333,6 +305,17 @@ export default function CollectionPage() {
     return '/placeholder-product.jpg'
   }, [])
   
+  // Detect sub-category from product name
+  const detectSubCategory = (name: string): string => {
+    const lowerName = name.toLowerCase()
+    for (const [subCat, keywords] of Object.entries(SUB_CATEGORY_KEYWORDS)) {
+      if (keywords.some(kw => lowerName.includes(kw))) {
+        return subCat
+      }
+    }
+    return 'Other'
+  }
+
   // Filter and search products
   const filteredProducts = useMemo(() => {
     // Only show products with images, exclude hidden/broken ones
@@ -346,9 +329,9 @@ export default function CollectionPage() {
     if (!activeCategory) return []
     results = results.filter(p => p.category === activeCategory)
     
-    // Sub-category filter (uses pre-computed map)
+    // Sub-category filter
     if (activeSubCategory !== 'All') {
-      results = results.filter(p => getSubCategory(p.id) === activeSubCategory)
+      results = results.filter(p => detectSubCategory(p.name) === activeSubCategory)
     }
     
     // Search filter with scoring
@@ -369,11 +352,11 @@ export default function CollectionPage() {
       // Apply sort when not searching
       switch (sortBy) {
         case 'type':
-          // Sort by sub-category for better visual flow (uses pre-computed map)
+          // Sort by sub-category for better visual flow (sofas, then benches, then chairs, etc.)
           const sortOrder = SUB_CATEGORY_SORT_ORDER[activeCategory] || []
           results.sort((a, b) => {
-            const aSubCat = getSubCategory(a.id)
-            const bSubCat = getSubCategory(b.id)
+            const aSubCat = detectSubCategory(a.name)
+            const bSubCat = detectSubCategory(b.name)
             const aIndex = sortOrder.indexOf(aSubCat)
             const bIndex = sortOrder.indexOf(bSubCat)
             // Items not in sort order go to end
@@ -397,18 +380,18 @@ export default function CollectionPage() {
     }
     
     return results
-  }, [products, activeCategory, activeSubCategory, debouncedSearch, hiddenProducts, getImageUrl, sortBy, getSubCategory])
+  }, [products, activeCategory, activeSubCategory, debouncedSearch, hiddenProducts, getImageUrl, sortBy])
   
-  // Get available sub-categories for current category (uses pre-computed map)
+  // Get available sub-categories for current category (only show if items exist)
   const availableSubCategories = useMemo(() => {
     const categoryProducts = products.filter(p => p.primary_image_url && p.category === activeCategory)
     const subs = SUB_CATEGORIES[activeCategory] || ['All']
     
     return subs.filter(sub => {
       if (sub === 'All') return true
-      return categoryProducts.some(p => getSubCategory(p.id) === sub)
+      return categoryProducts.some(p => detectSubCategory(p.name) === sub)
     })
-  }, [products, activeCategory, getSubCategory])
+  }, [products, activeCategory])
   
   // Quick View navigation (must be after filteredProducts is defined)
   const goToNextProduct = useCallback(() => {
@@ -488,7 +471,7 @@ export default function CollectionPage() {
                 // Count items in this sub-category
                 const count = sub === 'All'
                   ? products.filter(p => p.primary_image_url && p.category === activeCategory).length
-                  : products.filter(p => p.primary_image_url && p.category === activeCategory && getSubCategory(p.id) === sub).length
+                  : products.filter(p => p.primary_image_url && p.category === activeCategory && detectSubCategory(p.name) === sub).length
                 
                 return (
                   <button

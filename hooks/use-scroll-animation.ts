@@ -44,7 +44,6 @@ export function useScrollProgress(options: ScrollProgressOptions = {}) {
   const { offset = ['start end', 'end start'] } = options
   const ref = useRef<HTMLElement>(null)
   const [progress, setProgress] = useState(0)
-  const ticking = useRef(false)
 
   useEffect(() => {
     const element = ref.current
@@ -64,23 +63,12 @@ export function useScrollProgress(options: ScrollProgressOptions = {}) {
       setProgress(Math.max(0, Math.min(1, rawProgress)))
     }
 
-    // RAF-throttled scroll handler (B8 fix)
-    const handleScroll = () => {
-      if (!ticking.current) {
-        requestAnimationFrame(() => {
-          updateProgress()
-          ticking.current = false
-        })
-        ticking.current = true
-      }
-    }
-
     updateProgress()
-    window.addEventListener('scroll', handleScroll, { passive: true })
+    window.addEventListener('scroll', updateProgress, { passive: true })
     window.addEventListener('resize', updateProgress, { passive: true })
     
     return () => {
-      window.removeEventListener('scroll', handleScroll)
+      window.removeEventListener('scroll', updateProgress)
       window.removeEventListener('resize', updateProgress)
     }
   }, [offset])
