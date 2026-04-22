@@ -1,39 +1,14 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
-import { cn } from '@/lib/utils'
+import { Reveal, Parallax } from '@/components/animations/motion-elements'
 
 export function StudioSection() {
-  const [isInView, setIsInView] = useState(false)
-  const ref = useRef<HTMLElement>(null)
-
-  useEffect(() => {
-    const element = ref.current
-    if (!element) return
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsInView(true)
-          observer.unobserve(element)
-        }
-      },
-      { threshold: 0.2 }
-    )
-    observer.observe(element)
-    return () => observer.disconnect()
-  }, [])
-
   return (
-    <section ref={ref} className="bg-cream py-24 lg:py-40">
+    <section className="bg-cream py-24 lg:py-40">
       <div className="px-6 lg:px-12 max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
-          {/* Image Placeholder */}
-          <div 
-            className={cn(
-              'relative aspect-[4/3] overflow-hidden transition-all duration-1000 bg-sand',
-              isInView ? 'opacity-100 scale-100' : 'opacity-0 scale-105'
-            )}
-          >
+          {/* Image — wipes in from left */}
+          <Reveal direction="left" delay={0} overlayColor="bg-cream" className="relative aspect-[4/3] bg-sand">
             <div className="absolute inset-0 flex flex-col items-center justify-center">
               <div className="w-16 h-16 border border-charcoal/20 rounded-sm flex items-center justify-center mb-4">
                 <svg className="w-8 h-8 text-charcoal/30" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1}>
@@ -42,50 +17,28 @@ export function StudioSection() {
               </div>
               <p className="text-xs uppercase tracking-[0.2em] text-charcoal/40">Design Studio</p>
             </div>
-          </div>
+          </Reveal>
 
-          {/* Content */}
+          {/* Content — text drifts slower (background feel) */}
           <div>
-            <p 
-              className={cn(
-                'text-xs uppercase tracking-[0.3em] text-charcoal/50 mb-6 transition-all duration-700',
-                isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-              )}
-              style={{ transitionDelay: '200ms' }}
-            >
+            <p className="text-xs uppercase tracking-[0.3em] text-charcoal/50 mb-6">
               Design Studio
             </p>
-            <h2 
-              className={cn(
-                'font-display text-2xl md:text-3xl tracking-[0.2em] font-light uppercase text-charcoal transition-all duration-700',
-                isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-              )}
-              style={{ transitionDelay: '300ms' }}
-            >
+            <h2 className="font-display text-2xl md:text-3xl tracking-[0.2em] font-light uppercase text-charcoal">
               The creative work hub
             </h2>
-            <p 
-              className={cn(
-                'mt-6 text-charcoal/70 leading-relaxed transition-all duration-700',
-                isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-              )}
-              style={{ transitionDelay: '400ms' }}
-            >
-              Our Denver studio is where ideas become tangible. Here, design concepts 
-              are developed, materials are sourced and tested, and every detail is 
-              considered before anything reaches fabrication.
-            </p>
-            <p 
-              className={cn(
-                'mt-4 text-charcoal/70 leading-relaxed transition-all duration-700',
-                isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-              )}
-              style={{ transitionDelay: '500ms' }}
-            >
-              This is where the cinematic, art-forward approach that defines our work 
-              takes shape—where mood boards become environments and sketches become 
-              proprietary pieces.
-            </p>
+            <Parallax speed={0.2} direction="up">
+              <p className="mt-6 text-charcoal/70 leading-relaxed">
+                Our Denver studio is where ideas become tangible. Here, design concepts 
+                are developed, materials are sourced and tested, and every detail is 
+                considered before anything reaches fabrication.
+              </p>
+              <p className="mt-4 text-charcoal/70 leading-relaxed">
+                This is where the cinematic, art-forward approach that defines our work 
+                takes shape—where mood boards become environments and sketches become 
+                proprietary pieces.
+              </p>
+            </Parallax>
           </div>
         </div>
       </div>

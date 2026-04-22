@@ -1,4 +1,7 @@
+'use client'
+
 import Link from 'next/link'
+import { Magnetic } from '@/components/animations/motion-elements'
 
 export function AtelierCTA() {
   return (
@@ -22,12 +25,14 @@ export function AtelierCTA() {
           </p>
           
           <div className="mt-12 flex flex-col sm:flex-row items-start gap-6">
-            <Link 
-              href="/contact#inquiry"
-              className="inline-flex items-center justify-center px-8 py-4 bg-charcoal text-cream text-sm uppercase tracking-widest hover:bg-charcoal/90 transition-colors"
-            >
-              Start an Inquiry
-            </Link>
+            <Magnetic strength={0.25}>
+              <Link 
+                href="/contact#inquiry"
+                className="inline-flex items-center justify-center px-8 py-4 bg-charcoal text-cream text-sm uppercase tracking-widest hover:bg-charcoal/90 transition-colors"
+              >
+                Start an Inquiry
+              </Link>
+            </Magnetic>
             <Link 
               href="/process"
               className="inline-flex items-center gap-3 text-sm uppercase tracking-widest group py-4"

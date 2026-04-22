@@ -1,11 +1,12 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
+import { useRef } from 'react'
+import { motion, useScroll, useTransform } from 'framer-motion'
 import { Navigation } from '@/components/navigation'
 import { Footer } from '@/components/footer'
 import { ImagePlaceholder } from '@/components/ui/image-placeholder'
 import { LineReveal, HighlightReveal } from '@/components/pretext/line-reveal'
-import { PullQuoteFlow } from '@/components/pretext/editorial-flow'
+import { Magnetic } from '@/components/animations/motion-elements'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 
@@ -65,71 +66,98 @@ const engagementTypes = [
   },
 ]
 
-function ProcessPhase({ phase, index }: { phase: typeof processPhases[0]; index: number }) {
-  const [isInView, setIsInView] = useState(false)
-  const ref = useRef<HTMLDivElement>(null)
-
-  useEffect(() => {
-    const element = ref.current
-    if (!element) return
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsInView(true)
-          observer.unobserve(element)
-        }
-      },
-      { threshold: 0.2 }
-    )
-
-    observer.observe(element)
-    return () => observer.disconnect()
-  }, [])
+// Scroll-driven timeline that draws itself as you scroll
+function ProcessTimeline() {
+  const containerRef = useRef<HTMLDivElement>(null)
+  const { scrollYProgress } = useScroll({
+    target: containerRef,
+    offset: ['start 0.8', 'end 0.2'],
+  })
 
   return (
-    <div 
-      ref={ref}
-      className={cn(
-        'py-12 lg:py-16 border-b border-border grid grid-cols-1 lg:grid-cols-12 gap-8 transition-all duration-700',
-        isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-      )}
-      style={{ transitionDelay: `${index * 100}ms` }}
-    >
-      <div className="lg:col-span-1">
-        <span 
-          className={cn(
-            'text-xs text-muted-foreground tabular-nums transition-all duration-500',
-            isInView && 'text-terracotta'
-          )}
-          style={{ transitionDelay: `${index * 100 + 200}ms` }}
-        >
-          {phase.number}
-        </span>
-      </div>
-      <div className="lg:col-span-3">
-        <h3 className="font-serif text-2xl lg:text-3xl tracking-tight">{phase.title}</h3>
-        <p className="mt-2 text-sm text-muted-foreground">{phase.duration}</p>
-      </div>
-      <div className="lg:col-span-5">
-        <p className="text-muted-foreground leading-relaxed">{phase.description}</p>
-      </div>
-      <div className="lg:col-span-3">
-        <p className="text-xs uppercase tracking-widest text-muted-foreground mb-3">Deliverables</p>
-        <ul className="flex flex-col gap-1">
-          {phase.deliverables.map((item, i) => (
-            <li 
-              key={item} 
-              className={cn(
-                'text-sm text-foreground transition-all duration-500',
-                isInView ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-2'
-              )}
-              style={{ transitionDelay: `${index * 100 + i * 50 + 300}ms` }}
-            >
-              {item}
-            </li>
-          ))}
-        </ul>
+    <div ref={containerRef} className="relative border-l border-charcoal/10 ml-4 pl-8">
+      {/* The line that draws down as you scroll */}
+      <motion.div
+        className="absolute left-0 top-0 w-px bg-charcoal origin-top"
+        style={{
+          scaleY: scrollYProgress,
+          height: '100%',
+        }}
+      />
+
+      {/* Each phase with scroll-activated dot */}
+      {processPhases.map((phase, i) => {
+        const phaseProgress = i / processPhases.length
+        
+        return (
+          <ProcessPhaseItem 
+            key={phase.number} 
+            phase={phase} 
+            index={i}
+            phaseProgress={phaseProgress}
+            scrollYProgress={scrollYProgress}
+          />
+        )
+      })}
+    </div>
+  )
+}
+
+// Individual phase item with scroll-linked dot activation
+function ProcessPhaseItem({ 
+  phase, 
+  index, 
+  phaseProgress, 
+  scrollYProgress 
+}: { 
+  phase: typeof processPhases[0]
+  index: number
+  phaseProgress: number
+  scrollYProgress: ReturnType<typeof useScroll>['scrollYProgress']
+}) {
+  const dotOpacity = useTransform(
+    scrollYProgress,
+    [phaseProgress - 0.05, phaseProgress + 0.05],
+    [0.2, 1]
+  )
+  const dotScale = useTransform(
+    scrollYProgress,
+    [phaseProgress - 0.05, phaseProgress + 0.05],
+    [0.6, 1]
+  )
+
+  return (
+    <div className="relative mb-16 lg:mb-24">
+      {/* Dot on the timeline */}
+      <motion.div
+        style={{ opacity: dotOpacity, scale: dotScale }}
+        className="absolute -left-11 top-2 w-3 h-3 rounded-full border border-charcoal bg-cream"
+      />
+      
+      {/* Content */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        <div className="lg:col-span-1">
+          <span className="text-xs text-muted-foreground tabular-nums">
+            {phase.number}
+          </span>
+        </div>
+        <div className="lg:col-span-3">
+          <h3 className="font-serif text-2xl lg:text-3xl tracking-tight">{phase.title}</h3>
+          <p className="mt-2 text-sm text-muted-foreground">{phase.duration}</p>
+        </div>
+        <div className="lg:col-span-5">
+          <p className="text-muted-foreground leading-relaxed">{phase.description}</p>
+        </div>
+        <div className="lg:col-span-3">
+          <p className="text-xs uppercase tracking-widest text-muted-foreground mb-3">Deliverables</p>
+          <ul className="flex flex-col gap-1">
+            {phase.deliverables.map((item) => (
+              <li key={item} className="text-sm text-foreground">
+                {item}
+              </li>
+            ))}
+          </ul>
+        </div>
       </div>
     </div>
   )
@@ -233,12 +261,8 @@ export default function ProcessPage() {
             </div>
           </div>
           
-          {/* Process Phases with animations */}
-          <div className="border-t border-border">
-            {processPhases.map((phase, index) => (
-              <ProcessPhase key={phase.number} phase={phase} index={index} />
-            ))}
-          </div>
+          {/* Process Phases — scroll-driven timeline */}
+          <ProcessTimeline />
         </div>
       </section>
       
@@ -389,12 +413,14 @@ export default function ProcessPage() {
               to every inquiry and will let you know if we are the right fit.
             </p>
             <div className="mt-12">
-              <Link 
-                href="/contact#inquiry"
-                className="inline-flex items-center justify-center px-8 py-4 bg-charcoal text-cream text-sm uppercase tracking-widest hover:bg-charcoal/90 transition-colors"
-              >
-                Start an Inquiry
-              </Link>
+              <Magnetic strength={0.25}>
+                <Link 
+                  href="/contact#inquiry"
+                  className="inline-flex items-center justify-center px-8 py-4 bg-charcoal text-cream text-sm uppercase tracking-widest hover:bg-charcoal/90 transition-colors"
+                >
+                  Start an Inquiry
+                </Link>
+              </Magnetic>
             </div>
           </div>
         </div>

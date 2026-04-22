@@ -1,7 +1,6 @@
 'use client'
 
-import { useState, useRef, useEffect } from 'react'
-import { cn } from '@/lib/utils'
+import { Parallax, Reveal } from '@/components/animations/motion-elements'
 
 const capabilities = [
   {
@@ -31,65 +30,43 @@ const capabilities = [
 ]
 
 export function ScopeSection() {
-  const [isInView, setIsInView] = useState(false)
-  const ref = useRef<HTMLElement>(null)
-
-  useEffect(() => {
-    const element = ref.current
-    if (!element) return
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setIsInView(true)
-          observer.unobserve(element)
-        }
-      },
-      { threshold: 0.2 }
-    )
-    observer.observe(element)
-    return () => observer.disconnect()
-  }, [])
-
   return (
-    <section ref={ref} className="bg-charcoal text-cream py-24 lg:py-40">
+    <section className="bg-charcoal text-cream py-24 lg:py-40">
       <div className="px-6 lg:px-12 max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-16">
-          {/* Header */}
-          <div className="lg:col-span-4">
-            <p 
-              className={cn(
-                'text-xs uppercase tracking-[0.3em] text-cream/50 mb-6 transition-all duration-700',
-                isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-              )}
-            >
+          {/* Header — sticky on desktop */}
+          <div className="lg:col-span-4 lg:sticky lg:top-32 lg:self-start">
+            <p className="text-xs uppercase tracking-[0.3em] text-cream/50 mb-6">
               Scope of Work
             </p>
-            <h2 
-              className={cn(
-                'font-display text-2xl md:text-3xl tracking-[0.2em] font-light uppercase transition-all duration-700',
-                isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-              )}
-              style={{ transitionDelay: '100ms' }}
-            >
-              Full-service design + production
-            </h2>
+            <Reveal direction="up" delay={0} overlayColor="bg-charcoal">
+              <h2 className="font-display text-2xl md:text-3xl tracking-[0.2em] font-light uppercase">
+                Full-service design + production
+              </h2>
+            </Reveal>
           </div>
 
-          {/* Capabilities Grid */}
+          {/* Capabilities Grid — alternating motion types for depth */}
           <div className="lg:col-span-8">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
               {capabilities.map((item, i) => (
-                <div
-                  key={item.title}
-                  className={cn(
-                    'border-t border-cream/20 pt-6 transition-all duration-700',
-                    isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-                  )}
-                  style={{ transitionDelay: `${200 + i * 80}ms` }}
-                >
-                  <h3 className="font-display text-xl tracking-tight font-normal mb-3">{item.title}</h3>
-                  <p className="text-cream/60 text-sm leading-relaxed">{item.description}</p>
-                </div>
+                // ODD items: Parallax (slower, background feel)
+                // EVEN items: Reveal wipe (foreground feel)
+                i % 2 === 0 ? (
+                  <Parallax key={item.title} speed={0.15} direction="up">
+                    <div className="border-t border-cream/20 pt-6">
+                      <h3 className="font-display text-xl tracking-tight font-normal mb-3">{item.title}</h3>
+                      <p className="text-cream/60 text-sm leading-relaxed">{item.description}</p>
+                    </div>
+                  </Parallax>
+                ) : (
+                  <Reveal key={item.title} direction="left" delay={i * 0.05} overlayColor="bg-charcoal">
+                    <div className="border-t border-cream/20 pt-6">
+                      <h3 className="font-display text-xl tracking-tight font-normal mb-3">{item.title}</h3>
+                      <p className="text-cream/60 text-sm leading-relaxed">{item.description}</p>
+                    </div>
+                  </Reveal>
+                )
               ))}
             </div>
           </div>

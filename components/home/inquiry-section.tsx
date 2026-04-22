@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { TextReveal, FadeUp } from '@/components/animations/text-reveal'
+import { Magnetic } from '@/components/animations/motion-elements'
 
 export function InquirySection() {
   return (
@@ -32,13 +33,15 @@ export function InquirySection() {
           
           <FadeUp delay={0.5}>
             <div className="mt-14 flex flex-col sm:flex-row items-center justify-center gap-6">
-              <Link 
-                href="/contact#inquiry"
-                className="group relative inline-flex items-center justify-center px-10 py-5 bg-charcoal text-cream text-sm uppercase tracking-[0.2em] overflow-hidden transition-all duration-500 hover:bg-charcoal/90"
-              >
-                <span className="relative z-10">Start an Inquiry</span>
-                <span className="absolute inset-0 bg-terracotta origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500" />
-              </Link>
+              <Magnetic strength={0.25}>
+                <Link 
+                  href="/contact#inquiry"
+                  className="group relative inline-flex items-center justify-center px-10 py-5 bg-charcoal text-cream text-sm uppercase tracking-[0.2em] overflow-hidden transition-all duration-500 hover:bg-charcoal/90"
+                >
+                  <span className="relative z-10">Start an Inquiry</span>
+                  <span className="absolute inset-0 bg-terracotta origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500" />
+                </Link>
+              </Magnetic>
               <Link 
                 href="/process"
                 className="inline-flex items-center gap-4 text-sm uppercase tracking-[0.15em] group py-5"
