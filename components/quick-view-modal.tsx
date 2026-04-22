@@ -63,7 +63,7 @@ const modalVariants = {
     y: 10,
     transition: { 
       duration: 0.2, 
-      ease: [0.32, 0, 0.67, 0],
+      ease: [0.32, 0, 0.67, 0] as const,
     }
   },
 }
