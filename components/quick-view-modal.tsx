@@ -39,7 +39,7 @@ interface QuickViewModalProps {
 
 // Springy, gel-like easing for liquid feel
 const liquidSpring = {
-  type: "spring",
+  type: "spring" as const,
   stiffness: 400,
   damping: 30,
   mass: 1,
