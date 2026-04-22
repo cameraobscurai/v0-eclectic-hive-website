@@ -4,11 +4,11 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { usePathname } from 'next/navigation'
 import { ReactNode, useEffect, useState, createContext, useContext, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { EASINGS, prefersReducedMotion } from '@/lib/animations'
+import { prefersReducedMotion } from '@/lib/animations'
 
 // =============================================================================
 // PAGE TRANSITION CONTEXT
-// Enables programmatic navigation with cinematic wipe
+// Enables programmatic navigation with subtle content swap
 // =============================================================================
 
 interface TransitionContextType {
@@ -24,8 +24,8 @@ const TransitionContext = createContext<TransitionContextType>({
 export const usePageTransition = () => useContext(TransitionContext)
 
 // =============================================================================
-// CINEMATIC WIPE TRANSITION
-// Single panel sweep with motion blur effect
+// SUBTLE BREATH TRANSITION
+// Quick opacity dip that smooths the swap without demanding attention
 // =============================================================================
 
 interface PageTransitionProps {
@@ -36,9 +36,6 @@ export function PageTransitionProvider({ children }: { children: ReactNode }) {
   const router = useRouter()
   const pathname = usePathname()
   const [isTransitioning, setIsTransitioning] = useState(false)
-  const [showWipe, setShowWipe] = useState(false)
-  const [wipePhase, setWipePhase] = useState<'idle' | 'enter' | 'hold' | 'exit'>('idle')
-  const [pendingHref, setPendingHref] = useState<string | null>(null)
   const [reducedMotion, setReducedMotion] = useState(false)
 
   useEffect(() => {
@@ -48,105 +45,18 @@ export function PageTransitionProvider({ children }: { children: ReactNode }) {
   const navigateWithTransition = useCallback((href: string) => {
     if (href === pathname || isTransitioning) return
     
-    if (reducedMotion) {
-      router.push(href)
-      return
-    }
-
     setIsTransitioning(true)
-    setShowWipe(true)
-    setWipePhase('enter')
-    setPendingHref(href)
-    
-    // Fire navigation immediately
     router.push(href)
-  }, [pathname, isTransitioning, reducedMotion, router])
-
-  // When pathname changes after navigation
-  useEffect(() => {
-    if (isTransitioning && pendingHref === pathname) {
-      // Brief hold at full coverage
-      setWipePhase('hold')
-      const timer = setTimeout(() => {
-        setWipePhase('exit')
-      }, 80)
-      return () => clearTimeout(timer)
-    }
-  }, [pathname, isTransitioning, pendingHref])
-
-  // Cleanup after exit
-  useEffect(() => {
-    if (wipePhase === 'exit') {
-      const timer = setTimeout(() => {
-        setShowWipe(false)
-        setWipePhase('idle')
-        setIsTransitioning(false)
-        setPendingHref(null)
-      }, 450)
-      return () => clearTimeout(timer)
-    }
-  }, [wipePhase])
+    
+    // Brief transition state
+    setTimeout(() => {
+      setIsTransitioning(false)
+    }, 300)
+  }, [pathname, isTransitioning, router])
 
   return (
     <TransitionContext.Provider value={{ navigateWithTransition, isTransitioning }}>
       {children}
-      
-      {/* Cinematic Wipe Overlay - single panel with motion blur */}
-      <AnimatePresence>
-        {showWipe && (
-          <motion.div 
-            className="fixed inset-0 z-[9999] pointer-events-none overflow-hidden"
-            aria-hidden="true"
-          >
-            {/* Main wipe panel */}
-            <motion.div
-              className="absolute inset-0 bg-charcoal"
-              initial={{ x: '-100%' }}
-              animate={
-                wipePhase === 'exit' 
-                  ? { x: '100%' }
-                  : { x: '0%' }
-              }
-              transition={{
-                duration: wipePhase === 'exit' ? 0.4 : 0.35,
-                ease: EASINGS.cinematic,
-              }}
-            >
-              {/* Motion blur trailing edge effect */}
-              <div 
-                className="absolute inset-y-0 -right-32 w-32"
-                style={{
-                  background: 'linear-gradient(to right, rgba(26,26,26,1) 0%, rgba(26,26,26,0.6) 30%, rgba(26,26,26,0) 100%)',
-                  filter: 'blur(8px)',
-                }}
-              />
-              
-              {/* Subtle grain texture */}
-              <div 
-                className="absolute inset-0 opacity-[0.03]"
-                style={{
-                  backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
-                }}
-              />
-            </motion.div>
-            
-            {/* Leading edge highlight */}
-            <motion.div
-              className="absolute inset-y-0 w-px bg-cream/10"
-              initial={{ x: '-1px' }}
-              animate={
-                wipePhase === 'exit'
-                  ? { x: 'calc(100vw + 1px)' }
-                  : { x: 'calc(100vw - 1px)' }
-              }
-              transition={{
-                duration: wipePhase === 'exit' ? 0.4 : 0.35,
-                ease: EASINGS.cinematic,
-              }}
-            />
-          </motion.div>
-        )}
-      </AnimatePresence>
     </TransitionContext.Provider>
   )
 }
@@ -158,27 +68,27 @@ export function PageTransition({ children }: PageTransitionProps) {
 
   useEffect(() => {
     setReducedMotion(prefersReducedMotion())
-    const timer = setTimeout(() => setIsFirstLoad(false), 100)
+    const timer = setTimeout(() => setIsFirstLoad(false), 50)
     return () => clearTimeout(timer)
   }, [])
 
-  // Page content variants - subtle fade only, wipe handles the drama
+  // Ultra-subtle: just a quick opacity breath
   const pageVariants = {
-    initial: { opacity: 0 },
+    initial: { opacity: 0.92 },
     enter: { 
       opacity: 1,
-      transition: { duration: 0.3, ease: 'easeOut', delay: 0.1 }
+      transition: { duration: 0.2, ease: 'easeOut' }
     },
     exit: { 
-      opacity: 0,
-      transition: { duration: 0.15, ease: 'easeIn' }
+      opacity: 0.92,
+      transition: { duration: 0.12, ease: 'easeIn' }
     },
   }
 
   const reducedMotionVariants = {
-    initial: { opacity: 0 },
-    enter: { opacity: 1, transition: { duration: 0.15 } },
-    exit: { opacity: 0, transition: { duration: 0.1 } },
+    initial: { opacity: 1 },
+    enter: { opacity: 1 },
+    exit: { opacity: 1 },
   }
 
   const variants = reducedMotion ? reducedMotionVariants : pageVariants
@@ -205,7 +115,7 @@ export function PageOverlay() {
 
 // =============================================================================
 // TRANSITION LINK
-// Drop-in link with cinematic wipe transition
+// Drop-in link with subtle transition
 // =============================================================================
 
 interface TransitionLinkProps extends React.AnchorHTMLAttributes<HTMLAnchorElement> {
