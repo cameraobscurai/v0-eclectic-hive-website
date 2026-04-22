@@ -139,12 +139,20 @@ function ProjectCard({
         'group relative flex-shrink-0 w-[85vw] md:w-[60vw] lg:w-[45vw] xl:w-[40vw] snap-center',
         'focus:outline-none focus-visible:ring-2 focus-visible:ring-sand focus-visible:ring-offset-4 focus-visible:ring-offset-charcoal',
         'transition-all duration-500',
-        isActive ? 'opacity-100' : 'opacity-70 hover:opacity-90'
+        isActive 
+          ? 'opacity-100 scale-100' 
+          : 'opacity-60 scale-[0.97] hover:opacity-80 hover:scale-[0.98]'
       )}
       aria-label={`View ${project.title} in ${project.region}`}
     >
-      {/* Image Container */}
-      <div className="relative aspect-[4/5] overflow-hidden bg-charcoal/50">
+      {/* Image Container - elevated with shadow */}
+      <div className={cn(
+        "relative aspect-[4/5] overflow-hidden bg-charcoal/50",
+        "shadow-2xl shadow-black/40",
+        "ring-1 ring-white/5",
+        "transition-shadow duration-500",
+        isActive && "shadow-[0_25px_60px_-12px_rgba(0,0,0,0.5)]"
+      )}>
           <Image
             src={project.image}
             alt={`${project.title} - ${project.location}`}
@@ -543,7 +551,7 @@ export default function GalleryPage() {
       
       {/* ─────────────────────────────────────────────────────────────
           Filter Pills - By Region/Location
-      ───────────────────────────────────────────────────────────── */}
+      ───────────────────────���───────────────────────────────────── */}
       {projects.length > 0 && allRegions.length > 2 && (
         <section className="pb-8 lg:pb-12 px-6 lg:px-12">
           <div className="max-w-7xl mx-auto">

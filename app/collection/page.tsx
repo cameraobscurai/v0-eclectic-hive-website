@@ -22,15 +22,25 @@ function ProductCard({
   product, 
   imageUrl, 
   onImageError,
-  onClick
+  onClick,
+  index = 0
 }: { 
   product: Product
   imageUrl: string
   onImageError: (id: string, url: string) => void
   onClick: () => void
+  index?: number
 }) {
   const [loaded, setLoaded] = useState(false)
   const [error, setError] = useState(false)
+  const [mounted, setMounted] = useState(false)
+  
+  // Staggered mount animation
+  useEffect(() => {
+    const delay = Math.min(index * 30, 300) // Cap delay at 300ms
+    const timer = setTimeout(() => setMounted(true), delay)
+    return () => clearTimeout(timer)
+  }, [index])
   
   // Don't render if already known to be broken
   if (brokenImages.has(imageUrl)) return null
@@ -45,20 +55,26 @@ function ProductCard({
   return (
     <button 
       onClick={onClick}
-      className="group relative cursor-pointer border-r border-b border-charcoal/5 text-left w-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-charcoal/20"
+      className={cn(
+        "group relative cursor-pointer border-r border-b border-charcoal/5 text-left w-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-charcoal/20",
+        "transition-all duration-500 ease-out",
+        mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
+      )}
     >
       {/* Image container */}
-      <div className="aspect-square bg-white p-4 lg:p-6 relative">
-        {/* Skeleton placeholder */}
+      <div className="aspect-square bg-white p-4 lg:p-6 relative overflow-hidden">
+        {/* Soft gradient placeholder instead of harsh pulse */}
         {!loaded && (
-          <div className="absolute inset-4 lg:inset-6 bg-neutral-100 animate-pulse" />
+          <div className="absolute inset-4 lg:inset-6 bg-gradient-to-br from-neutral-50 to-neutral-100">
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full animate-[shimmer_1.5s_infinite]" />
+          </div>
         )}
         <img
           src={imageUrl}
           alt={product.name}
           className={cn(
-            "w-full h-full object-contain transition-all duration-300",
-            loaded ? "opacity-100 group-hover:scale-105" : "opacity-0"
+            "w-full h-full object-contain transition-all duration-500 ease-out",
+            loaded ? "opacity-100 scale-100 group-hover:scale-105" : "opacity-0 scale-95"
           )}
           loading="lazy"
           decoding="async"
@@ -440,7 +456,7 @@ export default function CollectionPage() {
     <main className="min-h-screen bg-white pt-[72px] lg:pt-[88px]">
       <Navigation />
       
-      {/* ─────��───────────────────────────────────────────────────────
+      {/* ─────��───────────���───────────────────────────────────────────
           Filter Header - Horizontal Two-Tier Navigation
       ───────────────────���──────────��────────────────────────────── */}
       <section className="sticky top-0 z-40 bg-white">
@@ -632,13 +648,14 @@ export default function CollectionPage() {
           </div>
         ) : filteredProducts.length > 0 ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-            {filteredProducts.map((product) => (
+            {filteredProducts.map((product, index) => (
               <ProductCard 
                 key={product.id} 
                 product={product} 
                 imageUrl={getImageUrl(product)}
                 onImageError={handleImageError}
                 onClick={() => openQuickView(product)}
+                index={index}
               />
             ))}
           </div>

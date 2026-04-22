@@ -165,11 +165,13 @@ export function MaterialPaletteSection() {
                 )}
                 style={{ transitionDelay: `${i * 80}ms` }}
               >
-                {/* Swatch */}
+                {/* Swatch - elevated with shadow */}
                 <div 
                   className={cn(
                     "aspect-square relative overflow-hidden rounded-sm transition-all duration-300",
-                    isActive && "ring-2 ring-charcoal ring-offset-4 ring-offset-cream"
+                    "shadow-lg shadow-charcoal/10 hover:shadow-xl hover:shadow-charcoal/15",
+                    "group-hover:-translate-y-1",
+                    isActive && "ring-2 ring-charcoal ring-offset-4 ring-offset-cream shadow-xl shadow-charcoal/20"
                   )}
                 >
                   <MaterialSwatch

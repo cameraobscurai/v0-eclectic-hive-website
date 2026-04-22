@@ -121,7 +121,7 @@ export default function HomePage() {
       </section>
 
       {/* ========== VALUE PROPOSITION ========== */}
-      <section className="bg-charcoal py-16 md:py-20">
+      <section className="bg-charcoal py-10 md:py-14">
         <div className="container-padding max-w-3xl mx-auto text-center">
           <p className="font-display text-lg sm:text-xl md:text-2xl text-cream/80 italic tracking-wide leading-relaxed">
             We design, build, and produce the environments you can&apos;t hire elsewhere.
@@ -133,7 +133,7 @@ export default function HomePage() {
       <section className="bg-charcoal">
         <div 
           ref={cardsSectionRef}
-          className="container-padding max-w-5xl mx-auto pt-0 pb-16 md:pb-24"
+          className="container-padding max-w-5xl mx-auto pt-0 pb-12 md:pb-16"
         >
           {/* Cards Grid - scroll-triggered stagger animation */}
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
@@ -201,7 +201,7 @@ export default function HomePage() {
         >
           <div 
             className={cn(
-              'py-14 md:py-20 text-center transition-all duration-1000 ease-[cubic-bezier(0.22,1,0.36,1)]',
+              'py-10 md:py-14 text-center transition-all duration-1000 ease-[cubic-bezier(0.22,1,0.36,1)]',
               ctaVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
             )}
           >

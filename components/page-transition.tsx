@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { usePathname } from 'next/navigation'
 import { ReactNode, useEffect, useState, createContext, useContext, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
-import { EASINGS, DURATIONS, prefersReducedMotion } from '@/lib/animations'
+import { EASINGS, prefersReducedMotion } from '@/lib/animations'
 
 // =============================================================================
 // PAGE TRANSITION CONTEXT
@@ -25,67 +25,8 @@ export const usePageTransition = () => useContext(TransitionContext)
 
 // =============================================================================
 // CINEMATIC WIPE TRANSITION
-// Theatrical bars that slide across screen
+// Single panel sweep with motion blur effect
 // =============================================================================
-
-const WIPE_BAR_COUNT = 4
-
-// Wipe bar animation - faster, snappier
-const wipeBarVariants = {
-  hidden: (i: number) => ({
-    y: '100%',
-    transition: {
-      duration: 0.35,
-      ease: EASINGS.cinematic,
-      delay: i * 0.03,
-    },
-  }),
-  visible: (i: number) => ({
-    y: '0%',
-    transition: {
-      duration: 0.35,
-      ease: EASINGS.cinematic,
-      delay: i * 0.03,
-    },
-  }),
-  exit: (i: number) => ({
-    y: '-100%',
-    transition: {
-      duration: 0.3,
-      ease: EASINGS.cinematic,
-      delay: (WIPE_BAR_COUNT - 1 - i) * 0.025,
-    },
-  }),
-}
-
-// Page content variants
-const pageVariants = {
-  initial: {
-    opacity: 0,
-  },
-  enter: {
-    opacity: 1,
-    transition: {
-      duration: 0.4,
-      ease: EASINGS.cinematic,
-      delay: 0.3,
-    },
-  },
-  exit: {
-    opacity: 0,
-    transition: {
-      duration: 0.2,
-      ease: EASINGS.cinematic,
-    },
-  },
-}
-
-// Reduced motion variants
-const reducedMotionVariants = {
-  initial: { opacity: 0 },
-  enter: { opacity: 1, transition: { duration: 0.15 } },
-  exit: { opacity: 0, transition: { duration: 0.1 } },
-}
 
 interface PageTransitionProps {
   children: ReactNode
@@ -96,7 +37,7 @@ export function PageTransitionProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname()
   const [isTransitioning, setIsTransitioning] = useState(false)
   const [showWipe, setShowWipe] = useState(false)
-  const [wipePhase, setWipePhase] = useState<'idle' | 'enter' | 'exit'>('idle')
+  const [wipePhase, setWipePhase] = useState<'idle' | 'enter' | 'hold' | 'exit'>('idle')
   const [pendingHref, setPendingHref] = useState<string | null>(null)
   const [reducedMotion, setReducedMotion] = useState(false)
 
@@ -117,17 +58,18 @@ export function PageTransitionProvider({ children }: { children: ReactNode }) {
     setWipePhase('enter')
     setPendingHref(href)
     
-    // Fire navigation immediately - wipe plays as overlay, doesn't block loading
+    // Fire navigation immediately
     router.push(href)
   }, [pathname, isTransitioning, reducedMotion, router])
 
   // When pathname changes after navigation
   useEffect(() => {
     if (isTransitioning && pendingHref === pathname) {
-      // Small delay then exit
+      // Brief hold at full coverage
+      setWipePhase('hold')
       const timer = setTimeout(() => {
         setWipePhase('exit')
-      }, 100)
+      }, 80)
       return () => clearTimeout(timer)
     }
   }, [pathname, isTransitioning, pendingHref])
@@ -140,7 +82,7 @@ export function PageTransitionProvider({ children }: { children: ReactNode }) {
         setWipePhase('idle')
         setIsTransitioning(false)
         setPendingHref(null)
-      }, 320) // Faster cleanup
+      }, 450)
       return () => clearTimeout(timer)
     }
   }, [wipePhase])
@@ -149,24 +91,60 @@ export function PageTransitionProvider({ children }: { children: ReactNode }) {
     <TransitionContext.Provider value={{ navigateWithTransition, isTransitioning }}>
       {children}
       
-      {/* Cinematic Wipe Overlay */}
+      {/* Cinematic Wipe Overlay - single panel with motion blur */}
       <AnimatePresence>
         {showWipe && (
-          <div className="fixed inset-0 z-[9999] pointer-events-none flex" aria-hidden="true">
-            {Array.from({ length: WIPE_BAR_COUNT }).map((_, i) => (
-              <motion.div
-                key={i}
-                custom={i}
-                initial="hidden"
-                animate={wipePhase === 'exit' ? 'exit' : 'visible'}
-                variants={wipeBarVariants}
-                className="flex-1 h-full"
+          <motion.div 
+            className="fixed inset-0 z-[9999] pointer-events-none overflow-hidden"
+            aria-hidden="true"
+          >
+            {/* Main wipe panel */}
+            <motion.div
+              className="absolute inset-0 bg-charcoal"
+              initial={{ x: '-100%' }}
+              animate={
+                wipePhase === 'exit' 
+                  ? { x: '100%' }
+                  : { x: '0%' }
+              }
+              transition={{
+                duration: wipePhase === 'exit' ? 0.4 : 0.35,
+                ease: EASINGS.cinematic,
+              }}
+            >
+              {/* Motion blur trailing edge effect */}
+              <div 
+                className="absolute inset-y-0 -right-32 w-32"
                 style={{
-                  backgroundColor: `hsl(0, 0%, ${6 + i * 2}%)`, // Pure greyscale - monochromatic
+                  background: 'linear-gradient(to right, rgba(26,26,26,1) 0%, rgba(26,26,26,0.6) 30%, rgba(26,26,26,0) 100%)',
+                  filter: 'blur(8px)',
                 }}
               />
-            ))}
-          </div>
+              
+              {/* Subtle grain texture */}
+              <div 
+                className="absolute inset-0 opacity-[0.03]"
+                style={{
+                  backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+                }}
+              />
+            </motion.div>
+            
+            {/* Leading edge highlight */}
+            <motion.div
+              className="absolute inset-y-0 w-px bg-cream/10"
+              initial={{ x: '-1px' }}
+              animate={
+                wipePhase === 'exit'
+                  ? { x: 'calc(100vw + 1px)' }
+                  : { x: 'calc(100vw - 1px)' }
+              }
+              transition={{
+                duration: wipePhase === 'exit' ? 0.4 : 0.35,
+                ease: EASINGS.cinematic,
+              }}
+            />
+          </motion.div>
         )}
       </AnimatePresence>
     </TransitionContext.Provider>
@@ -183,6 +161,25 @@ export function PageTransition({ children }: PageTransitionProps) {
     const timer = setTimeout(() => setIsFirstLoad(false), 100)
     return () => clearTimeout(timer)
   }, [])
+
+  // Page content variants - subtle fade only, wipe handles the drama
+  const pageVariants = {
+    initial: { opacity: 0 },
+    enter: { 
+      opacity: 1,
+      transition: { duration: 0.3, ease: 'easeOut', delay: 0.1 }
+    },
+    exit: { 
+      opacity: 0,
+      transition: { duration: 0.15, ease: 'easeIn' }
+    },
+  }
+
+  const reducedMotionVariants = {
+    initial: { opacity: 0 },
+    enter: { opacity: 1, transition: { duration: 0.15 } },
+    exit: { opacity: 0, transition: { duration: 0.1 } },
+  }
 
   const variants = reducedMotion ? reducedMotionVariants : pageVariants
 
@@ -203,7 +200,7 @@ export function PageTransition({ children }: PageTransitionProps) {
 
 // Legacy export for backwards compatibility
 export function PageOverlay() {
-  return null // Replaced by wipe bars in PageTransitionProvider
+  return null
 }
 
 // =============================================================================
@@ -222,7 +219,6 @@ export function TransitionLink({ href, children, className, onClick, ...props }:
   const router = useRouter()
   
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    // Allow cmd/ctrl click for new tab
     if (e.metaKey || e.ctrlKey) return
     
     e.preventDefault()
@@ -232,7 +228,6 @@ export function TransitionLink({ href, children, className, onClick, ...props }:
     }
   }
   
-  // Prefetch on hover for instant navigation
   const handleMouseEnter = () => {
     router.prefetch(href)
   }
@@ -250,7 +245,7 @@ export function TransitionLink({ href, children, className, onClick, ...props }:
   )
 }
 
-// Stagger container for child animations
+// Animation variants for components
 export const staggerContainer = {
   hidden: { opacity: 0 },
   show: {
@@ -262,12 +257,8 @@ export const staggerContainer = {
   },
 }
 
-// Fade up animation for individual elements (B3: removed blur for GPU performance)
 export const fadeUp = {
-  hidden: { 
-    opacity: 0, 
-    y: 20,
-  },
+  hidden: { opacity: 0, y: 20 },
   show: { 
     opacity: 1, 
     y: 0,
@@ -278,62 +269,37 @@ export const fadeUp = {
   },
 }
 
-// Fade in animation
 export const fadeIn = {
   hidden: { opacity: 0 },
   show: { 
     opacity: 1,
-    transition: {
-      duration: 0.5,
-      ease: 'easeOut',
-    },
+    transition: { duration: 0.5, ease: 'easeOut' },
   },
 }
 
-// Scale up animation
 export const scaleUp = {
-  hidden: { 
-    opacity: 0, 
-    scale: 0.95,
-  },
+  hidden: { opacity: 0, scale: 0.95 },
   show: { 
     opacity: 1, 
     scale: 1,
-    transition: {
-      duration: 0.5,
-      ease: [0.22, 1, 0.36, 1],
-    },
+    transition: { duration: 0.5, ease: [0.22, 1, 0.36, 1] },
   },
 }
 
-// Slide in from left
 export const slideInLeft = {
-  hidden: { 
-    opacity: 0, 
-    x: -40,
-  },
+  hidden: { opacity: 0, x: -40 },
   show: { 
     opacity: 1, 
     x: 0,
-    transition: {
-      duration: 0.6,
-      ease: [0.22, 1, 0.36, 1],
-    },
+    transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] },
   },
 }
 
-// Slide in from right
 export const slideInRight = {
-  hidden: { 
-    opacity: 0, 
-    x: 40,
-  },
+  hidden: { opacity: 0, x: 40 },
   show: { 
     opacity: 1, 
     x: 0,
-    transition: {
-      duration: 0.6,
-      ease: [0.22, 1, 0.36, 1],
-    },
+    transition: { duration: 0.6, ease: [0.22, 1, 0.36, 1] },
   },
 }
