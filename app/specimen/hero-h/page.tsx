@@ -4,7 +4,7 @@ import { useState } from 'react'
 import { DownloadButton } from '@/components/specimen/download-button'
 
 export default function HeroH() {
-  const [variant, setVariant] = useState<'light' | 'dark' | 'outline' | 'textured'>('dark')
+  const [variant, setVariant] = useState<'light' | 'dark' | 'outline' | 'textured' | 'grid'>('dark')
   
   return (
     <main id="specimen-content" className="min-h-screen">
@@ -12,7 +12,7 @@ export default function HeroH() {
       
       {/* Controls */}
       <div className="fixed top-4 left-4 z-50 flex gap-2">
-        {(['dark', 'light', 'outline', 'textured'] as const).map((v) => (
+        {(['dark', 'light', 'outline', 'textured', 'grid'] as const).map((v) => (
           <button
             key={v}
             onClick={() => setVariant(v)}
@@ -22,7 +22,7 @@ export default function HeroH() {
                 : 'bg-white/80 text-charcoal border border-charcoal/20 hover:bg-charcoal/10'
             }`}
           >
-            {v}
+            {v === 'grid' ? '2x2' : v}
           </button>
         ))}
       </div>
@@ -157,6 +157,56 @@ export default function HeroH() {
             <div className="w-12 h-12 rounded bg-[#8B7355] border border-cream/20" title="Oak" />
             <div className="w-12 h-12 rounded bg-[#b8a88a] border border-cream/20" title="Brass" />
             <div className="w-12 h-12 rounded bg-[#d4cdc4] border border-cream/20" title="Linen" />
+          </div>
+        </div>
+      )}
+
+      {/* Grid view - All 4 variants in 2x2 */}
+      {variant === 'grid' && (
+        <div className="min-h-screen grid grid-cols-2 grid-rows-2">
+          {/* Dark */}
+          <div className="bg-charcoal flex items-center justify-center relative">
+            <span className="font-serif text-cream" style={{ fontSize: 'min(35vw, 35vh)', lineHeight: 0.85 }}>H</span>
+            <span className="absolute bottom-4 left-4 text-cream/40 text-[10px] font-mono uppercase tracking-wider">Dark</span>
+          </div>
+          
+          {/* Light */}
+          <div className="bg-cream flex items-center justify-center relative">
+            <span className="font-serif text-charcoal" style={{ fontSize: 'min(35vw, 35vh)', lineHeight: 0.85 }}>H</span>
+            <span className="absolute bottom-4 left-4 text-charcoal/40 text-[10px] font-mono uppercase tracking-wider">Light</span>
+          </div>
+          
+          {/* Outline/Construction */}
+          <div className="bg-cream flex items-center justify-center relative">
+            <div className="absolute inset-0 grid grid-cols-6 pointer-events-none">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div key={i} className="border-l border-charcoal/5 first:border-l-0" />
+              ))}
+            </div>
+            <span 
+              className="font-serif" 
+              style={{ 
+                fontSize: 'min(35vw, 35vh)', 
+                lineHeight: 0.85,
+                color: 'transparent',
+                WebkitTextStroke: '1.5px rgba(26,26,26,0.3)',
+              }}
+            >
+              H
+            </span>
+            <span className="absolute bottom-4 left-4 text-charcoal/40 text-[10px] font-mono uppercase tracking-wider">Construction</span>
+          </div>
+          
+          {/* Textured */}
+          <div className="bg-charcoal flex items-center justify-center relative overflow-hidden">
+            <div 
+              className="absolute inset-0 opacity-[0.04] pointer-events-none"
+              style={{
+                backgroundImage: `url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%' height='100%' filter='url(%23noise)'/%3E%3C/svg%3E")`,
+              }}
+            />
+            <span className="font-serif text-cream relative" style={{ fontSize: 'min(35vw, 35vh)', lineHeight: 0.85 }}>H</span>
+            <span className="absolute bottom-4 left-4 text-cream/40 text-[10px] font-mono uppercase tracking-wider">Textured</span>
           </div>
         </div>
       )}

@@ -15,12 +15,80 @@ const VALUE_WORDS = ['AUTHORED', 'CURATED', 'REFINED', 'CRAFTED', 'ELEVATED']
 const ACTION_WORDS = ['IMAGINED', 'REFINED', 'CRAFTED']
 
 export default function Words() {
-  const [view, setView] = useState<'brand' | 'categories' | 'process' | 'values'>('brand')
+  const [view, setView] = useState<'brand' | 'categories' | 'process' | 'values' | 'grid'>('brand')
   const [theme, setTheme] = useState<'dark' | 'light'>('dark')
   
   const bg = theme === 'dark' ? 'bg-charcoal' : 'bg-cream'
   const text = theme === 'dark' ? 'text-cream' : 'text-charcoal'
   const textMuted = theme === 'dark' ? 'text-cream/40' : 'text-charcoal/40'
+  
+  // Grid view - 2x2 showing brand name and categories in both themes
+  if (view === 'grid') {
+    return (
+      <main id="specimen-content" className="min-h-screen grid grid-cols-2 grid-rows-2">
+        <DownloadButton targetId="specimen-content" filename="eclectic-hive-words-grid" />
+        
+        {/* Controls */}
+        <div className="fixed top-4 left-4 z-50 flex gap-2 flex-wrap">
+          {(['brand', 'categories', 'process', 'values', 'grid'] as const).map((v) => (
+            <button
+              key={v}
+              onClick={() => setView(v)}
+              className={`px-3 py-1.5 text-xs uppercase tracking-widest rounded transition-colors ${
+                view === v 
+                  ? 'bg-charcoal text-cream' 
+                  : 'bg-white/80 text-charcoal border border-charcoal/20'
+              }`}
+            >
+              {v === 'grid' ? '2x2' : v}
+            </button>
+          ))}
+        </div>
+        
+        {/* Dark - Brand name */}
+        <div className="bg-charcoal flex items-center justify-center p-8">
+          <div className="text-center">
+            <p className="text-cream/40 text-[10px] font-mono uppercase tracking-wider mb-3">Brand / Dark</p>
+            <p className="text-cream font-serif tracking-[0.2em] text-4xl lg:text-6xl">ECLECTIC</p>
+            <p className="text-cream font-serif tracking-[0.2em] text-4xl lg:text-6xl">HIVE</p>
+          </div>
+        </div>
+        
+        {/* Light - Brand name */}
+        <div className="bg-cream flex items-center justify-center p-8">
+          <div className="text-center">
+            <p className="text-charcoal/40 text-[10px] font-mono uppercase tracking-wider mb-3">Brand / Light</p>
+            <p className="text-charcoal font-serif tracking-[0.2em] text-4xl lg:text-6xl">ECLECTIC</p>
+            <p className="text-charcoal font-serif tracking-[0.2em] text-4xl lg:text-6xl">HIVE</p>
+          </div>
+        </div>
+        
+        {/* Dark - Categories */}
+        <div className="bg-charcoal flex items-center justify-center p-8">
+          <div>
+            <p className="text-cream/40 text-[10px] font-mono uppercase tracking-wider mb-4">Categories / Dark</p>
+            <div className="space-y-1">
+              {CATEGORIES.slice(0, 4).map((cat) => (
+                <p key={cat} className="text-cream font-serif tracking-[0.15em] text-xl lg:text-2xl">{cat}</p>
+              ))}
+            </div>
+          </div>
+        </div>
+        
+        {/* Light - Categories */}
+        <div className="bg-cream flex items-center justify-center p-8">
+          <div>
+            <p className="text-charcoal/40 text-[10px] font-mono uppercase tracking-wider mb-4">Categories / Light</p>
+            <div className="space-y-1">
+              {CATEGORIES.slice(0, 4).map((cat) => (
+                <p key={cat} className="text-charcoal font-serif tracking-[0.15em] text-xl lg:text-2xl">{cat}</p>
+              ))}
+            </div>
+          </div>
+        </div>
+      </main>
+    )
+  }
   
   return (
     <main id="specimen-content" className={`min-h-screen ${bg}`}>
@@ -28,7 +96,7 @@ export default function Words() {
       
       {/* Controls */}
       <div className="fixed top-4 left-4 z-50 flex gap-2 flex-wrap">
-        {(['brand', 'categories', 'process', 'values'] as const).map((v) => (
+        {(['brand', 'categories', 'process', 'values', 'grid'] as const).map((v) => (
           <button
             key={v}
             onClick={() => setView(v)}
@@ -38,7 +106,7 @@ export default function Words() {
                 : 'bg-white/80 text-charcoal border border-charcoal/20'
             }`}
           >
-            {v}
+            {v === 'grid' ? '2x2' : v}
           </button>
         ))}
         <button

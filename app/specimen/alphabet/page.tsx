@@ -7,12 +7,86 @@ const UPPERCASE = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('')
 const LOWERCASE = 'abcdefghijklmnopqrstuvwxyz'.split('')
 
 export default function Alphabet() {
-  const [mode, setMode] = useState<'upper' | 'lower' | 'both'>('upper')
+  const [mode, setMode] = useState<'upper' | 'lower' | 'both' | 'grid'>('upper')
   const [theme, setTheme] = useState<'dark' | 'light'>('dark')
   
   const bg = theme === 'dark' ? 'bg-charcoal' : 'bg-cream'
   const text = theme === 'dark' ? 'text-cream' : 'text-charcoal'
   const textMuted = theme === 'dark' ? 'text-cream/40' : 'text-charcoal/40'
+  
+  // Grid view shows all themes side by side
+  if (mode === 'grid') {
+    return (
+      <main id="specimen-content" className="min-h-screen grid grid-cols-2">
+        <DownloadButton targetId="specimen-content" filename="eclectic-hive-alphabet-grid" />
+        
+        {/* Controls */}
+        <div className="fixed top-4 left-4 z-50 flex gap-2">
+          {(['upper', 'lower', 'both', 'grid'] as const).map((m) => (
+            <button
+              key={m}
+              onClick={() => setMode(m)}
+              className={`px-3 py-1.5 text-xs uppercase tracking-widest rounded transition-colors ${
+                mode === m 
+                  ? 'bg-charcoal text-cream' 
+                  : 'bg-white/80 text-charcoal border border-charcoal/20'
+              }`}
+            >
+              {m === 'grid' ? '2x2' : m}
+            </button>
+          ))}
+        </div>
+        
+        {/* Dark Uppercase */}
+        <div className="bg-charcoal p-8 min-h-[50vh]">
+          <p className="text-cream/40 text-[10px] font-mono uppercase tracking-wider mb-4">Dark / Uppercase</p>
+          <div className="grid grid-cols-9 gap-0">
+            {UPPERCASE.map((letter, i) => (
+              <div key={letter} className="aspect-square flex items-center justify-center text-cream font-serif border-b border-r border-cream/10 text-lg lg:text-2xl">
+                {letter}
+              </div>
+            ))}
+          </div>
+        </div>
+        
+        {/* Light Uppercase */}
+        <div className="bg-cream p-8 min-h-[50vh]">
+          <p className="text-charcoal/40 text-[10px] font-mono uppercase tracking-wider mb-4">Light / Uppercase</p>
+          <div className="grid grid-cols-9 gap-0">
+            {UPPERCASE.map((letter, i) => (
+              <div key={letter} className="aspect-square flex items-center justify-center text-charcoal font-serif border-b border-r border-charcoal/10 text-lg lg:text-2xl">
+                {letter}
+              </div>
+            ))}
+          </div>
+        </div>
+        
+        {/* Dark Lowercase */}
+        <div className="bg-charcoal p-8 min-h-[50vh]">
+          <p className="text-cream/40 text-[10px] font-mono uppercase tracking-wider mb-4">Dark / Lowercase</p>
+          <div className="grid grid-cols-9 gap-0">
+            {LOWERCASE.map((letter, i) => (
+              <div key={letter} className="aspect-square flex items-center justify-center text-cream font-serif border-b border-r border-cream/10 text-lg lg:text-2xl">
+                {letter}
+              </div>
+            ))}
+          </div>
+        </div>
+        
+        {/* Light Lowercase */}
+        <div className="bg-cream p-8 min-h-[50vh]">
+          <p className="text-charcoal/40 text-[10px] font-mono uppercase tracking-wider mb-4">Light / Lowercase</p>
+          <div className="grid grid-cols-9 gap-0">
+            {LOWERCASE.map((letter, i) => (
+              <div key={letter} className="aspect-square flex items-center justify-center text-charcoal font-serif border-b border-r border-charcoal/10 text-lg lg:text-2xl">
+                {letter}
+              </div>
+            ))}
+          </div>
+        </div>
+      </main>
+    )
+  }
   
   return (
     <main id="specimen-content" className={`min-h-screen ${bg} p-8 lg:p-16`}>
@@ -20,7 +94,7 @@ export default function Alphabet() {
       
       {/* Controls */}
       <div className="fixed top-4 left-4 z-50 flex gap-2">
-        {(['upper', 'lower', 'both'] as const).map((m) => (
+        {(['upper', 'lower', 'both', 'grid'] as const).map((m) => (
           <button
             key={m}
             onClick={() => setMode(m)}
@@ -30,7 +104,7 @@ export default function Alphabet() {
                 : 'bg-white/80 text-charcoal border border-charcoal/20'
             }`}
           >
-            {m}
+            {m === 'grid' ? '2x2' : m}
           </button>
         ))}
         <button

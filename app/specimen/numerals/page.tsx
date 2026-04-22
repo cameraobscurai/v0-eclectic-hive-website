@@ -8,25 +8,90 @@ const PUNCTUATION = ['.', ',', ':', ';', '!', '?', '"', '"', "'", "'", '—', '�
 const SYMBOLS = ['&', '@', '#', '*', '/', '\\', '|', '+', '=', '%', '$']
 
 export default function Numerals() {
-  const [theme, setTheme] = useState<'dark' | 'light'>('dark')
+  const [theme, setTheme] = useState<'dark' | 'light' | 'grid'>('dark')
   
-  const bg = theme === 'dark' ? 'bg-charcoal' : 'bg-cream'
+  const bg = theme === 'dark' ? 'bg-charcoal' : theme === 'light' ? 'bg-cream' : 'bg-cream'
   const text = theme === 'dark' ? 'text-cream' : 'text-charcoal'
   const textMuted = theme === 'dark' ? 'text-cream/40' : 'text-charcoal/40'
   const border = theme === 'dark' ? 'border-cream/10' : 'border-charcoal/10'
+  
+  // Grid view - show numerals in both themes
+  if (theme === 'grid') {
+    return (
+      <main id="specimen-content" className="min-h-screen grid grid-cols-2">
+        <DownloadButton targetId="specimen-content" filename="eclectic-hive-numerals-grid" />
+        
+        {/* Controls */}
+        <div className="fixed top-4 left-4 z-50 flex gap-2">
+          {(['dark', 'light', 'grid'] as const).map((t) => (
+            <button
+              key={t}
+              onClick={() => setTheme(t)}
+              className={`px-3 py-1.5 text-xs uppercase tracking-widest rounded transition-colors ${
+                theme === t 
+                  ? 'bg-charcoal text-cream' 
+                  : 'bg-white/80 text-charcoal border border-charcoal/20'
+              }`}
+            >
+              {t === 'grid' ? '2x2' : t}
+            </button>
+          ))}
+        </div>
+        
+        {/* Dark numerals */}
+        <div className="bg-charcoal p-8 min-h-[50vh] flex flex-col justify-center">
+          <p className="text-cream/40 text-[10px] font-mono uppercase tracking-wider mb-4">Dark / Numerals</p>
+          <div className="flex justify-between">
+            {NUMERALS.map((num) => (
+              <span key={num} className="text-cream font-serif text-3xl lg:text-5xl">{num}</span>
+            ))}
+          </div>
+          <p className="text-cream font-serif text-xl lg:text-3xl tracking-[0.1em] mt-8">96W × 24D × 41H</p>
+        </div>
+        
+        {/* Light numerals */}
+        <div className="bg-cream p-8 min-h-[50vh] flex flex-col justify-center">
+          <p className="text-charcoal/40 text-[10px] font-mono uppercase tracking-wider mb-4">Light / Numerals</p>
+          <div className="flex justify-between">
+            {NUMERALS.map((num) => (
+              <span key={num} className="text-charcoal font-serif text-3xl lg:text-5xl">{num}</span>
+            ))}
+          </div>
+          <p className="text-charcoal font-serif text-xl lg:text-3xl tracking-[0.1em] mt-8">96W × 24D × 41H</p>
+        </div>
+        
+        {/* Dark ampersand */}
+        <div className="bg-charcoal flex items-center justify-center min-h-[50vh]">
+          <span className="text-cream font-serif" style={{ fontSize: 'clamp(100px, 20vw, 200px)' }}>&</span>
+        </div>
+        
+        {/* Light ampersand */}
+        <div className="bg-cream flex items-center justify-center min-h-[50vh]">
+          <span className="text-charcoal font-serif" style={{ fontSize: 'clamp(100px, 20vw, 200px)' }}>&</span>
+        </div>
+      </main>
+    )
+  }
   
   return (
     <main id="specimen-content" className={`min-h-screen ${bg} p-8 lg:p-16`}>
       <DownloadButton targetId="specimen-content" filename={`eclectic-hive-numerals-${theme}`} />
       
       {/* Controls */}
-      <div className="fixed top-4 left-4 z-50">
-        <button
-          onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-          className="px-3 py-1.5 text-xs uppercase tracking-widest rounded bg-white/80 text-charcoal border border-charcoal/20"
-        >
-          {theme === 'dark' ? 'Light' : 'Dark'}
-        </button>
+      <div className="fixed top-4 left-4 z-50 flex gap-2">
+        {(['dark', 'light', 'grid'] as const).map((t) => (
+          <button
+            key={t}
+            onClick={() => setTheme(t)}
+            className={`px-3 py-1.5 text-xs uppercase tracking-widest rounded transition-colors ${
+              theme === t 
+                ? 'bg-charcoal text-cream' 
+                : 'bg-white/80 text-charcoal border border-charcoal/20'
+            }`}
+          >
+            {t === 'grid' ? '2x2' : t}
+          </button>
+        ))}
       </div>
 
       <div className="max-w-5xl mx-auto pt-16">

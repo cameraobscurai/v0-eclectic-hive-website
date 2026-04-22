@@ -24,7 +24,7 @@ const SINGLE_WORDS = [
 ]
 
 export default function Phrases() {
-  const [view, setView] = useState<'stack' | 'hero' | 'words'>('stack')
+  const [view, setView] = useState<'stack' | 'hero' | 'words' | 'grid'>('stack')
   const [theme, setTheme] = useState<'dark' | 'light'>('dark')
   
   const bg = theme === 'dark' ? 'bg-charcoal' : 'bg-cream'
@@ -32,13 +32,71 @@ export default function Phrases() {
   const textMuted = theme === 'dark' ? 'text-cream/40' : 'text-charcoal/40'
   const border = theme === 'dark' ? 'border-cream/10' : 'border-charcoal/10'
   
+  // Grid view - 2x2 showing key phrases in both themes
+  if (view === 'grid') {
+    return (
+      <main id="specimen-content" className="min-h-screen grid grid-cols-2 grid-rows-2">
+        <DownloadButton targetId="specimen-content" filename="eclectic-hive-phrases-grid" />
+        
+        {/* Controls */}
+        <div className="fixed top-4 left-4 z-50 flex gap-2">
+          {(['stack', 'hero', 'words', 'grid'] as const).map((v) => (
+            <button
+              key={v}
+              onClick={() => setView(v)}
+              className={`px-3 py-1.5 text-xs uppercase tracking-widest rounded transition-colors ${
+                view === v 
+                  ? 'bg-charcoal text-cream' 
+                  : 'bg-white/80 text-charcoal border border-charcoal/20'
+              }`}
+            >
+              {v === 'grid' ? '2x2' : v}
+            </button>
+          ))}
+        </div>
+        
+        {/* Dark - Tagline */}
+        <div className="bg-charcoal flex items-center justify-center p-8">
+          <div className="text-center">
+            <p className="text-cream/40 text-[10px] font-mono uppercase tracking-wider mb-3">Tagline / Dark</p>
+            <p className="text-cream font-serif tracking-[0.2em] text-2xl lg:text-4xl">IMAGINED. REFINED. CRAFTED.</p>
+          </div>
+        </div>
+        
+        {/* Light - Tagline */}
+        <div className="bg-cream flex items-center justify-center p-8">
+          <div className="text-center">
+            <p className="text-charcoal/40 text-[10px] font-mono uppercase tracking-wider mb-3">Tagline / Light</p>
+            <p className="text-charcoal font-serif tracking-[0.2em] text-2xl lg:text-4xl">IMAGINED. REFINED. CRAFTED.</p>
+          </div>
+        </div>
+        
+        {/* Dark - Process */}
+        <div className="bg-charcoal flex items-center justify-center p-8">
+          <div className="text-center">
+            <p className="text-cream/40 text-[10px] font-mono uppercase tracking-wider mb-3">Process / Dark</p>
+            <p className="text-cream font-serif tracking-[0.2em] text-xl lg:text-3xl">FROM VISION TO REALIZATION</p>
+          </div>
+        </div>
+        
+        {/* Light - Process */}
+        <div className="bg-cream flex items-center justify-center p-8">
+          <div className="text-center">
+            <p className="text-charcoal/40 text-[10px] font-mono uppercase tracking-wider mb-3">Process / Light</p>
+            <p className="text-charcoal font-serif tracking-[0.2em] text-xl lg:text-3xl">FROM VISION TO REALIZATION</p>
+          </div>
+        </div>
+      </main>
+    )
+  }
+  
   return (
     <main id="specimen-content" className={`min-h-screen ${bg}`}>
       <DownloadButton targetId="specimen-content" filename={`eclectic-hive-phrases-${view}-${theme}`} />
       
       {/* Controls */}
       <div className="fixed top-4 left-4 z-50 flex gap-2">
-        {(['stack', 'hero', 'words'] as const).map((v) => (
+        {(['stack', 'hero', 'words', 'grid'] as const).map((v) => (
           <button
             key={v}
             onClick={() => setView(v)}
@@ -48,7 +106,7 @@ export default function Phrases() {
                 : 'bg-white/80 text-charcoal border border-charcoal/20'
             }`}
           >
-            {v}
+            {v === 'grid' ? '2x2' : v}
           </button>
         ))}
         <button
