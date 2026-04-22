@@ -3,6 +3,16 @@
 
 /* Saol Display - Brand Font (served from private Blob via API) */
 /* B8: Using font-display: swap - shows fallback immediately, swaps in Saol when ready */
+/* Fallback font with adjusted metrics to minimize layout shift */
+@font-face {
+  font-family: 'Saol Display Fallback';
+  src: local('Georgia'), local('Times New Roman'), local('serif');
+  size-adjust: 105%;
+  ascent-override: 90%;
+  descent-override: 22%;
+  line-gap-override: 0%;
+}
+
 @font-face {
   font-family: 'Saol Display';
   src: url('/api/fonts/SaolDisplay-LightItalic.otf') format('opentype');
@@ -90,7 +100,7 @@
 
 @theme inline {
   --font-sans: 'Inter', 'Inter Fallback', system-ui, sans-serif;
-  --font-display: 'Saol Display', 'Georgia', serif;
+  --font-display: 'Saol Display', 'Saol Display Fallback', 'Georgia', serif;
   --font-mono: 'Geist Mono', 'Geist Mono Fallback', monospace;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
