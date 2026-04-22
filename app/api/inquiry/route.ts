@@ -1,6 +1,7 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { z } from 'zod'
 import { escapeHtml, sanitizeEmailHeader } from '@/lib/utils'
+import { createClient } from '@/lib/supabase/server'
 
 // ─── Zod schema with length limits ────────────────────────────────────────────
 
@@ -172,46 +173,89 @@ export async function POST(request: NextRequest) {
 
   const data = parsed.data
 
+  // ─── Save to database first ───────────────────────────────────────────────
+  const supabase = await createClient()
+  
+  const { data: inquiry, error: dbError } = await supabase
+    .from('inquiries')
+    .insert({
+      name: data.name,
+      email: data.email,
+      phone: data.phone || null,
+      company: data.company || null,
+      event_type: data.eventType,
+      event_date: data.eventDate || null,
+      guest_count: null, // Not in current form
+      location: data.location || null,
+      budget: data.budgetRange,
+      message: data.vision,
+      referral_source: data.clientType,
+      status: 'new',
+      email_sent: false,
+    })
+    .select('id')
+    .single()
+
+  if (dbError) {
+    console.error('[inquiry] Database error:', dbError)
+    return NextResponse.json({ error: 'Failed to save inquiry' }, { status: 500 })
+  }
+
+  // ─── Attempt to send email (optional - don't fail if email fails) ─────────
   const RESEND_API_KEY = process.env.RESEND_API_KEY
   const TO_EMAIL       = process.env.INQUIRY_TO_EMAIL ?? 'hello@eclectichive.com'
 
-  if (!RESEND_API_KEY) {
-    if (process.env.NODE_ENV === 'production') {
-      console.error('[inquiry] CRITICAL: RESEND_API_KEY is not set in production')
-      return NextResponse.json({ error: 'Email service unavailable' }, { status: 503 })
+  let emailSent = false
+  let emailError: string | null = null
+
+  if (RESEND_API_KEY) {
+    // Subject sanitised to remove CR/LF (email header injection prevention)
+    const subject = [
+      'New inquiry —',
+      sanitizeEmailHeader(data.name),
+      data.company ? `· ${sanitizeEmailHeader(data.company)}` : '',
+      `· ${data.eventType ?? 'event'}`,
+    ].filter(Boolean).join(' ')
+
+    try {
+      const emailRes = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          Authorization:  `Bearer ${RESEND_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          from:     'Eclectic Hive Website <noreply@eclectichive.com>',
+          to:       [TO_EMAIL],
+          reply_to: data.email,
+          subject,
+          html:     buildEmailHtml(data),
+        }),
+      })
+
+      if (emailRes.ok) {
+        emailSent = true
+      } else {
+        emailError = await emailRes.text()
+        console.error('[inquiry] Resend error:', emailError)
+      }
+    } catch (e) {
+      emailError = e instanceof Error ? e.message : 'Email send failed'
+      console.error('[inquiry] Email exception:', emailError)
     }
-    console.log('[inquiry] dev — no email sent:\n', JSON.stringify(data, null, 2))
-    return NextResponse.json({ ok: true, dev: true })
+
+    // Update the inquiry record with email status
+    await supabase
+      .from('inquiries')
+      .update({ email_sent: emailSent, email_error: emailError })
+      .eq('id', inquiry.id)
+  } else {
+    console.log('[inquiry] No RESEND_API_KEY - inquiry saved to database only')
   }
 
-  // Subject sanitised to remove CR/LF (email header injection prevention)
-  const subject = [
-    'New inquiry —',
-    sanitizeEmailHeader(data.name),
-    data.company ? `· ${sanitizeEmailHeader(data.company)}` : '',
-    `· ${data.eventType ?? 'event'}`,
-  ].filter(Boolean).join(' ')
-
-  const emailRes = await fetch('https://api.resend.com/emails', {
-    method: 'POST',
-    headers: {
-      Authorization:  `Bearer ${RESEND_API_KEY}`,
-      'Content-Type': 'application/json',
-    },
-    body: JSON.stringify({
-      from:     'Eclectic Hive Website <noreply@eclectichive.com>',
-      to:       [TO_EMAIL],
-      reply_to: data.email,
-      subject,
-      html:     buildEmailHtml(data),
-    }),
+  return NextResponse.json({ 
+    ok: true, 
+    id: inquiry.id,
+    emailSent 
   })
-
-  if (!emailRes.ok) {
-    const err = await emailRes.text()
-    console.error('[inquiry] Resend error:', err)
-    return NextResponse.json({ error: 'Email delivery failed' }, { status: 502 })
-  }
-
-  return NextResponse.json({ ok: true })
 }

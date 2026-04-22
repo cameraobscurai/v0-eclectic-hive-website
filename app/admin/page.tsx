@@ -39,7 +39,26 @@ interface UploadedFont {
   purpose: string
 }
 
-type Tab = 'images' | 'import' | 'fonts'
+type Tab = 'images' | 'import' | 'fonts' | 'inquiries'
+
+// Inquiry types
+interface Inquiry {
+  id: string
+  name: string | null
+  email: string
+  phone: string | null
+  company: string | null
+  event_type: string | null
+  event_date: string | null
+  location: string | null
+  budget: string | null
+  message: string
+  referral_source: string | null
+  status: 'new' | 'contacted' | 'qualified' | 'proposal' | 'won' | 'lost' | 'archived'
+  notes: string | null
+  email_sent: boolean
+  created_at: string
+}
 
 // ─────────────────────────────────────────────────────────────
 // Main Dashboard Component
@@ -76,6 +95,7 @@ export default function AdminDashboard() {
               { id: 'images' as Tab, label: 'Inventory Images' },
               { id: 'import' as Tab, label: 'CSV Import' },
               { id: 'fonts' as Tab, label: 'Fonts' },
+              { id: 'inquiries' as Tab, label: 'Inquiries' },
             ].map(tab => (
               <button
                 key={tab.id}
@@ -99,6 +119,7 @@ export default function AdminDashboard() {
         {activeTab === 'images' && <ImagesTab />}
         {activeTab === 'import' && <ImportTab />}
         {activeTab === 'fonts' && <FontsTab />}
+        {activeTab === 'inquiries' && <InquiriesTab />}
       </main>
     </div>
   )
@@ -760,6 +781,342 @@ function FontsTab() {
       <p className="text-xs text-charcoal/50">
         Upload .woff2 files (preferred). Share the URLs after uploading to configure them on the site.
       </p>
+    </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────
+// Inquiries Tab
+// ─────────────────────────────────────────────────────────────
+const STATUS_LABELS: Record<Inquiry['status'], string> = {
+  new: 'New',
+  contacted: 'Contacted',
+  qualified: 'Qualified',
+  proposal: 'Proposal',
+  won: 'Won',
+  lost: 'Lost',
+  archived: 'Archived',
+}
+
+const STATUS_COLORS: Record<Inquiry['status'], string> = {
+  new: 'bg-amber-100 text-amber-800',
+  contacted: 'bg-blue-100 text-blue-800',
+  qualified: 'bg-purple-100 text-purple-800',
+  proposal: 'bg-indigo-100 text-indigo-800',
+  won: 'bg-green-100 text-green-800',
+  lost: 'bg-red-100 text-red-800',
+  archived: 'bg-neutral-100 text-neutral-600',
+}
+
+const BUDGET_LABELS: Record<string, string> = {
+  'under-10k': 'Under $10K',
+  '10-25k': '$10K–$25K',
+  '25-50k': '$25K–$50K',
+  '50-100k': '$50K–$100K',
+  'over-100k': '$100K+',
+}
+
+const EVENT_LABELS: Record<string, string> = {
+  wedding: 'Wedding',
+  corporate: 'Corporate',
+  social: 'Social',
+  nonprofit: 'Non-Profit',
+}
+
+function InquiriesTab() {
+  const [inquiries, setInquiries] = useState<Inquiry[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [selectedInquiry, setSelectedInquiry] = useState<Inquiry | null>(null)
+  const [filterStatus, setFilterStatus] = useState<Inquiry['status'] | 'all'>('all')
+  const [updating, setUpdating] = useState(false)
+
+  // Fetch inquiries
+  const fetchInquiries = useCallback(async () => {
+    setLoading(true)
+    setError(null)
+    try {
+      const res = await fetch('/api/admin/inquiries')
+      if (!res.ok) throw new Error('Failed to fetch inquiries')
+      const data = await res.json()
+      setInquiries(data.inquiries || [])
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Failed to load inquiries')
+    } finally {
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchInquiries()
+  }, [fetchInquiries])
+
+  // Update inquiry status
+  const updateStatus = async (id: string, status: Inquiry['status']) => {
+    setUpdating(true)
+    try {
+      const res = await fetch('/api/admin/inquiries', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, status }),
+      })
+      if (!res.ok) throw new Error('Failed to update')
+      
+      setInquiries(prev => prev.map(inq => 
+        inq.id === id ? { ...inq, status } : inq
+      ))
+      if (selectedInquiry?.id === id) {
+        setSelectedInquiry(prev => prev ? { ...prev, status } : null)
+      }
+    } catch (e) {
+      console.error('Update failed:', e)
+    } finally {
+      setUpdating(false)
+    }
+  }
+
+  // Update notes
+  const updateNotes = async (id: string, notes: string) => {
+    try {
+      await fetch('/api/admin/inquiries', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id, notes }),
+      })
+      setInquiries(prev => prev.map(inq => 
+        inq.id === id ? { ...inq, notes } : inq
+      ))
+    } catch (e) {
+      console.error('Notes update failed:', e)
+    }
+  }
+
+  const filteredInquiries = filterStatus === 'all' 
+    ? inquiries 
+    : inquiries.filter(i => i.status === filterStatus)
+
+  const formatDate = (dateStr: string) => {
+    return new Date(dateStr).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: 'numeric',
+      minute: '2-digit',
+    })
+  }
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-20">
+        <div className="text-charcoal/50 text-sm">Loading inquiries...</div>
+      </div>
+    )
+  }
+
+  if (error) {
+    return (
+      <div className="text-center py-20">
+        <p className="text-red-600 mb-4">{error}</p>
+        <button 
+          onClick={fetchInquiries}
+          className="text-xs uppercase tracking-[0.1em] text-charcoal underline"
+        >
+          Try Again
+        </button>
+      </div>
+    )
+  }
+
+  return (
+    <div className="space-y-6">
+      {/* Header & Filters */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-lg font-display">Inquiries</h2>
+          <p className="text-xs text-charcoal/50 mt-1">
+            {inquiries.length} total, {inquiries.filter(i => i.status === 'new').length} new
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <select
+            value={filterStatus}
+            onChange={(e) => setFilterStatus(e.target.value as Inquiry['status'] | 'all')}
+            className="text-xs border border-charcoal/20 px-3 py-2 bg-white"
+          >
+            <option value="all">All Status</option>
+            {Object.entries(STATUS_LABELS).map(([value, label]) => (
+              <option key={value} value={value}>{label}</option>
+            ))}
+          </select>
+          <button
+            onClick={fetchInquiries}
+            className="text-xs uppercase tracking-[0.1em] px-3 py-2 border border-charcoal/20 hover:bg-charcoal/5"
+          >
+            Refresh
+          </button>
+        </div>
+      </div>
+
+      {/* Main Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* List */}
+        <div className="lg:col-span-1 space-y-2 max-h-[70vh] overflow-y-auto">
+          {filteredInquiries.length === 0 ? (
+            <p className="text-center text-charcoal/50 py-8 text-sm">No inquiries found</p>
+          ) : (
+            filteredInquiries.map((inquiry) => (
+              <button
+                key={inquiry.id}
+                onClick={() => setSelectedInquiry(inquiry)}
+                className={cn(
+                  "w-full text-left p-4 border transition-all",
+                  selectedInquiry?.id === inquiry.id
+                    ? "border-charcoal bg-charcoal/5"
+                    : "border-charcoal/10 hover:border-charcoal/30"
+                )}
+              >
+                <div className="flex items-start justify-between gap-2">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium text-sm truncate">{inquiry.name || 'No name'}</p>
+                    <p className="text-xs text-charcoal/50 truncate">{inquiry.email}</p>
+                  </div>
+                  <span className={cn(
+                    "text-[10px] uppercase px-2 py-0.5 shrink-0",
+                    STATUS_COLORS[inquiry.status]
+                  )}>
+                    {STATUS_LABELS[inquiry.status]}
+                  </span>
+                </div>
+                <p className="text-xs text-charcoal/40 mt-2">{formatDate(inquiry.created_at)}</p>
+              </button>
+            ))
+          )}
+        </div>
+
+        {/* Detail Panel */}
+        <div className="lg:col-span-2">
+          {selectedInquiry ? (
+            <div className="border border-charcoal/10 p-6 space-y-6">
+              {/* Header */}
+              <div className="flex items-start justify-between">
+                <div>
+                  <h3 className="text-xl font-display">{selectedInquiry.name || 'No name'}</h3>
+                  <p className="text-sm text-charcoal/60">{selectedInquiry.email}</p>
+                  {selectedInquiry.phone && (
+                    <p className="text-sm text-charcoal/60">{selectedInquiry.phone}</p>
+                  )}
+                </div>
+                <select
+                  value={selectedInquiry.status}
+                  onChange={(e) => updateStatus(selectedInquiry.id, e.target.value as Inquiry['status'])}
+                  disabled={updating}
+                  className={cn(
+                    "text-xs uppercase px-3 py-1.5 border-0",
+                    STATUS_COLORS[selectedInquiry.status]
+                  )}
+                >
+                  {Object.entries(STATUS_LABELS).map(([value, label]) => (
+                    <option key={value} value={value}>{label}</option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Details Grid */}
+              <div className="grid grid-cols-2 gap-4 text-sm">
+                {selectedInquiry.company && (
+                  <div>
+                    <p className="text-xs text-charcoal/40 uppercase tracking-wider">Company</p>
+                    <p>{selectedInquiry.company}</p>
+                  </div>
+                )}
+                {selectedInquiry.event_type && (
+                  <div>
+                    <p className="text-xs text-charcoal/40 uppercase tracking-wider">Event Type</p>
+                    <p>{EVENT_LABELS[selectedInquiry.event_type] || selectedInquiry.event_type}</p>
+                  </div>
+                )}
+                {selectedInquiry.event_date && (
+                  <div>
+                    <p className="text-xs text-charcoal/40 uppercase tracking-wider">Event Date</p>
+                    <p>{selectedInquiry.event_date}</p>
+                  </div>
+                )}
+                {selectedInquiry.location && (
+                  <div>
+                    <p className="text-xs text-charcoal/40 uppercase tracking-wider">Location</p>
+                    <p>{selectedInquiry.location}</p>
+                  </div>
+                )}
+                {selectedInquiry.budget && (
+                  <div>
+                    <p className="text-xs text-charcoal/40 uppercase tracking-wider">Budget</p>
+                    <p>{BUDGET_LABELS[selectedInquiry.budget] || selectedInquiry.budget}</p>
+                  </div>
+                )}
+                {selectedInquiry.referral_source && (
+                  <div>
+                    <p className="text-xs text-charcoal/40 uppercase tracking-wider">Source</p>
+                    <p className="capitalize">{selectedInquiry.referral_source}</p>
+                  </div>
+                )}
+              </div>
+
+              {/* Message */}
+              <div>
+                <p className="text-xs text-charcoal/40 uppercase tracking-wider mb-2">Message</p>
+                <p className="text-sm leading-relaxed whitespace-pre-wrap bg-charcoal/5 p-4">
+                  {selectedInquiry.message}
+                </p>
+              </div>
+
+              {/* Notes */}
+              <div>
+                <p className="text-xs text-charcoal/40 uppercase tracking-wider mb-2">Internal Notes</p>
+                <textarea
+                  defaultValue={selectedInquiry.notes || ''}
+                  onBlur={(e) => {
+                    if (e.target.value !== selectedInquiry.notes) {
+                      updateNotes(selectedInquiry.id, e.target.value)
+                    }
+                  }}
+                  placeholder="Add internal notes..."
+                  className="w-full h-24 text-sm p-3 border border-charcoal/10 resize-none focus:outline-none focus:border-charcoal/30"
+                />
+              </div>
+
+              {/* Meta */}
+              <div className="flex items-center justify-between text-xs text-charcoal/40 pt-4 border-t border-charcoal/10">
+                <span>Submitted {formatDate(selectedInquiry.created_at)}</span>
+                <span className={selectedInquiry.email_sent ? 'text-green-600' : 'text-amber-600'}>
+                  {selectedInquiry.email_sent ? 'Email notification sent' : 'Email not sent'}
+                </span>
+              </div>
+
+              {/* Actions */}
+              <div className="flex gap-3">
+                <a
+                  href={`mailto:${selectedInquiry.email}?subject=Re: Your Eclectic Hive Inquiry`}
+                  className="flex-1 text-center py-3 bg-charcoal text-cream text-xs uppercase tracking-[0.1em] hover:bg-charcoal/90 transition-colors"
+                >
+                  Reply via Email
+                </a>
+                {selectedInquiry.phone && (
+                  <a
+                    href={`tel:${selectedInquiry.phone}`}
+                    className="px-6 py-3 border border-charcoal text-xs uppercase tracking-[0.1em] hover:bg-charcoal/5 transition-colors"
+                  >
+                    Call
+                  </a>
+                )}
+              </div>
+            </div>
+          ) : (
+            <div className="border border-dashed border-charcoal/20 h-full min-h-[400px] flex items-center justify-center">
+              <p className="text-charcoal/40 text-sm">Select an inquiry to view details</p>
+            </div>
+          )}
+        </div>
+      </div>
     </div>
   )
 }

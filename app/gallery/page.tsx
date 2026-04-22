@@ -318,22 +318,63 @@ function ProjectPanel({
           />
           <div className="absolute inset-0 bg-gradient-to-r from-transparent to-charcoal/20 lg:bg-gradient-to-l" />
           
-          {/* Image counter */}
+          {/* Film Strip Thumbnail Bar */}
           {totalImages > 1 && (
-            <div className="absolute bottom-6 left-6 flex items-center gap-2">
-              {project.images?.map((_, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => { setCurrentImageIndex(idx); setImageLoaded(false) }}
-                  className={cn(
-                    'w-2 h-2 rounded-full transition-all',
-                    idx === currentImageIndex 
-                      ? 'bg-cream w-6' 
-                      : 'bg-cream/40 hover:bg-cream/60'
-                  )}
-                  aria-label={`Go to image ${idx + 1}`}
-                />
-              ))}
+            <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 via-black/60 to-transparent pt-16 pb-4">
+              <div className="relative">
+                {/* Film strip sprocket holes - top */}
+                <div className="absolute -top-3 left-0 right-0 flex justify-center gap-[52px] px-4 overflow-hidden">
+                  {Array.from({ length: Math.ceil(totalImages * 1.5) }).map((_, i) => (
+                    <div key={`top-${i}`} className="w-2 h-2 rounded-sm bg-cream/10 flex-shrink-0" />
+                  ))}
+                </div>
+                
+                {/* Scrollable thumbnail strip */}
+                <div 
+                  className="flex gap-2 px-6 overflow-x-auto scrollbar-hide snap-x snap-mandatory"
+                  style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+                >
+                  {project.images?.map((img, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => { setCurrentImageIndex(idx); setImageLoaded(false) }}
+                      className={cn(
+                        'relative flex-shrink-0 w-16 h-12 overflow-hidden snap-center transition-all duration-200',
+                        idx === currentImageIndex 
+                          ? 'ring-2 ring-sand ring-offset-1 ring-offset-black/50 opacity-100' 
+                          : 'opacity-50 hover:opacity-80 grayscale hover:grayscale-0'
+                      )}
+                      aria-label={`Go to image ${idx + 1}`}
+                    >
+                      <Image
+                        src={img}
+                        alt={`Thumbnail ${idx + 1}`}
+                        fill
+                        className="object-cover"
+                        sizes="64px"
+                      />
+                      {/* Frame number overlay */}
+                      <span className="absolute bottom-0.5 right-1 text-[8px] text-cream/60 font-mono">
+                        {(idx + 1).toString().padStart(2, '0')}
+                      </span>
+                    </button>
+                  ))}
+                </div>
+                
+                {/* Film strip sprocket holes - bottom */}
+                <div className="absolute -bottom-3 left-0 right-0 flex justify-center gap-[52px] px-4 overflow-hidden">
+                  {Array.from({ length: Math.ceil(totalImages * 1.5) }).map((_, i) => (
+                    <div key={`bottom-${i}`} className="w-2 h-2 rounded-sm bg-cream/10 flex-shrink-0" />
+                  ))}
+                </div>
+              </div>
+              
+              {/* Image counter text */}
+              <div className="flex items-center justify-center gap-3 mt-4 text-cream/40 text-xs tracking-wider">
+                <span className="font-mono">{(currentImageIndex + 1).toString().padStart(2, '0')}</span>
+                <span className="w-8 h-px bg-cream/20" />
+                <span className="font-mono">{totalImages.toString().padStart(2, '0')}</span>
+              </div>
             </div>
           )}
         </div>
