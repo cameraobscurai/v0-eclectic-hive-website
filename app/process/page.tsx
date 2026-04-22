@@ -76,7 +76,7 @@ function ProcessTimeline() {
   })
 
   return (
-    <div ref={containerRef} className="relative border-l border-charcoal/10 ml-4 pl-8" style={{ position: 'relative' }}>
+    <div ref={containerRef} className="relative border-l border-charcoal/10 ml-4 pl-8">
       {/* The line that draws down as you scroll */}
       <motion.div
         className="absolute left-0 top-0 w-px bg-charcoal origin-top"
@@ -233,7 +233,9 @@ export default function ProcessPage() {
           </div>
           
           {/* Process Phases — scroll-driven timeline */}
-          <ProcessTimeline />
+          <div className="relative">
+            <ProcessTimeline />
+          </div>
         </div>
       </section>
       

@@ -16,7 +16,7 @@ export const metadata: Metadata = {
 
 export default function AtelierPage() {
   return (
-    <main id="main-content">
+    <main id="main-content" className="min-h-screen">
       <Navigation />
       <AtelierHero />
       <TeamSection />

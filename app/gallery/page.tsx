@@ -747,25 +747,22 @@ export default function GalleryPage() {
       </section>
       
       {/* ─────────────────────────────────────────────────────────────
-          As Featured In
+          As Featured In - Cream background like their old site
       ───────────────────────────────────────────────────────────── */}
-      <section className="py-16 border-t border-cream/10">
-        <div className="px-6 lg:px-12">
-          <p className="text-[10px] tracking-[0.35em] uppercase text-cream/30 text-center mb-10">
-            As Featured In
-          </p>
-          <div className="flex flex-wrap items-center justify-center gap-8 lg:gap-12">
+      <section className="bg-cream py-20 lg:py-28">
+        <div className="px-6 lg:px-12 max-w-7xl mx-auto">
+          <div className="flex flex-wrap items-center justify-center gap-10 lg:gap-16 xl:gap-20">
             {PRESS_LOGOS.map((logo, i) => (
               <div
                 key={i}
-                className="relative w-20 h-8 md:w-24 md:h-10 opacity-40 hover:opacity-70 transition-opacity"
+                className="relative w-28 h-12 md:w-36 md:h-14 lg:w-44 lg:h-16 opacity-80 hover:opacity-100 transition-opacity grayscale hover:grayscale-0"
               >
                 <Image
                   src={logo.src}
-                  alt={logo.name}
+                  alt={`Featured in ${logo.name}`}
                   fill
-                  className="object-contain"
-                  sizes="100px"
+                  className="object-contain invert"
+                  sizes="(max-width: 768px) 112px, (max-width: 1024px) 144px, 176px"
                 />
               </div>
             ))}
