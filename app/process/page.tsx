@@ -76,7 +76,7 @@ function ProcessTimeline() {
   })
 
   return (
-    <div ref={containerRef} className="relative border-l border-charcoal/10 ml-4 pl-8">
+    <div ref={containerRef} className="relative border-l border-charcoal/10 ml-4 pl-8" style={{ position: 'relative' }}>
       {/* The line that draws down as you scroll */}
       <motion.div
         className="absolute left-0 top-0 w-px bg-charcoal origin-top"
@@ -211,8 +211,8 @@ export default function ProcessPage() {
       </section>
       
       {/* Process Overview */}
-      <section className="bg-background py-24 lg:py-40">
-        <div className="px-6 lg:px-12 max-w-7xl mx-auto">
+      <section className="relative bg-background py-24 lg:py-40">
+        <div className="relative px-6 lg:px-12 max-w-7xl mx-auto">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 mb-16 lg:mb-24">
             <div className="lg:col-span-3">
               <p className="text-xs uppercase tracking-[0.3em] text-muted-foreground">

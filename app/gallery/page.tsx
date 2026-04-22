@@ -125,11 +125,13 @@ const PRESS_LOGOS = [
 function ProjectCard({ 
   project, 
   onClick,
-  isActive 
+  isActive,
+  isPriority = false
 }: { 
   project: typeof projects[0]
   onClick: () => void
   isActive: boolean
+  isPriority?: boolean
 }) {
   const [imageLoaded, setImageLoaded] = useState(false)
 
@@ -158,6 +160,8 @@ function ProjectCard({
             src={project.image}
             alt={`${project.title} - ${project.location}`}
           fill
+          priority={isPriority}
+          loading={isPriority ? 'eager' : 'lazy'}
           className={cn(
             'object-cover transition-all duration-700',
             'group-hover:scale-105',
@@ -546,7 +550,7 @@ export default function GalleryPage() {
         </div>
       </section>
       
-      {/* ─────────────────────────────────────────────────────────────
+      {/* ─────────���───────────────────────────────────────────────────
           Filter Pills - By Region/Location
       ───────────────────────���───────────────────────────────────── */}
       {projects.length > 0 && allRegions.length > 2 && (
@@ -605,6 +609,7 @@ export default function GalleryPage() {
                   project={project}
                   onClick={() => setSelectedProject(project)}
                   isActive={index === activeIndex}
+                  isPriority={index === 0}
                 />
               ))}
               

@@ -253,15 +253,41 @@ export function Parallax({
   speed = 0.5,
   direction = 'up',
 }: ParallaxProps) {
-  const ref = useRef(null)
-  const { scrollYProgress } = useScroll({
-    target: ref,
-    offset: ['start end', 'end start'],
-  })
+  const ref = useRef<HTMLDivElement>(null)
+  const [offset, setOffset] = useState(0)
   
-  const multiplier = direction === 'up' ? -1 : 1
-  const y = useTransform(scrollYProgress, [0, 1], [100 * speed * multiplier, -100 * speed * multiplier])
-  const smoothY = useSpring(y, { stiffness: 100, damping: 30, restDelta: 0.001 })
+  useEffect(() => {
+    if (prefersReducedMotion()) return
+    
+    const element = ref.current
+    if (!element) return
+    
+    let ticking = false
+    
+    const updateParallax = () => {
+      const rect = element.getBoundingClientRect()
+      const windowHeight = window.innerHeight
+      const centerY = rect.top + rect.height / 2
+      const distanceFromCenter = centerY - windowHeight / 2
+      const multiplier = direction === 'up' ? -1 : 1
+      setOffset(distanceFromCenter * speed * 0.1 * multiplier)
+    }
+    
+    const handleScroll = () => {
+      if (!ticking) {
+        requestAnimationFrame(() => {
+          updateParallax()
+          ticking = false
+        })
+        ticking = true
+      }
+    }
+    
+    updateParallax()
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    
+    return () => window.removeEventListener('scroll', handleScroll)
+  }, [speed, direction])
   
   if (prefersReducedMotion()) {
     return <div ref={ref} className={className}>{children}</div>
@@ -269,9 +295,14 @@ export function Parallax({
   
   return (
     <div ref={ref} className={cn('relative overflow-hidden', className)}>
-      <motion.div style={{ y: smoothY }}>
+      <div 
+        style={{ 
+          transform: `translateY(${offset}px)`,
+          willChange: 'transform',
+        }}
+      >
         {children}
-      </motion.div>
+      </div>
     </div>
   )
 }
