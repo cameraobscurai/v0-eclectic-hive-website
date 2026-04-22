@@ -81,6 +81,20 @@ const PAGES = [
     description: 'Buttons, forms, cards with specs and states',
     preview: 'components',
   },
+  {
+    href: '/brand/architecture',
+    title: 'Brand Architecture',
+    subtitle: 'Subs',
+    description: 'Sub-brand hierarchy, voice formula, tone by context',
+    preview: 'architecture',
+  },
+  {
+    href: '/brand/photography',
+    title: 'Photography',
+    subtitle: 'Photo',
+    description: 'Inventory, team, events style guides and layout rules',
+    preview: 'photography',
+  },
 ]
 
 export default function SpecimenIndex() {
@@ -102,13 +116,16 @@ export default function SpecimenIndex() {
         
         <div className="relative z-10 max-w-6xl">
           <p className="text-cream/40 text-xs font-mono uppercase tracking-[0.3em] mb-6">
-            Typography Specimen
+            Brand System
           </p>
           <h1 className="font-serif text-cream text-5xl lg:text-7xl tracking-tight mb-4">
             Eclectic Hive
           </h1>
-          <p className="text-cream/50 text-lg max-w-xl">
-            Brand typography system. Isolated reference pages for design and image generation.
+          <p className="text-cream/50 text-lg max-w-xl mb-6">
+            Complete brand reference. Typography, colors, voice, photography, and components.
+          </p>
+          <p className="text-cream/30 text-sm italic">
+            "Two parts luxe, one part regal, and a dash of edge."
           </p>
         </div>
       </section>
@@ -169,6 +186,24 @@ export default function SpecimenIndex() {
                     <div className="flex flex-col gap-2 px-4">
                       <div className="w-20 h-6 bg-cream rounded-sm" />
                       <div className="w-20 h-6 border border-cream/30 rounded-sm" />
+                    </div>
+                  )}
+                  {page.preview === 'architecture' && (
+                    <div className="flex flex-col items-center gap-2 px-4">
+                      <div className="w-24 h-5 bg-cream/60 rounded-sm" />
+                      <div className="w-px h-3 bg-cream/30" />
+                      <div className="flex gap-4">
+                        <div className="w-10 h-4 bg-cream/30 rounded-sm" />
+                        <div className="w-10 h-4 bg-cream/30 rounded-sm" />
+                      </div>
+                    </div>
+                  )}
+                  {page.preview === 'photography' && (
+                    <div className="grid grid-cols-2 gap-1 px-4">
+                      <div className="aspect-square bg-cream/20 rounded-sm" />
+                      <div className="aspect-square bg-cream/30 rounded-sm" />
+                      <div className="aspect-square bg-cream/25 rounded-sm" />
+                      <div className="aspect-square bg-cream/15 rounded-sm" />
                     </div>
                   )}
                   
