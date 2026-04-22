@@ -10,12 +10,17 @@ import { cn } from '@/lib/utils'
 const team = [
   {
     name: 'Jill Livingston',
-    role: 'Owner | Creative Director',
+    role: 'Owner & Creative Director',
     image: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/4abbdec3-cc0e-47c9-b75e-9eecef715811/Jill+Livingston+2023+Headshot+Close+Up.jpg',
   },
   {
+    name: 'Annie Ohman',
+    role: 'Director of Company Operations',
+    image: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/fb2af9f1-b449-42c1-9fd6-4429fcd73350/Annie-001.jpg',
+  },
+  {
     name: 'Sam Young',
-    role: 'General Manager',
+    role: 'Project Manager',
     image: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/261b3a32-4959-4e54-a945-67666a7b0709/Sam+Young+v3.png',
   },
   {
@@ -24,9 +29,14 @@ const team = [
     image: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/b56b8da0-ecf7-42b4-b81b-99fe7b64e4ad/Amanda+Ferguson%2C+Senior+Designer+B%2BW.jpg',
   },
   {
-    name: 'Annie',
-    role: 'Team Member',
-    image: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/fb2af9f1-b449-42c1-9fd6-4429fcd73350/Annie-001.jpg',
+    name: 'Adrienne Moon',
+    role: 'Purchasing & Inventory Specialist',
+    image: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/c932a1b6-1a1b-4c88-9e06-a237a6443aa1/Eclectic+Hive-Carrie+King+Photographer-154.jpg',
+  },
+  {
+    name: 'Patrick Batten',
+    role: 'Director of Warehouse Operations',
+    image: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/c932a1b6-1a1b-4c88-9e06-a237a6443aa1/Eclectic+Hive-Carrie+King+Photographer-154.jpg',
   },
 ]
 

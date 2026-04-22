@@ -1,8 +1,8 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { get } from '@vercel/blob'
 
-// Note: Using Node.js runtime as @vercel/blob's get() requires Node.js APIs
-// Images are still served fast via Vercel's CDN edge caching
+// Edge runtime for fastest possible image delivery
+export const runtime = 'edge'
 
 // Allowed path prefixes - whitelist approach
 const ALLOWED_PREFIXES = ['inventory/', 'fonts/']

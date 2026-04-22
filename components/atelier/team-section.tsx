@@ -11,8 +11,8 @@ const team = [
     image: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Jill%2BLivingston%2B2023%2BHeadshot%2BClose%2BUp-NHuZ95g6QfydPaT0PXTA0TdvNPtczK.webp',
   },
   {
-    name: 'Annie',
-    role: 'Operations Director',
+    name: 'Annie Ohman',
+    role: 'Director of Company Operations',
     image: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Annie-001-tNiKz1tG6JqpBALc82EWwaLgrQx4Rl.webp',
   },
   {
@@ -22,17 +22,17 @@ const team = [
   },
   {
     name: 'Sam Young',
-    role: 'Production Manager',
+    role: 'Project Manager',
     image: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Sam%2BYoung%2Bv3-FziaYBR9Xlec5f3osxqy4l2Sr97UoE.webp',
   },
   {
-    name: 'Team Member',
-    role: 'Fabrication Lead',
+    name: 'Adrienne Moon',
+    role: 'Purchasing & Inventory Specialist',
     image: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Eclectic%2BHive-Carrie%2BKing%2BPhotographer-154-gzuuJFrZ86qUqzaJhZrEAjBXHLwwPe.webp',
   },
   {
-    name: 'Team Member',
-    role: 'Designer',
+    name: 'Patrick Batten',
+    role: 'Director of Warehouse Operations',
     image: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Eclectic%2BHive-Carrie%2BKing%2BPhotographer-199-r3X3oOyxvAoTbdOkiUyuhXDdlRXeKk.webp',
   },
 ]
