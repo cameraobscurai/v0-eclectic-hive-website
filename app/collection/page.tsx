@@ -651,19 +651,38 @@ export default function CollectionPage() {
             ))}
           </div>
         ) : filteredProducts.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-            {filteredProducts.map((product, index) => (
-              <ProductCard 
-                key={product.id} 
-                product={product} 
-                imageUrl={getImageUrl(product)}
-                onImageError={handleImageError}
-                onClick={() => openQuickView(product)}
-                index={index}
-                brokenImagesRef={brokenImagesRef}
-              />
-            ))}
-          </div>
+          <LayoutGroup>
+            <motion.div 
+              className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
+              layout
+            >
+              <AnimatePresence mode="popLayout">
+                {filteredProducts.map((product, index) => (
+                  <motion.div
+                    key={product.id}
+                    layout
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    transition={{ 
+                      duration: 0.25,
+                      ease: [0.25, 0.1, 0.25, 1],
+                      layout: { duration: 0.3 }
+                    }}
+                  >
+                    <ProductCard 
+                      product={product} 
+                      imageUrl={getImageUrl(product)}
+                      onImageError={handleImageError}
+                      onClick={() => openQuickView(product)}
+                      index={index}
+                      brokenImagesRef={brokenImagesRef}
+                    />
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </motion.div>
+          </LayoutGroup>
         ) : (
           <div className="py-20 text-center">
             <p className="text-sm text-charcoal/40 mb-2">No pieces found.</p>

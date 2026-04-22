@@ -146,22 +146,14 @@ function useLazyLoad(options?: IntersectionObserverInit) {
 function GridProjectCard({ 
   project, 
   onClick,
-  isPriority = false,
-  size = 'normal'
+  isPriority = false
 }: { 
   project: Project
   onClick: () => void
   isPriority?: boolean
-  size?: 'normal' | 'large' | 'tall'
 }) {
   const { ref, hasLoaded } = useLazyLoad()
   const [imageLoaded, setImageLoaded] = useState(false)
-
-  const aspectClass = {
-    normal: 'aspect-[4/5]',
-    large: 'aspect-[16/10]',
-    tall: 'aspect-[3/5]'
-  }[size]
 
   return (
     <div ref={ref}>
@@ -171,7 +163,7 @@ function GridProjectCard({
           'group relative w-full overflow-hidden bg-charcoal/30',
           'focus:outline-none focus-visible:ring-2 focus-visible:ring-sand focus-visible:ring-offset-2 focus-visible:ring-offset-charcoal',
           'transition-all duration-500',
-          aspectClass
+          'aspect-[4/3]'
         )}
         aria-label={`View ${project.title} project`}
       >
@@ -719,15 +711,14 @@ export default function GalleryPage() {
             <div className="px-4 lg:px-8">
               <div className="max-w-[1800px] mx-auto">
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-3 lg:gap-4">
-                  {filteredProjects.map((project, index) => (
-                    <GridProjectCard
-                      key={project.id}
-                      project={project}
-                      onClick={() => setSelectedProject(project)}
-                      isPriority={index < 4}
-                      size={index === 0 ? 'large' : 'normal'}
-                    />
-                  ))}
+{filteredProjects.map((project, index) => (
+                                    <GridProjectCard
+                                      key={project.id}
+                                      project={project}
+                                      onClick={() => setSelectedProject(project)}
+                                      isPriority={index < 4}
+                                    />
+                                  ))}
                 </div>
               </div>
             </div>
