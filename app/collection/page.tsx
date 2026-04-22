@@ -486,9 +486,9 @@ export default function CollectionPage() {
             <nav className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 py-1 sm:flex-1" aria-label="Sub-categories">
               {availableSubCategories.map((sub) => {
                 // Count items in this sub-category
-  const count = sub === 'All'
-  ? products.filter(p => p.primary_image_url && p.category === activeCategory).length
-  : products.filter(p => p.primary_image_url && p.category === activeCategory && getSubCategory(p.id) === sub).length
+                const count = sub === 'All'
+                  ? products.filter(p => p.primary_image_url && p.category === activeCategory).length
+                  : products.filter(p => p.primary_image_url && p.category === activeCategory && getSubCategory(p.id) === sub).length
                 
                 return (
                   <button
