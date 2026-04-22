@@ -4,7 +4,7 @@ import { Reveal, Parallax } from '@/components/animations/motion-elements'
 
 export function StudioSection() {
   return (
-    <section className="bg-cream py-24 lg:py-40">
+    <section className="relative bg-cream py-24 lg:py-40">
       <div className="px-6 lg:px-12 max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           {/* Image — wipes in from left */}

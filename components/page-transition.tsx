@@ -51,7 +51,7 @@ export function PageTransitionProvider({ children }: { children: ReactNode }) {
   const [isTransitioning, setIsTransitioning] = useState(false)
   const [targetPath, setTargetPath] = useState<string | null>(null)
   const [showOverlay, setShowOverlay] = useState(false)
-  const [overlayPhase, setOverlayPhase] = useState<'entering' | 'exiting' | null>(null)
+  const [overlayPhase, setOverlayPhase] = useState<'cover' | 'reveal' | null>(null)
   const reducedMotion = useRef(false)
 
   useEffect(() => {
@@ -66,27 +66,38 @@ export function PageTransitionProvider({ children }: { children: ReactNode }) {
     setTargetPath(href)
     
     if (reducedMotion.current || tier === 'subtle') {
-      // Subtle: just navigate
+      // Subtle: just navigate with minimal fade
       router.push(href)
       setTimeout(() => setIsTransitioning(false), 200)
     } else {
-      // Dramatic or Wipe: show overlay, then navigate
+      // Dramatic or Wipe: 
+      // 1. Cover screen with overlay
+      // 2. Navigate while covered
+      // 3. Reveal new page
       setShowOverlay(true)
-      setOverlayPhase('entering')
+      setOverlayPhase('cover')
       
-      const overlayDuration = tier === 'dramatic' ? 500 : 350
+      const coverDuration = tier === 'dramatic' ? 450 : 300
+      const revealDuration = tier === 'dramatic' ? 450 : 300
       
+      // Wait for cover animation to complete
       setTimeout(() => {
+        // Navigate while fully covered
         router.push(href)
-        setOverlayPhase('exiting')
         
+        // Small delay to let new page start rendering
         setTimeout(() => {
-          setShowOverlay(false)
-          setOverlayPhase(null)
-          setIsTransitioning(false)
-          setTargetPath(null)
-        }, overlayDuration)
-      }, overlayDuration)
+          setOverlayPhase('reveal')
+          
+          // Wait for reveal animation to complete
+          setTimeout(() => {
+            setShowOverlay(false)
+            setOverlayPhase(null)
+            setIsTransitioning(false)
+            setTargetPath(null)
+          }, revealDuration)
+        }, 50)
+      }, coverDuration)
     }
   }, [pathname, isTransitioning, router])
 
@@ -113,28 +124,31 @@ export function PageTransitionProvider({ children }: { children: ReactNode }) {
 // DRAMATIC BARS - vertical bars sweep for Home/Contact
 // =============================================================================
 
-function DramaticBarsOverlay({ phase }: { phase: 'entering' | 'exiting' | null }) {
+function DramaticBarsOverlay({ phase }: { phase: 'cover' | 'reveal' | null }) {
   const barCount = 5
   
   return (
     <motion.div
       className="fixed inset-0 z-[9999] pointer-events-none flex"
       initial={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      transition={{ duration: 0.1, delay: 0.4 }}
+      exit={{ opacity: 0, transition: { duration: 0.1, delay: 0.3 } }}
     >
       {Array.from({ length: barCount }).map((_, i) => (
         <motion.div
           key={i}
-          className="flex-1 bg-charcoal origin-top"
+          className="flex-1 bg-charcoal"
+          style={{ 
+            transformOrigin: phase === 'cover' ? 'top' : 'bottom'
+          }}
           initial={{ scaleY: 0 }}
           animate={{ 
-            scaleY: phase === 'entering' ? 1 : 0,
-            originY: phase === 'entering' ? 0 : 1,
+            scaleY: phase === 'cover' ? 1 : 0,
           }}
           transition={{
-            duration: 0.4,
-            delay: phase === 'entering' ? i * 0.05 : (barCount - 1 - i) * 0.05,
+            duration: 0.35,
+            delay: phase === 'cover' 
+              ? i * 0.04 // Stagger in from left
+              : (barCount - 1 - i) * 0.04, // Stagger out from right
             ease: [0.76, 0, 0.24, 1],
           }}
         />
@@ -144,19 +158,21 @@ function DramaticBarsOverlay({ phase }: { phase: 'entering' | 'exiting' | null }
 }
 
 // =============================================================================
-// WIPE OVERLAY - horizontal sweep for middle pages
+// WIPE OVERLAY - covers then reveals (same direction, no flash)
 // =============================================================================
 
-function WipeOverlay({ phase }: { phase: 'entering' | 'exiting' | null }) {
+function WipeOverlay({ phase }: { phase: 'cover' | 'reveal' | null }) {
+  // Key insight: wipe goes LEFT-TO-RIGHT to cover, then CONTINUES LEFT-TO-RIGHT to reveal
+  // This way old page is never visible - overlay fully covers before navigation
   return (
     <motion.div
       className="fixed inset-0 z-[9999] pointer-events-none bg-cream"
       initial={{ x: '-100%' }}
       animate={{ 
-        x: phase === 'entering' ? '0%' : '100%',
+        x: phase === 'cover' ? '0%' : '100%',
       }}
       transition={{
-        duration: 0.35,
+        duration: 0.3,
         ease: [0.76, 0, 0.24, 1],
       }}
     />
@@ -179,14 +195,14 @@ export function PageTransition({ children }: { children: ReactNode }) {
   }, [])
 
   const pageVariants = {
-    initial: { opacity: 0.95 },
+    initial: { opacity: 0.96 },
     enter: { 
       opacity: 1,
-      transition: { duration: 0.25, ease: 'easeOut' }
+      transition: { duration: 0.2, ease: 'easeOut' }
     },
     exit: { 
-      opacity: 0.95,
-      transition: { duration: 0.15, ease: 'easeIn' }
+      opacity: 0.96,
+      transition: { duration: 0.1, ease: 'easeIn' }
     },
   }
 
