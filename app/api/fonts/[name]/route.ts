@@ -1,6 +1,9 @@
 import { get } from '@vercel/blob'
 import { type NextRequest, NextResponse } from 'next/server'
 
+// B8: Edge runtime for zero cold-start latency on font loading
+export const runtime = 'edge'
+
 // Only these exact filenames are served — anything else 404s.
 // This prevents directory traversal or probing for other Blob assets.
 const ALLOWED_FONTS: Record<string, string> = {
@@ -30,7 +33,7 @@ export async function GET(
     return new NextResponse(result.stream, {
       headers: {
         'Content-Type': 'font/otf',
-        'Cache-Control': 'private, max-age=31536000, immutable',
+        'Cache-Control': 'public, max-age=31536000, immutable',
       },
     })
   } catch (error) {

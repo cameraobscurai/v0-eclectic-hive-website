@@ -31,6 +31,7 @@ const protectedApiRoutes = [
   '/api/upload-font',
   '/api/import-inventory',
   '/api/inventory-image/update',
+  '/api/admin',
 ]
 
 export async function middleware(request: NextRequest) {

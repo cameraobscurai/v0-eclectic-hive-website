@@ -44,6 +44,7 @@ export function useScrollProgress(options: ScrollProgressOptions = {}) {
   const { offset = ['start end', 'end start'] } = options
   const ref = useRef<HTMLElement>(null)
   const [progress, setProgress] = useState(0)
+  const ticking = useRef(false) // B7: RAF throttle flag
 
   useEffect(() => {
     const element = ref.current
@@ -63,12 +64,23 @@ export function useScrollProgress(options: ScrollProgressOptions = {}) {
       setProgress(Math.max(0, Math.min(1, rawProgress)))
     }
 
+    // B7: RAF-throttled scroll handler prevents forced layout at scroll speed
+    const handleScroll = () => {
+      if (!ticking.current) {
+        requestAnimationFrame(() => {
+          updateProgress()
+          ticking.current = false
+        })
+        ticking.current = true
+      }
+    }
+
     updateProgress()
-    window.addEventListener('scroll', updateProgress, { passive: true })
+    window.addEventListener('scroll', handleScroll, { passive: true })
     window.addEventListener('resize', updateProgress, { passive: true })
     
     return () => {
-      window.removeEventListener('scroll', updateProgress)
+      window.removeEventListener('scroll', handleScroll)
       window.removeEventListener('resize', updateProgress)
     }
   }, [offset])
@@ -79,6 +91,7 @@ export function useScrollProgress(options: ScrollProgressOptions = {}) {
 export function useParallax(speed: number = 0.5) {
   const ref = useRef<HTMLElement>(null)
   const [offset, setOffset] = useState(0)
+  const ticking = useRef(false) // B7: RAF throttle flag
 
   useEffect(() => {
     const element = ref.current
@@ -92,10 +105,21 @@ export function useParallax(speed: number = 0.5) {
       setOffset(distanceFromCenter * speed * -0.1)
     }
 
+    // B7: RAF-throttled scroll handler
+    const handleScroll = () => {
+      if (!ticking.current) {
+        requestAnimationFrame(() => {
+          updateParallax()
+          ticking.current = false
+        })
+        ticking.current = true
+      }
+    }
+
     updateParallax()
-    window.addEventListener('scroll', updateParallax, { passive: true })
+    window.addEventListener('scroll', handleScroll, { passive: true })
     
-    return () => window.removeEventListener('scroll', updateParallax)
+    return () => window.removeEventListener('scroll', handleScroll)
   }, [speed])
 
   return { ref, offset }

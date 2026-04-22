@@ -2,13 +2,13 @@
 @import 'tw-animate-css';
 
 /* Saol Display - Brand Font (served from private Blob via API) */
-/* Using font-display: block to prevent FOUT - fonts are preloaded in layout.tsx */
+/* B8: Using font-display: swap - shows fallback immediately, swaps in Saol when ready */
 @font-face {
   font-family: 'Saol Display';
   src: url('/api/fonts/SaolDisplay-LightItalic.otf') format('opentype');
   font-weight: 300;
   font-style: italic;
-  font-display: block;
+  font-display: swap;
 }
 
 @font-face {
@@ -16,7 +16,7 @@
   src: url('/api/fonts/SaolDisplay-Regular.otf') format('opentype');
   font-weight: 400;
   font-style: normal;
-  font-display: block;
+  font-display: swap;
 }
 
 @font-face {
@@ -24,7 +24,7 @@
   src: url('/api/fonts/SaolDisplay-Semibold.otf') format('opentype');
   font-weight: 600;
   font-style: normal;
-  font-display: block;
+  font-display: swap;
 }
 
 @custom-variant dark (&:is(.dark *));

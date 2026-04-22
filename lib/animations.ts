@@ -72,29 +72,25 @@ export const STAGGER = {
 // FRAMER MOTION VARIANTS - Reusable animation configs
 // =============================================================================
 
-// Page transition variants
+// Page transition variants (B3: removed blur for GPU performance)
 export const pageVariants = {
-  initial: {
-    opacity: 0,
-    y: 20,
-    filter: 'blur(4px)',
+  initial: { 
+    opacity: 0, 
+    y: 12,
   },
   enter: {
     opacity: 1,
     y: 0,
-    filter: 'blur(0px)',
-    transition: {
-      duration: DURATIONS.slow,
+    transition: { 
+      duration: DURATIONS.normal, 
       ease: EASINGS.cinematic,
-      staggerChildren: STAGGER.normal,
     },
   },
   exit: {
     opacity: 0,
-    y: -10,
-    filter: 'blur(2px)',
-    transition: {
-      duration: DURATIONS.normal,
+    y: -6,
+    transition: { 
+      duration: DURATIONS.fast, 
       ease: EASINGS.cinematic,
     },
   },

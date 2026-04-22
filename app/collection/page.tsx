@@ -1,11 +1,17 @@
 'use client'
 
 import { useState, useEffect, useMemo, useCallback } from 'react'
-import useSWR from 'swr'
+import useSWR, { useSWRConfig } from 'swr'
+import dynamic from 'next/dynamic'
 import { Navigation } from '@/components/navigation'
 import { Footer } from '@/components/footer'
-import { QuickViewModal } from '@/components/quick-view-modal'
 import { cn } from '@/lib/utils'
+
+// B4: Lazy-load QuickViewModal - defers large JS until actually needed
+const QuickViewModal = dynamic(
+  () => import('@/components/quick-view-modal').then(m => ({ default: m.QuickViewModal })),
+  { ssr: false }
+)
 
 // Track broken images globally to avoid re-checking
 const brokenImages = new Set<string>()
@@ -195,38 +201,68 @@ const SUB_CATEGORY_SORT_ORDER: Record<string, string[]> = {
   'Lighting': ['Floor Lamps', 'Table Lamps', 'Sconces'],
 }
 
-
+// B2: Move detectSubCategory outside component (called ~700× per sort otherwise)
+function detectSubCategory(name: string): string {
+  const lower = name.toLowerCase()
+  for (const [subCat, keywords] of Object.entries(SUB_CATEGORY_KEYWORDS)) {
+    if (keywords.some(kw => lower.includes(kw))) return subCat
+  }
+  return 'Other'
+}
 
 export default function CollectionPage() {
-  // SWR for products - short cache for fresh data after uploads
-  const { data: productsData, mutate: mutateProducts } = useSWR('/api/products?imagesOnly=true&limit=500', fetcher, {
-    revalidateOnFocus: true,
-    revalidateOnReconnect: true,
-    dedupingInterval: 10000, // 10 second cache
+  const { cache } = useSWRConfig()
+  const [activeCategory, setActiveCategory] = useState<string>('')
+  
+  // B1: Fetch categories first (long cache - rarely changes)
+  const { data: categoriesData } = useSWR('/api/categories', fetcher, {
+    revalidateOnFocus: false,
+    revalidateOnReconnect: false,
+    dedupingInterval: 5 * 60 * 1000, // 5 minute cache
   })
   
-  // SWR for categories - short cache
-  const { data: categoriesData } = useSWR('/api/categories', fetcher, {
-    revalidateOnFocus: true,
-    revalidateOnReconnect: true,
-    dedupingInterval: 10000,
-  })
+  const categories: string[] = categoriesData?.categories || []
+  
+  // B1: Fetch by category, not all 500 products - biggest perf win
+  const { data: productsData, mutate: mutateProducts } = useSWR(
+    activeCategory
+      ? `/api/products?imagesOnly=true&category=${encodeURIComponent(activeCategory)}&limit=100`
+      : null,
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      revalidateOnReconnect: false,
+      dedupingInterval: 60_000, // 60 second cache
+      keepPreviousData: true,  // shows old category while new one loads
+    }
+  )
+  
+  // B1: Prefetch category on hover for instant tab switching
+  const prefetchCategory = useCallback((cat: string) => {
+    const url = `/api/products?imagesOnly=true&category=${encodeURIComponent(cat)}&limit=100`
+    // @ts-expect-error - SWR cache.get exists but types are incomplete
+    if (!cache.get(url)) {
+      fetcher(url) // warm the cache
+    }
+  }, [cache])
   
   const products: Product[] = productsData?.products || []
-  const categories: string[] = categoriesData?.categories || ['All']
-  const isLoading = !productsData
+  const isLoading = !productsData && activeCategory !== ''
   
-  // Compute category counts (only for products with images)
-  const categoryCounts = useMemo(() => {
-    const counts: Record<string, number> = { 'All': 0 }
-    products.filter(p => p.primary_image_url).forEach(p => {
-      counts['All']++
-      counts[p.category] = (counts[p.category] || 0) + 1
-    })
-    return counts
-  }, [products])
+  // B2: Pre-compute subcategories once per product load (not on every render)
+  const productsWithSubCategory = useMemo(() =>
+    products.map(p => ({ ...p, _subCategory: detectSubCategory(p.name) })),
+    [products]
+  )
   
-  const [activeCategory, setActiveCategory] = useState<string>('')
+  // Fetch category counts separately (light endpoint)
+  const { data: countsData } = useSWR('/api/categories?withCounts=true', fetcher, {
+    revalidateOnFocus: false,
+    dedupingInterval: 60_000,
+  })
+  const categoryCounts: Record<string, number> = countsData?.counts || {}
+  
+  const
   const [activeSubCategory, setActiveSubCategory] = useState<string>('All')
   const [searchQuery, setSearchQuery] = useState('')
   const [debouncedSearch, setDebouncedSearch] = useState('')
@@ -237,26 +273,22 @@ export default function CollectionPage() {
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null)
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false)
   
-  // Set initial category to highest priority category with images
+  // Set initial category to highest priority category
   useEffect(() => {
-    if (!activeCategory && products.length > 0) {
-      // Find first category in priority order that has images
-      const categoriesWithImages = Object.entries(categoryCounts)
-        .filter(([cat, count]) => cat !== 'All' && count > 0)
-        .map(([cat]) => cat)
-      
+    if (!activeCategory && categories.length > 0) {
+      // Find first category in priority order
       const firstPriorityCategory = CATEGORY_PRIORITY.find(cat => 
-        categoriesWithImages.includes(cat)
+        categories.includes(cat)
       )
       
       if (firstPriorityCategory) {
         setActiveCategory(firstPriorityCategory)
-      } else if (categoriesWithImages.length > 0) {
+      } else if (categories.length > 0) {
         // Fallback to first available if none in priority list
-        setActiveCategory(categoriesWithImages[0])
+        setActiveCategory(categories[0])
       }
     }
-  }, [products, categoryCounts, activeCategory])
+  }, [categories, activeCategory])
   
   // Check if any filters are active
   const hasActiveFilters = activeSubCategory !== 'All' || searchQuery.trim() !== ''
@@ -307,33 +339,20 @@ export default function CollectionPage() {
     return '/placeholder-product.jpg'
   }, [])
   
-  // Detect sub-category from product name
-  const detectSubCategory = (name: string): string => {
-    const lowerName = name.toLowerCase()
-    for (const [subCat, keywords] of Object.entries(SUB_CATEGORY_KEYWORDS)) {
-      if (keywords.some(kw => lowerName.includes(kw))) {
-        return subCat
-      }
-    }
-    return 'Other'
-  }
-
-  // Filter and search products
+  // Filter and search products (uses pre-computed _subCategory from B2)
   const filteredProducts = useMemo(() => {
     // Only show products with images, exclude hidden/broken ones
-    let results = products.filter(p => 
+    if (!activeCategory) return []
+    
+    let results = productsWithSubCategory.filter(p => 
       p.primary_image_url && 
       !hiddenProducts.has(p.id) &&
       !brokenImages.has(getImageUrl(p))
     )
     
-    // Category filter (if no category selected yet, show nothing until loaded)
-    if (!activeCategory) return []
-    results = results.filter(p => p.category === activeCategory)
-    
-    // Sub-category filter
+    // Sub-category filter (uses pre-computed _subCategory)
     if (activeSubCategory !== 'All') {
-      results = results.filter(p => detectSubCategory(p.name) === activeSubCategory)
+      results = results.filter(p => p._subCategory === activeSubCategory)
     }
     
     // Search filter with scoring
@@ -354,17 +373,13 @@ export default function CollectionPage() {
       // Apply sort when not searching
       switch (sortBy) {
         case 'type':
-          // Sort by sub-category for better visual flow (sofas, then benches, then chairs, etc.)
+          // Sort by sub-category (uses pre-computed _subCategory)
           const sortOrder = SUB_CATEGORY_SORT_ORDER[activeCategory] || []
           results.sort((a, b) => {
-            const aSubCat = detectSubCategory(a.name)
-            const bSubCat = detectSubCategory(b.name)
-            const aIndex = sortOrder.indexOf(aSubCat)
-            const bIndex = sortOrder.indexOf(bSubCat)
-            // Items not in sort order go to end
+            const aIndex = sortOrder.indexOf(a._subCategory)
+            const bIndex = sortOrder.indexOf(b._subCategory)
             const aOrder = aIndex === -1 ? 999 : aIndex
             const bOrder = bIndex === -1 ? 999 : bIndex
-            // Primary sort by sub-category, secondary by name
             if (aOrder !== bOrder) return aOrder - bOrder
             return a.name.localeCompare(b.name)
           })
@@ -382,18 +397,17 @@ export default function CollectionPage() {
     }
     
     return results
-  }, [products, activeCategory, activeSubCategory, debouncedSearch, hiddenProducts, getImageUrl, sortBy])
+  }, [productsWithSubCategory, activeCategory, activeSubCategory, debouncedSearch, hiddenProducts, getImageUrl, sortBy])
   
-  // Get available sub-categories for current category (only show if items exist)
+  // Get available sub-categories for current category (uses pre-computed _subCategory)
   const availableSubCategories = useMemo(() => {
-    const categoryProducts = products.filter(p => p.primary_image_url && p.category === activeCategory)
     const subs = SUB_CATEGORIES[activeCategory] || ['All']
     
     return subs.filter(sub => {
       if (sub === 'All') return true
-      return categoryProducts.some(p => detectSubCategory(p.name) === sub)
+      return productsWithSubCategory.some(p => p._subCategory === sub)
     })
-  }, [products, activeCategory])
+  }, [productsWithSubCategory, activeCategory])
   
   // Quick View navigation (must be after filteredProducts is defined)
   const goToNextProduct = useCallback(() => {
@@ -444,6 +458,7 @@ export default function CollectionPage() {
               <button
                 key={cat}
                 onClick={() => setActiveCategory(cat)}
+                onMouseEnter={() => prefetchCategory(cat)}
                 className={cn(
                   "relative flex-shrink-0 px-3 py-2 min-h-[44px] text-[11px] tracking-[0.12em] uppercase whitespace-nowrap transition-all duration-200 snap-start touch-manipulation",
                   activeCategory === cat 
@@ -470,10 +485,10 @@ export default function CollectionPage() {
             {/* Sub-categories - scrollable row */}
             <nav className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 py-1 sm:flex-1" aria-label="Sub-categories">
               {availableSubCategories.map((sub) => {
-                // Count items in this sub-category
+                // Count items in this sub-category (uses pre-computed _subCategory)
                 const count = sub === 'All' 
-                  ? products.filter(p => p.primary_image_url && p.category === activeCategory).length
-                  : products.filter(p => p.primary_image_url && p.category === activeCategory && detectSubCategory(p.name) === sub).length
+                  ? productsWithSubCategory.length
+                  : productsWithSubCategory.filter(p => p._subCategory === sub).length
                 
                 return (
                   <button

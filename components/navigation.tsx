@@ -27,29 +27,37 @@ export function Navigation() {
   // Determine if current page has light background (needs dark nav)
   const isLightPage = LIGHT_BG_PAGES.includes(pathname)
 
-  // FIX: useRef prevents the stale closure that caused the old
-  // scroll handler to re-subscribe on every render.
+  // B6: Refs to gate setState calls - prevents React reconciling every scroll frame
   const lastScrollY = useRef(0)
+  const scrolledRef = useRef(false)
+  const hiddenRef = useRef(false)
 
   // Close mobile menu whenever the route changes
   useEffect(() => {
     setIsOpen(false)
   }, [pathname])
 
-  // Single scroll listener — reads/writes ref, never re-subscribes
+  // B5+B6: Optimized scroll handler with ref guards
   useEffect(() => {
     const onScroll = () => {
       const y = window.scrollY
       const docHeight =
         document.documentElement.scrollHeight - window.innerHeight
 
-      setScrolled(y > 100)
+      // B6: Only call setState when value actually changes
+      const nowScrolled = y > 100
+      if (nowScrolled !== scrolledRef.current) {
+        scrolledRef.current = nowScrolled
+        setScrolled(nowScrolled)
+      }
+
+      // Progress bar is continuous — stays as-is
       setProgress(docHeight > 0 ? (y / docHeight) * 100 : 0)
 
-      if (y > lastScrollY.current && y > 200) {
-        setHidden(true)
-      } else {
-        setHidden(false)
+      const nowHidden = y > lastScrollY.current && y > 200
+      if (nowHidden !== hiddenRef.current) {
+        hiddenRef.current = nowHidden
+        setHidden(nowHidden)
       }
 
       lastScrollY.current = y
@@ -57,7 +65,7 @@ export function Navigation() {
 
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
-  }, []) // empty — no stale closure risk
+  }, [])
 
   // Lock body scroll when mobile menu is open
   useEffect(() => {

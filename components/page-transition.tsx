@@ -262,20 +262,18 @@ export const staggerContainer = {
   },
 }
 
-// Fade up animation for individual elements
+// Fade up animation for individual elements (B3: removed blur for GPU performance)
 export const fadeUp = {
   hidden: { 
     opacity: 0, 
-    y: 30,
-    filter: 'blur(4px)',
+    y: 20,
   },
   show: { 
     opacity: 1, 
     y: 0,
-    filter: 'blur(0px)',
     transition: {
-      duration: 0.6,
-      ease: [0.22, 1, 0.36, 1],
+      duration: 0.5,
+      ease: [0.22, 1, 0.36, 1] as const,
     },
   },
 }
