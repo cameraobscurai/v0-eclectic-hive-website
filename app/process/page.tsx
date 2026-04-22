@@ -7,6 +7,7 @@ import { Footer } from '@/components/footer'
 import { ImagePlaceholder } from '@/components/ui/image-placeholder'
 import { LineReveal, HighlightReveal } from '@/components/pretext/line-reveal'
 import { Magnetic } from '@/components/animations/motion-elements'
+import { MaterialPaletteSection } from '@/components/materials/material-palette-section'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
 
@@ -425,6 +426,9 @@ export default function ProcessPage() {
           </div>
         </div>
       </section>
+
+      {/* Material Palette - WebGL swatches showing material expertise */}
+      <MaterialPaletteSection />
       
       <Footer />
     </main>
