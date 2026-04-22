@@ -144,6 +144,10 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} bg-charcoal`} data-scroll-behavior="smooth">
       <head>
+        {/* Preconnect to Vercel Blob for faster first image load */}
+        <link rel="preconnect" href="https://hebbkx1anhila5yf.public.blob.vercel-storage.com" />
+        <link rel="dns-prefetch" href="https://hebbkx1anhila5yf.public.blob.vercel-storage.com" />
+        
         {/* Preload brand fonts to eliminate FOUT - highest priority */}
         <link
           rel="preload"

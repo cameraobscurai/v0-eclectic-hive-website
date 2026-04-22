@@ -7,6 +7,7 @@ import { useQueryState, parseAsString } from 'nuqs'
 import { Navigation } from '@/components/navigation'
 import { Footer } from '@/components/footer'
 import { cn } from '@/lib/utils'
+import { useRef } from 'react'
 
 // B4: Lazy-load QuickViewModal - defers large JS until actually needed
 const QuickViewModal = dynamic(
@@ -14,36 +15,28 @@ const QuickViewModal = dynamic(
   { ssr: false }
 )
 
-// Track broken images globally to avoid re-checking
-const brokenImages = new Set<string>()
-
-// Optimized ProductCard with loading states and click handler
+// Optimized ProductCard with clip-path reveal hover (not scale-105)
 function ProductCard({ 
   product, 
   imageUrl, 
   onImageError,
   onClick,
-  index = 0
+  index = 0,
+  brokenImagesRef
 }: { 
   product: Product
   imageUrl: string
   onImageError: (id: string, url: string) => void
   onClick: () => void
   index?: number
+  brokenImagesRef: React.RefObject<Set<string>>
 }) {
   const [loaded, setLoaded] = useState(false)
   const [error, setError] = useState(false)
-  const [mounted, setMounted] = useState(false)
-  
-  // Staggered mount animation
-  useEffect(() => {
-    const delay = Math.min(index * 30, 300) // Cap delay at 300ms
-    const timer = setTimeout(() => setMounted(true), delay)
-    return () => clearTimeout(timer)
-  }, [index])
+  const [isHovered, setIsHovered] = useState(false)
   
   // Don't render if already known to be broken
-  if (brokenImages.has(imageUrl)) return null
+  if (brokenImagesRef.current?.has(imageUrl)) return null
   
   const handleError = () => {
     setError(true)
@@ -51,19 +44,20 @@ function ProductCard({
   }
   
   if (error) return null
+
+  // Above-fold images get eager loading for LCP
+  const isAboveFold = index < 6
   
   return (
     <button 
       onClick={onClick}
-      className={cn(
-        "group relative cursor-pointer border-r border-b border-charcoal/5 text-left w-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-charcoal/20",
-        "transition-all duration-500 ease-out",
-        mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
-      )}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      className="group relative cursor-pointer border-r border-b border-charcoal/5 text-left w-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-charcoal/20 product-card"
     >
-      {/* Image container */}
+      {/* Image container - no scale on hover, image stays still */}
       <div className="aspect-square bg-white p-4 lg:p-6 relative overflow-hidden">
-        {/* Soft gradient placeholder instead of harsh pulse */}
+        {/* Soft gradient placeholder */}
         {!loaded && (
           <div className="absolute inset-4 lg:inset-6 bg-gradient-to-br from-neutral-50 to-neutral-100">
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full animate-[shimmer_1.5s_infinite]" />
@@ -73,23 +67,30 @@ function ProductCard({
           src={imageUrl}
           alt={product.name}
           className={cn(
-            "w-full h-full object-contain transition-all duration-500 ease-out",
-            loaded ? "opacity-100 scale-100 group-hover:scale-105" : "opacity-0 scale-95"
+            "w-full h-full object-contain transition-opacity duration-400",
+            loaded ? "opacity-100" : "opacity-0"
           )}
-          loading="lazy"
-          decoding="async"
+          loading={isAboveFold ? 'eager' : 'lazy'}
+          decoding={isAboveFold ? 'sync' : 'async'}
+          fetchPriority={index < 3 ? 'high' : 'auto'}
           onLoad={() => setLoaded(true)}
           onError={handleError}
         />
       </div>
       
-      {/* Hover overlay with name + quick view hint */}
-      <div className="absolute inset-0 flex items-end justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
-        <div className="bg-white/95 backdrop-blur-sm w-full py-3 px-2 text-center">
-          <p className="text-[10px] tracking-[0.08em] text-charcoal uppercase truncate">
+      {/* Clip-path reveal hover - door opening, not ghost appearing */}
+      <div
+        className="absolute inset-x-0 bottom-0 pointer-events-none overflow-hidden"
+        style={{
+          clipPath: isHovered ? 'inset(0% 0% 0% 0%)' : 'inset(100% 0% 0% 0%)',
+          transition: 'clip-path 0.35s cubic-bezier(0.22, 1, 0.36, 1)',
+        }}
+      >
+        <div className="bg-white/96 backdrop-blur-sm px-4 py-4 border-t border-charcoal/6">
+          <p className="text-[11px] tracking-[0.1em] text-charcoal uppercase font-medium truncate">
             {product.name}
           </p>
-          <p className="text-[8px] tracking-[0.1em] text-charcoal/40 uppercase mt-0.5">
+          <p className="text-[9px] tracking-[0.12em] text-charcoal/40 uppercase mt-1">
             Quick View
           </p>
         </div>
@@ -229,6 +230,9 @@ function detectSubCategory(name: string): string {
 
 export default function CollectionPage() {
   const { cache } = useSWRConfig()
+  // Track broken images in ref (not module-level singleton) - garbage collects on unmount
+  const brokenImagesRef = useRef<Set<string>>(new Set())
+  
   // URL state - shareable links for planners
   const [activeCategory, setActiveCategory] = useQueryState('category', parseAsString.withDefault(''))
   
@@ -333,7 +337,7 @@ export default function CollectionPage() {
   
   // Handle broken images - hide them from the grid
   const handleImageError = useCallback((productId: string, imageUrl: string) => {
-    brokenImages.add(imageUrl)
+    brokenImagesRef.current?.add(imageUrl)
     setHiddenProducts(prev => new Set(prev).add(productId))
   }, [])
   
@@ -366,7 +370,7 @@ export default function CollectionPage() {
     let results = productsWithSubCategory.filter(p => 
       p.primary_image_url && 
       !hiddenProducts.has(p.id) &&
-      !brokenImages.has(getImageUrl(p))
+      !brokenImagesRef.current?.has(getImageUrl(p))
     )
     
     // Sub-category filter (uses pre-computed _subCategory)
@@ -656,6 +660,7 @@ export default function CollectionPage() {
                 onImageError={handleImageError}
                 onClick={() => openQuickView(product)}
                 index={index}
+                brokenImagesRef={brokenImagesRef}
               />
             ))}
           </div>

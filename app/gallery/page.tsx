@@ -7,6 +7,7 @@ import Link from 'next/link'
 import { useState, useRef, useEffect, useCallback } from 'react'
 import { cn } from '@/lib/utils'
 import { X, ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react'
+import { lockScroll, unlockScroll } from '@/lib/scroll-lock'
 
 // ─────────────────────────────────────────────────────────────
 // Project Data - Add approved galleries here
@@ -258,15 +259,11 @@ function ProjectPanel({
     return () => window.removeEventListener('keydown', handleKeyDown)
   }, [project, onClose, currentImageIndex, totalImages])
 
-  // Lock body scroll when panel is open
+  // Lock body scroll when panel is open - ref-counted for iOS Safari
   useEffect(() => {
     if (project) {
-      document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = ''
-    }
-    return () => {
-      document.body.style.overflow = ''
+      lockScroll()
+      return () => unlockScroll()
     }
   }, [project])
 

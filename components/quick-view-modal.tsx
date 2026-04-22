@@ -4,6 +4,7 @@ import { useEffect, useCallback, useState, useRef } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { useInquiryStore } from '@/lib/inquiry-store'
+import { lockScroll, unlockScroll } from '@/lib/scroll-lock'
 
 // =============================================================================
 // LIQUID GLASS QUICK VIEW MODAL
@@ -136,15 +137,11 @@ export function QuickViewModal({
     return () => document.removeEventListener('keydown', handleKeyDown)
   }, [isOpen, onClose, onNext, onPrevious])
 
-  // Lock body scroll when open
+  // Lock body scroll when open - using ref-counted utility for iOS Safari support
   useEffect(() => {
     if (isOpen) {
-      document.body.style.overflow = 'hidden'
-    } else {
-      document.body.style.overflow = ''
-    }
-    return () => {
-      document.body.style.overflow = ''
+      lockScroll()
+      return () => unlockScroll()
     }
   }, [isOpen])
 

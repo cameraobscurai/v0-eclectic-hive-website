@@ -742,6 +742,69 @@ img {
   100% { transform: translateX(100%); }
 }
 
+/* =============================================================================
+   CSS SCROLL-DRIVEN ANIMATIONS (2024+)
+   Native browser compositor-thread animations - no JS needed
+   ============================================================================= */
+
+/* Native scroll reveal - replaces useState/IntersectionObserver pattern */
+@keyframes reveal-on-scroll {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.scroll-reveal-native {
+  animation: reveal-on-scroll linear both;
+  animation-timeline: view();
+  animation-range: entry 0% entry 30%;
+}
+
+/* Process timeline line that draws itself */
+@keyframes draw-line {
+  from { transform: scaleY(0); }
+  to   { transform: scaleY(1); }
+}
+
+.timeline-line-native {
+  transform-origin: top center;
+  animation: draw-line linear both;
+  animation-timeline: view();
+  animation-range: entry 10% cover 80%;
+}
+
+/* @starting-style for product cards - native entry animation */
+.product-card {
+  opacity: 1;
+  transform: translateY(0);
+  transition: opacity 0.4s ease-out, transform 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@starting-style {
+  .product-card {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+}
+
+/* @property for smooth color transitions on card hover glow */
+@property --card-glow {
+  syntax: '<color>';
+  initial-value: transparent;
+  inherits: false;
+}
+
+/* Overscroll color matching - rubber band matches page background */
+html {
+  overscroll-behavior-y: auto;
+  background-color: var(--cream, #f5f2ed);
+}
+
+/* Dark sections get dark color-scheme for native UI consistency */
+.bg-charcoal {
+  color-scheme: dark;
+  overscroll-behavior-y: contain;
+}
+
 .scroll-reveal-stagger.is-visible > *:nth-child(1) { transition-delay: 0s; opacity: 1; transform: translateY(0); }
 .scroll-reveal-stagger.is-visible > *:nth-child(2) { transition-delay: 0.1s; opacity: 1; transform: translateY(0); }
 .scroll-reveal-stagger.is-visible > *:nth-child(3) { transition-delay: 0.2s; opacity: 1; transform: translateY(0); }
