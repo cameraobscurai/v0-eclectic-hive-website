@@ -32,9 +32,10 @@ export function Navigation() {
   const scrolledRef = useRef(false)
   const hiddenRef = useRef(false)
 
-  // Close mobile menu whenever the route changes
+  // Close mobile menu whenever the route changes and ensure scroll is restored
   useEffect(() => {
     setIsOpen(false)
+    document.body.style.removeProperty('overflow')
   }, [pathname])
 
   // B5+B6: Optimized scroll handler with ref guards
@@ -69,9 +70,13 @@ export function Navigation() {
 
   // Lock body scroll when mobile menu is open
   useEffect(() => {
-    document.body.style.overflow = isOpen ? 'hidden' : ''
+    if (isOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.removeProperty('overflow')
+    }
     return () => {
-      document.body.style.overflow = ''
+      document.body.style.removeProperty('overflow')
     }
   }, [isOpen])
 
