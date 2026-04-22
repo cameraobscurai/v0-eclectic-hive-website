@@ -268,7 +268,7 @@ export function Parallax({
   }
   
   return (
-    <div ref={ref} className={cn('overflow-hidden', className)}>
+    <div ref={ref} className={cn('relative overflow-hidden', className)}>
       <motion.div style={{ y: smoothY }}>
         {children}
       </motion.div>
