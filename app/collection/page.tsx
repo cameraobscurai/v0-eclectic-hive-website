@@ -195,6 +195,8 @@ const SUB_CATEGORY_SORT_ORDER: Record<string, string[]> = {
   'Lighting': ['Floor Lamps', 'Table Lamps', 'Sconces'],
 }
 
+
+
 export default function CollectionPage() {
   // SWR for products - short cache for fresh data after uploads
   const { data: productsData, mutate: mutateProducts } = useSWR('/api/products?imagesOnly=true&limit=500', fetcher, {
@@ -469,7 +471,7 @@ export default function CollectionPage() {
             <nav className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 py-1 sm:flex-1" aria-label="Sub-categories">
               {availableSubCategories.map((sub) => {
                 // Count items in this sub-category
-                const count = sub === 'All'
+                const count = sub === 'All' 
                   ? products.filter(p => p.primary_image_url && p.category === activeCategory).length
                   : products.filter(p => p.primary_image_url && p.category === activeCategory && detectSubCategory(p.name) === sub).length
                 
@@ -640,7 +642,7 @@ export default function CollectionPage() {
       
       <Footer />
       
-      {/* Quick View Modal - lazy loaded (B4 performance) */}
+      {/* Quick View Modal */}
       <QuickViewModal
         product={quickViewProduct}
         isOpen={isQuickViewOpen}
