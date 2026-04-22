@@ -8,7 +8,7 @@ const PAGES = [
     href: '/brand/hero-h',
     title: 'Hero Letterform',
     subtitle: 'H',
-    description: 'Massive display treatment with construction, texture, and tone variants',
+    description: 'Massive display treatment with construction, anatomy, and process views',
     preview: 'serif',
   },
   {
@@ -59,6 +59,27 @@ const PAGES = [
     subtitle: '12-Col',
     description: 'Construction grid and spacing measurements',
     preview: 'grid',
+  },
+  {
+    href: '/brand/spacing',
+    title: 'Spacing System',
+    subtitle: '8px',
+    description: 'Base unit, scale, section padding, container margins',
+    preview: 'spacing',
+  },
+  {
+    href: '/brand/effects',
+    title: 'Effects + Motion',
+    subtitle: 'FX',
+    description: 'Glassmorphism, easing curves, animation presets',
+    preview: 'effects',
+  },
+  {
+    href: '/brand/components',
+    title: 'UI Components',
+    subtitle: 'UI',
+    description: 'Buttons, forms, cards with specs and states',
+    preview: 'components',
   },
 ]
 
@@ -129,6 +150,25 @@ export default function SpecimenIndex() {
                       {Array.from({ length: 6 }).map((_, j) => (
                         <div key={j} className="bg-cream/20 rounded-sm" />
                       ))}
+                    </div>
+                  )}
+                  {page.preview === 'spacing' && (
+                    <div className="flex flex-col gap-1 px-4">
+                      <div className="w-4 h-2 bg-cream/40 rounded-sm" />
+                      <div className="w-8 h-2 bg-cream/40 rounded-sm" />
+                      <div className="w-16 h-2 bg-cream/40 rounded-sm" />
+                      <div className="w-24 h-2 bg-cream/40 rounded-sm" />
+                    </div>
+                  )}
+                  {page.preview === 'effects' && (
+                    <div className="glass p-4 rounded">
+                      <div className="w-12 h-8 bg-cream/20 rounded animate-pulse" />
+                    </div>
+                  )}
+                  {page.preview === 'components' && (
+                    <div className="flex flex-col gap-2 px-4">
+                      <div className="w-20 h-6 bg-cream rounded-sm" />
+                      <div className="w-20 h-6 border border-cream/30 rounded-sm" />
                     </div>
                   )}
                   
