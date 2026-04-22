@@ -4,6 +4,7 @@ import { Analytics } from '@vercel/analytics/next'
 import { NuqsAdapter } from 'nuqs/adapters/next/app'
 import { PageTransitionProvider } from '@/components/page-transition'
 import { InquiryTray } from '@/components/inquiry-tray'
+import { ScrollReset } from '@/components/scroll-reset'
 import './globals.css'
 
 const inter = Inter({ 
@@ -188,8 +189,9 @@ export default function RootLayout({
           }) }}
         />
       </head>
-      <body className="font-sans antialiased">
+      <body className="font-sans antialiased overflow-y-auto">
         <NuqsAdapter>
+          <ScrollReset />
           <PageTransitionProvider>
             {/* Skip to main content link for accessibility */}
             <a 

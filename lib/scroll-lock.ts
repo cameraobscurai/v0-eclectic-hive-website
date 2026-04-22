@@ -1,48 +1,61 @@
 // Reference-counted scroll lock with iOS Safari support
-// Prevents race conditions when multiple modals/overlays open simultaneously
+// Uses window-based counter so it can be reset on route change
 
-let lockCount = 0
-let savedScrollY = 0
+function getLockCount(): number {
+  if (typeof window === 'undefined') return 0
+  return (window as any).__scrollLockCount || 0
+}
+
+function setLockCount(count: number) {
+  if (typeof window !== 'undefined') {
+    (window as any).__scrollLockCount = count
+  }
+}
+
+function getSavedScrollY(): number {
+  if (typeof window === 'undefined') return 0
+  return (window as any).__savedScrollY || 0
+}
+
+function setSavedScrollY(y: number) {
+  if (typeof window !== 'undefined') {
+    (window as any).__savedScrollY = y
+  }
+}
 
 export function lockScroll() {
-  if (lockCount === 0) {
-    savedScrollY = window.scrollY
+  const count = getLockCount()
+  if (count === 0) {
+    setSavedScrollY(window.scrollY)
     // iOS Safari requires position:fixed to truly prevent background scroll
-    document.body.style.cssText += `
-      overflow: hidden;
-      position: fixed;
-      top: -${savedScrollY}px;
-      width: 100%;
-    `
+    document.body.style.overflow = 'hidden'
+    document.body.style.position = 'fixed'
+    document.body.style.top = `-${window.scrollY}px`
+    document.body.style.width = '100%'
   }
-  lockCount++
+  setLockCount(count + 1)
 }
 
 export function unlockScroll() {
-  lockCount--
-  if (lockCount <= 0) {
-    lockCount = 0 // Prevent negative counts
-    document.body.style.cssText = document.body.style.cssText
-      .replace(/overflow:\s*hidden;?/g, '')
-      .replace(/position:\s*fixed;?/g, '')
-      .replace(/top:\s*-?\d+px;?/g, '')
-      .replace(/width:\s*100%;?/g, '')
-    window.scrollTo(0, savedScrollY)
+  const count = getLockCount()
+  const newCount = Math.max(0, count - 1)
+  setLockCount(newCount)
+  
+  if (newCount === 0) {
+    const savedY = getSavedScrollY()
+    document.body.style.overflow = ''
+    document.body.style.position = ''
+    document.body.style.top = ''
+    document.body.style.width = ''
+    window.scrollTo(0, savedY)
   }
 }
 
-// Hook for React components
-export function useScrollLock(isLocked: boolean) {
-  if (typeof window === 'undefined') return
-  
-  if (isLocked) {
-    lockScroll()
-  }
-  
-  // Return cleanup function
-  return () => {
-    if (isLocked) {
-      unlockScroll()
-    }
-  }
+// Force reset - used by ScrollReset on route change
+export function forceUnlockScroll() {
+  setLockCount(0)
+  document.body.style.overflow = ''
+  document.body.style.position = ''
+  document.body.style.top = ''
+  document.body.style.width = ''
 }
