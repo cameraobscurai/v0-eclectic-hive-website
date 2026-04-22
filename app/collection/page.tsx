@@ -15,7 +15,7 @@ const QuickViewModal = dynamic(
   { ssr: false }
 )
 
-// Clean white ProductCard with clip-path reveal hover
+// Optimized ProductCard with clip-path reveal hover (not scale-105)
 function ProductCard({ 
   product, 
   imageUrl, 
@@ -35,6 +35,7 @@ function ProductCard({
   const [error, setError] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
   
+  // Don't render if already known to be broken
   if (brokenImagesRef.current?.has(imageUrl)) return null
   
   const handleError = () => {
@@ -44,6 +45,7 @@ function ProductCard({
   
   if (error) return null
 
+  // Above-fold images get eager loading for LCP
   const isAboveFold = index < 6
   
   return (
@@ -51,21 +53,23 @@ function ProductCard({
       onClick={onClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className="group relative cursor-pointer text-left w-full focus:outline-none product-card bg-white"
+      className="group relative cursor-pointer border-r border-b border-charcoal/5 text-left w-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-charcoal/20 product-card"
     >
-      {/* Product image */}
-      <div className="relative aspect-square">
+      {/* Image container - no scale on hover, image stays still */}
+      <div className="aspect-square bg-white p-4 lg:p-6 relative overflow-hidden">
+        {/* Soft gradient placeholder */}
         {!loaded && (
-          <div className="absolute inset-0 bg-cream/50 animate-pulse" />
+          <div className="absolute inset-4 lg:inset-6 bg-gradient-to-br from-neutral-50 to-neutral-100">
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full animate-[shimmer_1.5s_infinite]" />
+          </div>
         )}
         <img
           src={imageUrl}
           alt={product.name}
           className={cn(
-            "w-full h-full object-contain p-4",
-            loaded ? "opacity-100" : "opacity-0",
+            "w-full h-full object-contain transition-opacity duration-400",
+            loaded ? "opacity-100" : "opacity-0"
           )}
-          style={{ transition: 'opacity 0.3s ease' }}
           loading={isAboveFold ? 'eager' : 'lazy'}
           decoding={isAboveFold ? 'sync' : 'async'}
           fetchPriority={index < 3 ? 'high' : 'auto'}
@@ -73,8 +77,8 @@ function ProductCard({
           onError={handleError}
         />
       </div>
-
-      {/* Clip-path reveal overlay on hover */}
+      
+      {/* Clip-path reveal hover - door opening, not ghost appearing */}
       <div
         className="absolute inset-x-0 bottom-0 pointer-events-none overflow-hidden"
         style={{
@@ -638,17 +642,11 @@ export default function CollectionPage() {
       ───────────────────────────────────────────────────────────── */}
       <section className="flex-1 bg-white">
         {isLoading ? (
-          // Skeleton grid
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 p-0">
+          // Skeleton grid - instant visual feedback
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
             {Array.from({ length: 24 }).map((_, i) => (
-              <div key={i} style={{ padding: '6px' }}>
-                <div
-                  className="aspect-square animate-pulse"
-                  style={{
-                    borderRadius: '18px',
-                    background: 'rgba(0,0,0,0.05)',
-                  }}
-                />
+              <div key={i} className="border-r border-b border-charcoal/5">
+                <div className="aspect-square bg-neutral-100 animate-pulse" />
               </div>
             ))}
           </div>

@@ -193,24 +193,15 @@ export function QuickViewModal({
             className="relative w-full max-w-[720px] max-h-[90vh] overflow-y-auto overflow-x-hidden overscroll-contain rounded-2xl"
             onClick={(e) => e.stopPropagation()}
             style={{
-              // Dark smoked liquid glass - charcoal tint with specular highlights
-              background: 'rgba(255, 255, 255, 0.92)',
+              // Liquid glass base
+              background: 'rgba(255, 255, 255, 0.85)',
               backdropFilter: 'blur(40px) saturate(180%)',
               WebkitBackdropFilter: 'blur(40px) saturate(180%)',
+              border: '1px solid rgba(255, 255, 255, 0.3)',
               boxShadow: `
-                /* Outer ring — thin dark refraction edge */
-                0 0 0 0.5px rgba(26, 26, 26, 0.12),
-                /* Top specular highlight — lit rim on glass */
-                inset 0 1px 0 rgba(255, 255, 255, 0.7),
-                /* Bottom inner shadow — glass thickness */
-                inset 0 -1px 0 rgba(0, 0, 0, 0.08),
-                /* Left/right asymmetric edges */
-                inset 1px 0 0 rgba(255, 255, 255, 0.15),
-                inset -1px 0 0 rgba(0, 0, 0, 0.04),
-                /* Lift shadow — floats off backdrop */
-                0 24px 48px rgba(0, 0, 0, 0.18),
-                0 8px 24px rgba(0, 0, 0, 0.12),
-                0 2px 8px rgba(0, 0, 0, 0.08)
+                0 8px 32px rgba(0, 0, 0, 0.12),
+                0 2px 8px rgba(0, 0, 0, 0.08),
+                inset 0 1px 0 rgba(255, 255, 255, 0.5)
               `,
             }}
           >
