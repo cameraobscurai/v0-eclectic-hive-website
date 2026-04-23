@@ -125,7 +125,7 @@ export function VisualSystemSection() {
             />
           </div>
 
-          {/* Row 2: Top View + Material Cues */}
+          {/* Row 2: Top View (Furniture) */}
           <div className="col-span-12 lg:col-span-8 border-t border-charcoal/10 pt-8 mt-4 lg:border-r lg:pr-8">
             <SectionLabel number="02" label="Top View" />
             <div className="grid grid-cols-3 gap-3">
@@ -162,6 +162,74 @@ export function VisualSystemSection() {
               <span className="text-[8px] uppercase tracking-wide text-charcoal/40">Plaster</span>
               <span className="text-[8px] uppercase tracking-wide text-charcoal/40">Brass</span>
               <span className="text-[8px] uppercase tracking-wide text-charcoal/40">Sage</span>
+            </div>
+          </div>
+
+          {/* Row 2b: Tableware System - Full Width */}
+          <div className="col-span-12 border-t border-charcoal/10 pt-8 mt-4">
+            <SectionLabel number="02b" label="Tableware Collections" />
+            <div className="relative aspect-[16/7] bg-white border border-charcoal/5 overflow-hidden">
+              <Image
+                src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Apr%2023%2C%202026%2C%2006_13_08%20AM-cuAv2o9C6y11pcarZNqzqEKYnyIjcT.png"
+                alt="Complete tableware system - place settings, dinnerware, flatware, glassware, serving pieces"
+                fill
+                className="object-contain p-6"
+                sizes="100vw"
+              />
+            </div>
+          </div>
+
+          {/* Row 2c: Dinnerware + Glassware Grid */}
+          <div className="col-span-12 md:col-span-6 border-t border-charcoal/10 pt-8 mt-4 md:border-r md:pr-4">
+            <SectionLabel number="02c" label="Dinnerware" />
+            <div className="relative aspect-[16/9] bg-white border border-charcoal/5 overflow-hidden">
+              <Image
+                src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Apr%2023%2C%202026%2C%2006_15_29%20AM%20%282%29-0zX2cuKc6paMuf77FLcquXFUaTAiZ7.png"
+                alt="Dinnerware stacks - navy, white, marble, scalloped collections"
+                fill
+                className="object-contain p-4"
+                sizes="50vw"
+              />
+            </div>
+          </div>
+
+          <div className="col-span-12 md:col-span-6 border-t border-charcoal/10 pt-8 mt-4 md:pl-4">
+            <SectionLabel number="02d" label="Glassware" />
+            <div className="relative aspect-[16/9] bg-white border border-charcoal/5 overflow-hidden">
+              <Image
+                src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Apr%2023%2C%202026%2C%2006_18_29%20AM-c2Qro4enKvZSCX7hpsrqDk1WuhS1em.png"
+                alt="Glassware collections - amber, crystal, blush, sage, clear stemware"
+                fill
+                className="object-contain p-4"
+                sizes="50vw"
+              />
+            </div>
+          </div>
+
+          {/* Row 2e: Flatware + Lighting */}
+          <div className="col-span-12 md:col-span-6 border-t border-charcoal/10 pt-8 mt-4 md:border-r md:pr-4">
+            <SectionLabel number="02e" label="Flatware" />
+            <div className="relative aspect-[16/9] bg-white border border-charcoal/5 overflow-hidden">
+              <Image
+                src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Apr%2023%2C%202026%2C%2006_18_34%20AM-RzlhofmL5EQTqjDOAgEo8oBNqr61I2.png"
+                alt="Flatware collections - bone, tortoise, copper, gold, steel finishes"
+                fill
+                className="object-contain p-4"
+                sizes="50vw"
+              />
+            </div>
+          </div>
+
+          <div className="col-span-12 md:col-span-6 border-t border-charcoal/10 pt-8 mt-4 md:pl-4">
+            <SectionLabel number="02f" label="Lighting" />
+            <div className="relative aspect-[16/9] bg-white border border-charcoal/5 overflow-hidden">
+              <Image
+                src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Apr%2023%2C%202026%2C%2006_22_22%20AM-OmoDdFeniqqk82l8iegQh31luyI75r.png"
+                alt="Lighting collection - table lamps, floor lamps, lanterns, votives"
+                fill
+                className="object-contain p-4"
+                sizes="50vw"
+              />
             </div>
           </div>
 
@@ -238,6 +306,31 @@ export function VisualSystemSection() {
               <Swatch color="#c4a962" label="Mustard" />
               <Swatch color="#4a3728" label="Espresso" />
               <Swatch color="#1a1a1a" label="Black" />
+            </div>
+          </div>
+
+          {/* Row 5: Dinnerware Variations - Horizontal Scroll */}
+          <div className="col-span-12 border-t border-charcoal/10 pt-8 mt-4">
+            <SectionLabel number="07" label="Dinnerware Variations" />
+            <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide -mx-4 px-4">
+              {[
+                { src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Apr%2023%2C%202026%2C%2006_15_29%20AM%20%283%29-ISawYAP157izouDbFgfnV2fKubjwQQ.png", alt: "Dinnerware set - grey, botanical, speckle" },
+                { src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Apr%2023%2C%202026%2C%2006_15_29%20AM%20%281%29-VwfITiRdTSCrFbSP4c2A7fZG6DVZxD.png", alt: "Dinnerware set - sage, marble, fluted" },
+                { src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Apr%2023%2C%202026%2C%2006_15_29%20AM%20%284%29-1T6kh8prKXIs1wYtSGCMq96AUqaK0Q.png", alt: "Dinnerware set - navy, botanical, mixed" },
+              ].map((item, i) => (
+                <div 
+                  key={i}
+                  className="relative flex-shrink-0 w-[400px] md:w-[500px] aspect-[16/9] bg-white border border-charcoal/5 overflow-hidden"
+                >
+                  <Image
+                    src={item.src}
+                    alt={item.alt}
+                    fill
+                    className="object-contain p-4"
+                    sizes="500px"
+                  />
+                </div>
+              ))}
             </div>
           </div>
 
