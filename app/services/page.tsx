@@ -1,7 +1,7 @@
 import { Metadata } from 'next'
 import { Navigation } from '@/components/navigation'
 import { Footer } from '@/components/footer'
-import { ImagePlaceholder } from '@/components/ui/image-placeholder'
+
 import Link from 'next/link'
 
 export const metadata: Metadata = {
@@ -142,12 +142,13 @@ export default function ServicesPage() {
                 </div>
               </div>
               
-              {/* Image */}
+              {/* Visual accent - solid color block instead of placeholder */}
               <div className={`lg:col-span-6 ${index % 2 === 1 ? 'lg:order-1' : 'lg:col-start-7'}`}>
-                <ImagePlaceholder 
-                  aspectRatio="portrait"
-                  label={service.title}
-                />
+                <div className="aspect-[3/4] bg-charcoal/5 flex items-center justify-center">
+                  <span className="font-display text-6xl lg:text-8xl text-charcoal/10 tracking-tight uppercase">
+                    {service.number}
+                  </span>
+                </div>
               </div>
             </div>
           </div>

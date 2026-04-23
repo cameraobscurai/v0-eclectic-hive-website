@@ -36,7 +36,7 @@ const team = [
   {
     name: 'Patrick Batten',
     role: 'Director of Warehouse Operations',
-    image: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/c932a1b6-1a1b-4c88-9e06-a237a6443aa1/Eclectic+Hive-Carrie+King+Photographer-154.jpg',
+    image: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/1709849155632-XVNC0GKKVIJY3KYXGQP6/Patrick+Batten+Headshot.jpg',
   },
 ]
 

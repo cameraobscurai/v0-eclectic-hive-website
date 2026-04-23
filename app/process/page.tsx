@@ -4,7 +4,7 @@ import { useRef, useState, useEffect } from 'react'
 import { motion, useScroll } from 'framer-motion'
 import { Navigation } from '@/components/navigation'
 import { Footer } from '@/components/footer'
-import { ImagePlaceholder } from '@/components/ui/image-placeholder'
+
 import { LineReveal, HighlightReveal } from '@/components/pretext/line-reveal'
 import { Magnetic } from '@/components/animations/motion-elements'
 import { MaterialPaletteSection } from '@/components/materials/material-palette-section'
@@ -227,21 +227,7 @@ export default function ProcessPage() {
         </div>
       </section>
       
-      {/* Image Break */}
-      <section className="bg-secondary">
-        <div className="grid grid-cols-1 md:grid-cols-2">
-          <ImagePlaceholder 
-            aspectRatio="landscape"
-            label="Design"
-            className="aspect-[4/3]"
-          />
-          <ImagePlaceholder 
-            aspectRatio="landscape"
-            label="Fabrication"
-            className="aspect-[4/3]"
-          />
-        </div>
-      </section>
+      
       
       {/* Engagement Types */}
       <section className="bg-background py-24 lg:py-40">
