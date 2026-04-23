@@ -14,18 +14,12 @@ const NAV_LINKS = [
   { href: '/contact', label: 'Contact' },
 ]
 
-// Pages with light (cream) backgrounds need dark nav text
-const LIGHT_BG_PAGES = ['/collection', '/contact', '/faq', '/privacy', '/studio', '/process']
-
 export function Navigation() {
   const [isOpen, setIsOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const [hidden, setHidden] = useState(false)
   const [progress, setProgress] = useState(0)
   const pathname = usePathname()
-  
-  // Determine if current page has light background (needs dark nav)
-  const isLightPage = LIGHT_BG_PAGES.includes(pathname)
 
   // B6: Refs to gate setState calls - prevents React reconciling every scroll frame
   const lastScrollY = useRef(0)
@@ -86,15 +80,12 @@ export function Navigation() {
 
   return (
     <>
-      {/* ── Fixed header ── */}
+      {/* ── Fixed header with mix-blend-difference for auto text inversion ── */}
       <header
         className={cn(
           'fixed top-0 left-0 right-0 z-50 transition-all duration-500',
-          scrolled 
-            ? 'bg-charcoal/95 backdrop-blur-sm' 
-            : isLightPage 
-              ? 'bg-cream/95 backdrop-blur-sm' 
-              : 'bg-transparent',
+          // When scrolled, use solid dark bg; otherwise transparent to let blend work
+          scrolled ? 'bg-charcoal/95 backdrop-blur-sm' : 'bg-transparent',
           hidden && !isOpen ? '-translate-y-full' : 'translate-y-0'
         )}
       >
@@ -104,43 +95,41 @@ export function Navigation() {
             scrolled ? 'py-4 lg:py-5' : 'py-6 lg:py-8'
           )}
         >
-          {/* Wordmark */}
+          {/* Wordmark - uses mix-blend-difference for auto inversion when not scrolled */}
           <Link href="/" className="relative group nav-logo" aria-label="ECLECTIC HIVE — home">
             <span
               className={cn(
                 "font-display text-xl lg:text-2xl tracking-[0.15em] font-light uppercase transition-colors duration-300",
-                scrolled ? "text-cream" : isLightPage ? "text-charcoal" : "text-cream"
+                scrolled ? "text-cream" : "text-cream mix-blend-difference"
               )}
             >
               ECLECTIC HIVE
             </span>
           </Link>
 
-          {/* Desktop links */}
-          <div className="hidden lg:flex items-center gap-10">
+          {/* Desktop links - blend mode auto-inverts over backgrounds */}
+          <div className={cn(
+            "hidden lg:flex items-center gap-10",
+            !scrolled && "mix-blend-difference"
+          )}>
             {NAV_LINKS.map((link) => {
               const active = pathname === link.href
-              const textColor = scrolled || !isLightPage
-                ? (active ? 'text-cream' : 'text-cream/70 hover:text-cream')
-                : (active ? 'text-charcoal' : 'text-charcoal/70 hover:text-charcoal')
-              const underlineColor = scrolled || !isLightPage ? 'bg-cream/50' : 'bg-charcoal/50'
               return (
                 <TransitionLink
                   key={link.href}
                   href={link.href}
                   className={cn(
-                    'relative group text-xs tracking-[0.2em] uppercase font-light transition-colors duration-300',
-                    textColor
+                    'relative group text-xs tracking-[0.2em] uppercase font-light transition-opacity duration-300',
+                    scrolled 
+                      ? (active ? 'text-cream' : 'text-cream/70 hover:text-cream')
+                      : (active ? 'text-cream' : 'text-cream/70 hover:text-cream')
                   )}
                 >
                   {link.label}
                   <span
                     className={cn(
-                      'absolute -bottom-1 left-0 w-full h-px origin-left transition-transform duration-300',
-                      underlineColor,
-                      active
-                        ? 'scale-x-100'
-                        : 'scale-x-0 group-hover:scale-x-100'
+                      'absolute -bottom-1 left-0 w-full h-px origin-left transition-transform duration-300 bg-cream/50',
+                      active ? 'scale-x-100' : 'scale-x-0 group-hover:scale-x-100'
                     )}
                   />
                 </TransitionLink>
@@ -151,22 +140,23 @@ export function Navigation() {
           {/* Mobile burger - 44px minimum touch target */}
           <button
             onClick={() => setIsOpen((o) => !o)}
-            className="lg:hidden flex flex-col justify-center items-center w-11 h-11 min-w-[44px] min-h-[44px] -mr-2 touch-manipulation"
+            className={cn(
+              "lg:hidden flex flex-col justify-center items-center w-11 h-11 min-w-[44px] min-h-[44px] -mr-2 touch-manipulation",
+              !scrolled && "mix-blend-difference"
+            )}
             aria-label={isOpen ? 'Close menu' : 'Open menu'}
             aria-expanded={isOpen}
             aria-controls="mobile-menu"
           >
             <span
               className={cn(
-                'w-6 h-px transition-all duration-300 ease-out',
-                scrolled || !isLightPage ? 'bg-cream' : 'bg-charcoal',
+                'w-6 h-px bg-cream transition-all duration-300 ease-out',
                 isOpen ? 'rotate-45 translate-y-px' : '-translate-y-1'
               )}
             />
             <span
               className={cn(
-                'w-6 h-px transition-all duration-300 ease-out',
-                scrolled || !isLightPage ? 'bg-cream' : 'bg-charcoal',
+                'w-6 h-px bg-cream transition-all duration-300 ease-out',
                 isOpen ? '-rotate-45' : 'translate-y-1'
               )}
             />
@@ -174,10 +164,7 @@ export function Navigation() {
         </nav>
 
         {/* Scroll progress bar */}
-        <div className={cn(
-          "absolute bottom-0 left-0 right-0 h-px",
-          scrolled || !isLightPage ? 'bg-cream/5' : 'bg-charcoal/10'
-        )} aria-hidden="true">
+        <div className="absolute bottom-0 left-0 right-0 h-px bg-cream/5" aria-hidden="true">
           <div
             className="h-full bg-sand transition-none"
             style={{ width: `${progress}%` }}
