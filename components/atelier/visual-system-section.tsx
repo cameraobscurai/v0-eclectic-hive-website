@@ -233,71 +233,9 @@ export function VisualSystemSection() {
             </div>
           </div>
 
-          {/* Row 3: Process Flow */}
+          {/* Row 3: Palette + Finishes */}
           <div className="col-span-12 border-t border-charcoal/10 pt-8 mt-4">
-            <SectionLabel number="03" label="Process" />
-            <div className="grid grid-cols-4 gap-3 md:gap-6">
-              <div className="relative">
-                <div className="absolute -top-5 left-0 text-[8px] uppercase tracking-wide text-charcoal/40">
-                  Source Reference
-                </div>
-                <ProductCard 
-                  src="/images/atelier/green-channel-sofa.png" 
-                  alt="Source reference"
-                  className="aspect-[4/3] grayscale opacity-60"
-                />
-                <div className="absolute top-1/2 -right-3 md:-right-5 transform -translate-y-1/2 z-10 hidden md:block">
-                  <svg className="w-4 h-4 text-charcoal/30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                  </svg>
-                </div>
-              </div>
-              <div className="relative">
-                <div className="absolute -top-5 left-0 text-[8px] uppercase tracking-wide text-charcoal/40">
-                  Simplified
-                </div>
-                <ProductCard 
-                  src="/images/atelier/green-channel-sofa.png" 
-                  alt="Simplified silhouette"
-                  className="aspect-[4/3] opacity-40"
-                />
-                <div className="absolute top-1/2 -right-3 md:-right-5 transform -translate-y-1/2 z-10 hidden md:block">
-                  <svg className="w-4 h-4 text-charcoal/30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                  </svg>
-                </div>
-              </div>
-              <div className="relative">
-                <div className="absolute -top-5 left-0 text-[8px] uppercase tracking-wide text-charcoal/40">
-                  Clean Asset
-                </div>
-                <ProductCard 
-                  src="/images/atelier/green-channel-sofa.png" 
-                  alt="Clean asset view"
-                  className="aspect-[4/3]"
-                />
-                <div className="absolute top-1/2 -right-3 md:-right-5 transform -translate-y-1/2 z-10 hidden md:block">
-                  <svg className="w-4 h-4 text-charcoal/30" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M17 8l4 4m0 0l-4 4m4-4H3" />
-                  </svg>
-                </div>
-              </div>
-              <div className="relative">
-                <div className="absolute -top-5 left-0 text-[8px] uppercase tracking-wide text-charcoal/40">
-                  System View
-                </div>
-                <ProductCard 
-                  src="/images/atelier/green-channel-sofa.png" 
-                  alt="Exploded system view"
-                  className="aspect-[4/3]"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Row 4: Palette + Finishes */}
-          <div className="col-span-12 border-t border-charcoal/10 pt-8 mt-4">
-            <SectionLabel number="06" label="Palette + Finishes" />
+            <SectionLabel number="03" label="Palette + Finishes" />
             <div className="flex flex-wrap gap-6 md:gap-10 py-4">
               <Swatch color="#f5f2ed" label="Cream" />
               <Swatch color="#d4cdc4" label="Sand" />
@@ -311,7 +249,7 @@ export function VisualSystemSection() {
 
           {/* Row 5: Dinnerware Variations - Horizontal Scroll */}
           <div className="col-span-12 border-t border-charcoal/10 pt-8 mt-4">
-            <SectionLabel number="07" label="Dinnerware Variations" />
+            <SectionLabel number="04" label="Dinnerware Variations" />
             <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide -mx-4 px-4">
               {[
                 { src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Apr%2023%2C%202026%2C%2006_15_29%20AM%20%283%29-ISawYAP157izouDbFgfnV2fKubjwQQ.png", alt: "Dinnerware set - grey, botanical, speckle" },
@@ -336,10 +274,7 @@ export function VisualSystemSection() {
 
           {/* Row 6: Signature Seating - Multi-Angle Product Cards */}
           <div className="col-span-12 border-t border-charcoal/10 pt-8 mt-4">
-            <SectionLabel number="08" label="Signature Seating" />
-            <p className="text-charcoal/50 text-sm mb-8 max-w-xl">
-              Statement pieces photographed from every angle. Each card shows the complete view system for precise specification.
-            </p>
+            <SectionLabel number="05" label="Signature Seating" />
             
             {/* Horizontal scroll of multi-angle product cards */}
             <div className="flex gap-6 overflow-x-auto pb-6 scrollbar-hide -mx-4 px-4">
