@@ -28,12 +28,12 @@ const team = [
   {
     name: 'Adrienne Moon',
     role: 'Purchasing & Inventory Specialist',
-    image: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Eclectic%2BHive-Carrie%2BKing%2BPhotographer-154-gzuuJFrZ86qUqzaJhZrEAjBXHLwwPe.webp',
+    image: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ADRIENNE-HGFhUJ0Q7QPg8tQ7sUzncVkfXrhrxX.webp',
   },
   {
     name: 'Patrick Batten',
     role: 'Director of Warehouse Operations',
-    image: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Eclectic%2BHive-Carrie%2BKing%2BPhotographer-199-r3X3oOyxvAoTbdOkiUyuhXDdlRXeKk.webp',
+    image: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/PAT-aPnp2misGRmwtvwRDbonB20HPpAraT.webp',
   },
 ]
 
