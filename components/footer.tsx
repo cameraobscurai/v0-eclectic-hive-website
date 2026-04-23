@@ -8,6 +8,7 @@ const footerLinks = {
   studio: [
     { href: '/atelier', label: 'Atelier by The Hive' },
     { href: '/collection', label: 'Hive Signature Collection' },
+    { href: '/studio', label: 'Design Studio' },
     { href: '/gallery', label: 'The Gallery' },
     { href: '/contact', label: 'Contact' },
   ],
