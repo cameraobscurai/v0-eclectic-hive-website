@@ -1,13 +1,21 @@
 'use client'
 
-import { HeroPlaceholder } from '@/components/ui/image-placeholder'
+import Image from 'next/image'
 
 export function AtelierHero() {
   return (
     <section className="relative min-h-[80vh] lg:min-h-screen bg-charcoal">
       {/* Background */}
       <div className="absolute inset-0">
-        <HeroPlaceholder />
+        <Image
+          src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Apr%2023%2C%202026%2C%2006_36_40%20AM%20%282%29-jSp5dUwC7qE6Az74tbTrhyPsS9Hp3N.png"
+          alt="Boucle chair in atmospheric setting"
+          fill
+          className="object-cover"
+          priority
+          sizes="100vw"
+        />
+        <div className="absolute inset-0 bg-charcoal/50" />
       </div>
       
       {/* Content */}
