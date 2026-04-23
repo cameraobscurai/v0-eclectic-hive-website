@@ -60,8 +60,8 @@ export default function Guidelines() {
             <div className="flex flex-col items-center mb-16">
               {/* Parent */}
               <div className="bg-charcoal text-cream px-12 py-6 rounded-lg text-center mb-4">
-                <p className="font-serif text-2xl tracking-[0.2em]">ECLECTIC HIVE</p>
-                <p className="text-cream/50 text-xs font-mono mt-2">Parent Brand</p>
+                <p className="font-display text-2xl tracking-[0.15em] uppercase">ECLECTIC HIVE</p>
+                <p className="text-cream/50 text-xs font-mono mt-2">Parent Umbrella</p>
               </div>
               
               {/* Connector */}
@@ -75,12 +75,12 @@ export default function Guidelines() {
               {/* Children */}
               <div className="flex gap-8">
                 <div className="border-2 border-charcoal px-8 py-4 rounded-lg text-center">
-                  <p className="font-serif text-charcoal text-xl tracking-[0.15em]">ATELIER</p>
-                  <p className="text-charcoal/50 text-[10px] font-mono mt-2">Custom Design Studio</p>
+                  <p className="font-display text-charcoal text-lg tracking-[0.1em] uppercase">ATELIER by THE HIVE</p>
+                  <p className="text-charcoal/50 text-[10px] font-mono mt-2">Design & Fabrication</p>
                 </div>
                 <div className="border-2 border-charcoal px-8 py-4 rounded-lg text-center">
-                  <p className="font-serif text-charcoal text-xl tracking-[0.15em]">SIGNATURE</p>
-                  <p className="text-charcoal/50 text-[10px] font-mono mt-2">Collection Line</p>
+                  <p className="font-display text-charcoal text-lg tracking-[0.1em] uppercase">HIVE SIGNATURE COLLECTION</p>
+                  <p className="text-charcoal/50 text-[10px] font-mono mt-2">Inventory Wing</p>
                 </div>
               </div>
             </div>
@@ -88,13 +88,13 @@ export default function Guidelines() {
             {/* Usage guidelines */}
             <div className="grid md:grid-cols-3 gap-6">
               {[
-                { brand: 'ECLECTIC HIVE', use: 'Primary communications, website, contracts', lockup: 'Wordmark only' },
-                { brand: 'ATELIER', use: 'Custom project proposals, bespoke work', lockup: 'EH Atelier' },
-                { brand: 'SIGNATURE', use: 'Collection catalog, product tags', lockup: 'EH Signature' },
+                { brand: 'ECLECTIC HIVE', use: 'Primary communications, website, contracts, brand identity', lockup: 'Wordmark only' },
+                { brand: 'ATELIER by THE HIVE', use: 'Design & fabrication services, custom project proposals, bespoke work', lockup: 'ATELIER by THE HIVE' },
+                { brand: 'HIVE SIGNATURE COLLECTION', use: 'Inventory catalog, product tags, rental inquiries', lockup: 'The Hive Signature Collection' },
               ].map((item) => (
                 <div key={item.brand} className="border border-charcoal/10 rounded-lg p-6">
-                  <p className="font-serif text-charcoal text-lg mb-3">{item.brand}</p>
-                  <p className="text-charcoal/60 text-sm mb-4">{item.use}</p>
+                  <p className="font-display text-charcoal text-base tracking-wide uppercase mb-3">{item.brand}</p>
+                  <p className="text-charcoal/60 text-sm mb-4 leading-relaxed">{item.use}</p>
                   <p className="text-charcoal/40 text-xs font-mono">Lockup: {item.lockup}</p>
                 </div>
               ))}
@@ -117,20 +117,20 @@ export default function Guidelines() {
               {[
                 { 
                   category: 'Inventory',
-                  specs: ['1:1 aspect ratio', 'White/cream background', 'Centered, breathing room', '2400px minimum'],
-                  desc: 'Clean and composed. No overlapping. Let items speak for themselves.',
+                  specs: ['1:1 aspect ratio', 'Neutral, grounded background', 'Clean and composed', '360° option ready'],
+                  desc: 'Approach like a collection where everything is complimentary but can stand alone. No overlapping images.',
                   style: 'bg-cream border-2 border-charcoal/10'
                 },
                 { 
                   category: 'Team',
-                  specs: ['3:4 portrait or 16:9 landscape', 'Natural light preferred', 'Workspace context', 'Candid moments'],
-                  desc: 'Professional but approachable. Show personality. Not corporate headshots.',
+                  specs: ['Professional portraits', 'Personality showing', 'Approachable not corporate', 'Creative workspace context'],
+                  desc: 'Professional but approachable. Love to see personality.',
                   style: 'bg-[#e8e4de]'
                 },
                 { 
                   category: 'Events',
-                  specs: ['16:9 or 3:2 landscape', 'Warm candlelit tones', 'Shallow depth of field', 'Dramatic moments'],
-                  desc: 'Cinematic. Atmospheric. Gallery-worthy. The "Amangiri aesthetic."',
+                  specs: ['Cinematic quality', 'Atmospheric lighting', 'Gallery-worthy composition', 'Movement and intrigue'],
+                  desc: 'A little sexy and a lot of intrigue. Video movement to hold interest.',
                   style: 'bg-charcoal'
                 },
               ].map((photo) => (
