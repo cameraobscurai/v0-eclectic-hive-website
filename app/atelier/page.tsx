@@ -10,7 +10,7 @@ import { WarehouseSection } from '@/components/atelier/warehouse-section'
 import { AtelierCTA } from '@/components/atelier/atelier-cta'
 
 export const metadata: Metadata = {
-  title: 'Atelier by The Hive | Eclectic Hive',
+  title: 'Atelier by The Hive | ECLECTIC HIVE',
   description: 'Imagined. Refined. Crafted. Our full-service design and production studio—team, scope of work, design studio, fabrication capacity, and warehouse.',
 }
 

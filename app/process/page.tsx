@@ -278,7 +278,7 @@ export default function ProcessPage() {
             </div>
             <div className="lg:col-span-6 lg:col-start-7 flex flex-col justify-center gap-6">
               <p className="text-cream/70 leading-relaxed">
-                Eclectic Hive is not a rental company with nice inventory. We are a{' '}
+                ECLECTIC HIVE is not a rental company with nice inventory. We are a{' '}
                 <HighlightReveal text="design and fabrication studio" highlightColor="rgba(195, 126, 99, 0.3)" />{' '}
                 that happens to have proprietary pieces available for use within our projects.
               </p>

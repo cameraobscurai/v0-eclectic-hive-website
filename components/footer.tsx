@@ -52,9 +52,9 @@ export function Footer() {
                 isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
               )}
             >
-              <Link href="/" className="font-display text-4xl lg:text-5xl tracking-tight font-light italic inline-block group">
+              <Link href="/" className="font-display text-3xl lg:text-4xl tracking-[0.1em] font-light uppercase inline-block group">
                 <span className="relative">
-                  Eclectic Hive
+                  ECLECTIC HIVE
                   <span className="absolute -bottom-2 left-0 w-full h-px bg-cream/20 origin-left scale-x-0 group-hover:scale-x-100 transition-transform duration-500" />
                 </span>
               </Link>
@@ -169,7 +169,7 @@ export function Footer() {
             style={{ transitionDelay: '400ms' }}
           >
             <p className="text-xs text-cream/30">
-              {new Date().getFullYear()} Eclectic Hive. All rights reserved.
+              {new Date().getFullYear()} ECLECTIC HIVE. All rights reserved.
             </p>
             <Link 
               href="/privacy"

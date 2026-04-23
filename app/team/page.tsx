@@ -132,7 +132,7 @@ export default function TeamPage() {
             </div>
             <div className="lg:col-span-4 flex items-end">
               <p className="text-cream/70 text-base lg:text-lg leading-relaxed">
-                Eclectic Hive is a collective of designers, fabricators, and producers 
+                ECLECTIC HIVE is a collective of designers, fabricators, and producers 
                 united by a commitment to creating spaces that cannot be replicated.
               </p>
             </div>
@@ -208,7 +208,7 @@ export default function TeamPage() {
               <div className="relative aspect-[4/3] overflow-hidden bg-muted">
                 <Image
                   src="https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/c932a1b6-1a1b-4c88-9e06-a237a6443aa1/Eclectic+Hive-Carrie+King+Photographer-154.jpg"
-                  alt="Eclectic Hive Studio"
+                  alt="ECLECTIC HIVE Studio"
                   fill
                   className="object-cover"
                   sizes="(max-width: 1024px) 100vw, 50vw"

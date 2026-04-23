@@ -57,8 +57,8 @@ export default function BrandIndex() {
           <p className="text-cream/40 text-xs font-mono uppercase tracking-[0.3em] mb-4">
             Brand System
           </p>
-          <h1 className="font-serif text-cream text-4xl lg:text-6xl tracking-tight mb-3">
-            Eclectic Hive
+          <h1 className="font-serif text-cream text-4xl lg:text-6xl tracking-[0.08em] uppercase mb-3">
+            ECLECTIC HIVE
           </h1>
           <p className="text-cream/30 text-sm italic mb-4">
             "Two parts luxe, one part regal, and a dash of edge."

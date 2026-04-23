@@ -101,14 +101,14 @@ export function Navigation() {
           )}
         >
           {/* Wordmark */}
-          <Link href="/" className="relative group" aria-label="Eclectic Hive — home">
+          <Link href="/" className="relative group" aria-label="ECLECTIC HIVE — home">
             <span
               className={cn(
-                "font-display text-2xl lg:text-3xl tracking-tight font-light italic transition-colors duration-300",
+                "font-display text-xl lg:text-2xl tracking-[0.15em] font-light uppercase transition-colors duration-300",
                 scrolled ? "text-cream" : isLightPage ? "text-charcoal" : "text-cream"
               )}
             >
-              Eclectic Hive
+              ECLECTIC HIVE
             </span>
           </Link>
 

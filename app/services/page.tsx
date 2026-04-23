@@ -5,7 +5,7 @@ import { Footer } from '@/components/footer'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
-  title: 'Services | Eclectic Hive',
+  title: 'Services | ECLECTIC HIVE',
   description: 'Design intelligence, fabrication authority, and production expertise. We shape environments through a complete service architecture.',
 }
 
@@ -15,7 +15,7 @@ const services = [
     number: '01',
     title: 'Design',
     subtitle: 'Intelligence & Vision',
-    description: 'Design at Eclectic Hive is not decoration—it is the intellectual framework that shapes how environments feel, function, and resonate. We approach every project with spatial awareness, material intelligence, and a commitment to creating atmospheres that cannot be replicated.',
+    description: 'Design at ECLECTIC HIVE is not decoration—it is the intellectual framework that shapes how environments feel, function, and resonate. We approach every project with spatial awareness, material intelligence, and a commitment to creating atmospheres that cannot be replicated.',
     capabilities: [
       'Concept development & creative direction',
       'Spatial planning & layout design',

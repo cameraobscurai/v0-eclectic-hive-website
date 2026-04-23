@@ -5,9 +5,9 @@ import { Footer } from '@/components/footer'
 import { InquiryFlowWrapper } from '@/components/inquiry-flow-wrapper'
 
 export const metadata: Metadata = {
-  title: 'Contact | Eclectic Hive',
+  title: 'Contact | ECLECTIC HIVE',
   description:
-    'Start a conversation with the Eclectic Hive studio. Full-service event design and production house based in Denver, Colorado.',
+    'Start a conversation with the ECLECTIC HIVE studio. Full-service event design and production house based in Denver, Colorado.',
 }
 
 export default function ContactPage() {

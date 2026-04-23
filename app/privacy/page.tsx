@@ -3,8 +3,8 @@ import { Navigation } from '@/components/navigation'
 import { Footer } from '@/components/footer'
 
 export const metadata: Metadata = {
-  title: 'Privacy Policy | Eclectic Hive',
-  description: 'Privacy policy for Eclectic Hive. How we collect, use, and protect your information.',
+  title: 'Privacy Policy | ECLECTIC HIVE',
+  description: 'Privacy policy for ECLECTIC HIVE. How we collect, use, and protect your information.',
 }
 
 export default function PrivacyPage() {
@@ -31,7 +31,7 @@ export default function PrivacyPage() {
       <section className="py-16 lg:py-24">
         <div className="px-6 lg:px-12 max-w-4xl mx-auto">
           <p className="text-sm leading-relaxed text-charcoal/70 mb-12">
-            This Privacy Policy governs the manner in which the website collects, uses, maintains and discloses information collected from users (each, a &quot;User&quot;) of the website (&quot;Site&quot;). This privacy policy applies to the Site and all products and services offered by Eclectic Hive.
+            This Privacy Policy governs the manner in which the website collects, uses, maintains and discloses information collected from users (each, a &quot;User&quot;) of the website (&quot;Site&quot;). This privacy policy applies to the Site and all products and services offered by ECLECTIC HIVE.
           </p>
           
           <div className="space-y-12">
@@ -54,7 +54,7 @@ export default function PrivacyPage() {
             </Section>
             
             <Section title="How We Use Collected Information">
-              <p className="mb-4">Eclectic Hive may collect and use Users personal information for the following purposes:</p>
+              <p className="mb-4">ECLECTIC HIVE may collect and use Users personal information for the following purposes:</p>
               <ul className="space-y-4 mt-4">
                 <li>
                   <strong className="text-charcoal text-xs uppercase tracking-[0.1em]">To improve customer service</strong>
@@ -97,7 +97,7 @@ export default function PrivacyPage() {
             
             <Section title="Changes to This Privacy Policy">
               <p>
-                Eclectic Hive has the discretion to update this privacy policy at any time. When we do, we will revise the updated date at the bottom of this page. We encourage Users to frequently check this page for any changes to stay informed about how we are helping to protect the personal information we collect. You acknowledge and agree that it is your responsibility to review this privacy policy periodically and become aware of modifications.
+                ECLECTIC HIVE has the discretion to update this privacy policy at any time. When we do, we will revise the updated date at the bottom of this page. We encourage Users to frequently check this page for any changes to stay informed about how we are helping to protect the personal information we collect. You acknowledge and agree that it is your responsibility to review this privacy policy periodically and become aware of modifications.
               </p>
             </Section>
             

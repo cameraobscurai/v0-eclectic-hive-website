@@ -18,29 +18,29 @@ const inter = Inter({
 export const metadata: Metadata = {
   metadataBase: new URL('https://eclectichive.com'),
   title: {
-    default: 'Eclectic Hive | Luxury Event Design & Production | Denver',
-    template: '%s | Eclectic Hive',
+    default: 'ECLECTIC HIVE | Luxury Event Design & Production | Denver',
+    template: '%s | ECLECTIC HIVE',
   },
   description: 'Two parts luxe, one part regal, and a dash of edge. Full-service luxury event design, custom fabrication, and furniture rentals in Denver, Colorado. Creating cinematic, art-forward environments for weddings, galas, and corporate events.',
   keywords: ['luxury event design', 'event fabrication', 'furniture rental Denver', 'wedding design', 'corporate event design', 'custom fabrication', 'destination events', 'Denver event planner', 'luxury furniture rental', 'event production'],
-  authors: [{ name: 'Eclectic Hive' }],
-  creator: 'Eclectic Hive',
-  publisher: 'Eclectic Hive',
+  authors: [{ name: 'ECLECTIC HIVE' }],
+  creator: 'ECLECTIC HIVE',
+  publisher: 'ECLECTIC HIVE',
   formatDetection: {
     email: false,
     address: false,
     telephone: false,
   },
   openGraph: {
-    title: 'Eclectic Hive | Luxury Event Design & Production',
+    title: 'ECLECTIC HIVE | Luxury Event Design & Production',
     description: 'Two parts luxe, one part regal, and a dash of edge. Full-service design and production house creating cinematic event environments.',
     type: 'website',
     locale: 'en_US',
-    siteName: 'Eclectic Hive',
+    siteName: 'ECLECTIC HIVE',
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'Eclectic Hive | Luxury Event Design & Production',
+    title: 'ECLECTIC HIVE | Luxury Event Design & Production',
     description: 'Two parts luxe, one part regal, and a dash of edge. Full-service design and production house.',
   },
   robots: {
@@ -75,7 +75,7 @@ const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'LocalBusiness',
   '@id': 'https://eclectichive.com',
-  name: 'Eclectic Hive',
+  name: 'ECLECTIC HIVE',
   description: 'Full-service luxury event design, custom fabrication, and furniture rental company creating cinematic, art-forward environments.',
   url: 'https://eclectichive.com',
   // telephone: Contact via inquiry form

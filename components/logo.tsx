@@ -17,7 +17,7 @@ export function LogoMark({ className, variant = 'dark' }: Omit<LogoProps, 'showT
       viewBox="0 0 48 48" 
       fill="none" 
       className={cn('w-10 h-10', className)}
-      aria-label="Eclectic Hive logo mark"
+      aria-label="ECLECTIC HIVE logo mark"
     >
       {/* Outer circle */}
       <circle 
@@ -55,7 +55,7 @@ export function Logo({ className, showTagline = false, variant = 'dark' }: LogoP
         )}
         style={{ fontFamily: 'var(--font-display)' }}
       >
-        Eclectic Hive
+        ECLECTIC HIVE
       </span>
       
       {/* Tagline with horizontal rules */}
@@ -97,7 +97,7 @@ export function NavLogo({ className, variant = 'dark' }: Omit<LogoProps, 'showTa
         className
       )}
     >
-      Eclectic Hive
+      ECLECTIC HIVE
     </span>
   )
 }

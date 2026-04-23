@@ -45,7 +45,7 @@ export function AtelierHero() {
             {/* Subtext */}
             <div className="lg:col-span-5 animate-reveal delay-200">
               <p className="text-cream/70 text-base lg:text-lg leading-relaxed max-w-md">
-                The atelier is the creative engine of Eclectic Hive—a space where 
+                The atelier is the creative engine of ECLECTIC HIVE—a space where 
                 fabrication, material exploration, and design authorship converge to 
                 shape environments that cannot be replicated.
               </p>
