@@ -13,7 +13,7 @@ export function AtelierHero() {
   }, [])
 
   return (
-    <section className="relative min-h-[80vh] lg:min-h-screen bg-charcoal">
+    <section className="relative min-h-[80vh] lg:min-h-screen bg-charcoal overflow-hidden">
       {/* Background with Parallax - pointer-events-none ensures scroll gestures pass through */}
       <div 
         className="absolute inset-0 pointer-events-none"
@@ -22,9 +22,9 @@ export function AtelierHero() {
         <HeroPlaceholder />
       </div>
       
-      {/* Content */}
+      {/* Content - mix-blend-difference ensures text inverts over any background */}
       <div className="relative z-10 flex flex-col justify-end min-h-[80vh] lg:min-h-screen px-6 lg:px-12 pb-16 lg:pb-24 pt-32">
-        <div className="max-w-7xl mx-auto w-full">
+        <div className="max-w-7xl mx-auto w-full mix-blend-difference">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-end">
             {/* Label */}
             <div className="lg:col-span-12">
@@ -44,7 +44,7 @@ export function AtelierHero() {
             
             {/* Subtext */}
             <div className="lg:col-span-5 animate-reveal delay-200">
-              <p className="text-cream/70 text-base lg:text-lg leading-relaxed max-w-md">
+              <p className="text-cream text-base lg:text-lg leading-relaxed max-w-md opacity-70">
                 The atelier is the creative engine of ECLECTIC HIVE—a space where 
                 fabrication, material exploration, and design authorship converge to 
                 shape environments that cannot be replicated.
