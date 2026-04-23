@@ -535,10 +535,10 @@ export default function GalleryPage() {
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-8">
             <div>
-              <p className="text-cream/40 text-xs uppercase tracking-[0.3em] mb-4">
+              <p className="text-cream/40 text-xs uppercase tracking-wide mb-4">
                 The Gallery
               </p>
-              <h1 className="font-display text-3xl md:text-4xl lg:text-5xl xl:text-6xl text-cream font-light uppercase tracking-[0.2em]">
+              <h1 className="font-display text-3xl md:text-4xl lg:text-5xl xl:text-6xl text-cream font-light tracking-display">
                 {filteredProjects.length} Environments
               </h1>
             </div>

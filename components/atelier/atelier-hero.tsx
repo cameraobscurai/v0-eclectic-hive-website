@@ -16,14 +16,14 @@ export function AtelierHero() {
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-end">
             {/* Label */}
             <div className="lg:col-span-12">
-              <p className="text-cream/50 text-xs uppercase tracking-[0.3em] mb-6">
+              <p className="text-cream/50 text-xs uppercase tracking-wide mb-6">
                 Atelier by The Hive
               </p>
             </div>
             
             {/* Main Headline */}
             <div className="lg:col-span-7">
-              <h1 className="font-display text-cream text-4xl md:text-5xl lg:text-6xl xl:text-7xl leading-[0.95] tracking-tight font-light">
+              <h1 className="font-display text-cream text-4xl md:text-5xl lg:text-6xl xl:text-7xl leading-[0.95] tracking-display font-light">
                 <span className="italic">Imagined. Refined.</span>
                 <br />
                 <span className="italic">Crafted.</span>

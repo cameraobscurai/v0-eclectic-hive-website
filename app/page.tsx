@@ -92,7 +92,7 @@ export default function HomePage() {
         {/* Hero Content */}
         <div className="relative z-10 text-center px-5">
           {/* Wordmark */}
-          <h1 className="font-display text-[2.75rem] sm:text-6xl md:text-7xl lg:text-[7rem] tracking-[0.08em] font-light text-cream mb-4 md:mb-6 overflow-hidden uppercase">
+          <h1 className="font-display text-[2.75rem] sm:text-6xl md:text-7xl lg:text-[7rem] tracking-display font-light text-cream mb-4 md:mb-6 overflow-hidden uppercase">
             {'ECLECTIC HIVE'.split('').map((char, i) => (
               <span
                 key={i}
@@ -110,7 +110,7 @@ export default function HomePage() {
           {/* Tagline */}
           <p 
             className={cn(
-              'text-[10px] sm:text-xs md:text-sm uppercase tracking-[0.3em] sm:tracking-[0.4em] text-cream/50 transition-all duration-700',
+              'text-[10px] sm:text-xs md:text-sm uppercase tracking-wide text-cream/50 transition-all duration-700',
               loaded ? 'opacity-100' : 'opacity-0'
             )}
             style={{ transitionDelay: '800ms' }}

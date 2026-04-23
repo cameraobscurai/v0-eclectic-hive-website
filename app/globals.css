@@ -68,6 +68,23 @@
   --charcoal: #1a1a1a;
   --cream: #f5f2ed;
   --black: #000000;
+  
+  /* Material Surface System (from brand deck) */
+  /* These materials inform the digital experience through tone, texture, atmosphere */
+  --surface-travertine: #E8E4DF; /* Earthy, grounded, architectural */
+  --surface-oak: #C9B99A;        /* Warm, natural, enduring */
+  --surface-plaster: #F5F3F0;    /* Hand-finished, soft, imperfect */
+  --surface-linen: #EDE9E3;      /* Textural, calm, layered */
+  --surface-glass: rgba(255, 255, 255, 0.08); /* Transparent, reflective, light */
+  --surface-upholstery: #D8D2C9; /* Tactile, inviting, lived-in */
+  --accent-brass: #C4A962;       /* Refined accent, aged over time */
+  
+  /* Typography tracking presets (from brand deck) */
+  --tracking-display: -0.02em;   /* Hero headlines: tight, architectural */
+  --tracking-title: -0.01em;     /* Section titles: slightly tight */
+  --tracking-label: 0.15em;      /* Labels, navigation: wide for rhythm */
+  --tracking-wide: 0.2em;        /* Eyebrows, small caps: very wide */
+  --tracking-ultra: 0.3em;       /* Decorative labels only */
 }
 
 .dark {
@@ -140,10 +157,23 @@
     @apply bg-background text-foreground;
   }
   
-  /* Brand typography - Saol Display: LIGHT CAPS with wide tracking for titles */
-  h1, h2, h3, h4, h5, h6 {
+  /* Brand typography - Saol Display with context-aware tracking */
+  /* Per brand deck: display text uses TIGHT tracking for architectural feel */
+  /* Labels/navigation use WIDE tracking for rhythm and balance */
+  h1 {
     font-family: var(--font-display);
-    @apply tracking-[0.2em] font-light uppercase;
+    letter-spacing: var(--tracking-display);
+    @apply font-light;
+  }
+  h2, h3 {
+    font-family: var(--font-display);
+    letter-spacing: var(--tracking-title);
+    @apply font-light;
+  }
+  h4, h5, h6 {
+    font-family: var(--font-display);
+    letter-spacing: var(--tracking-label);
+    @apply font-light uppercase;
   }
   
   /* Smooth scrolling + prevent layout shift from scrollbar */
@@ -691,6 +721,86 @@ img {
     animation: none !important;
     transition: none !important;
   }
+}
+
+/* =============================================================================
+   MATERIAL SURFACE SYSTEM (from brand deck)
+   7 materials inform the digital experience through tone, texture, atmosphere
+   ============================================================================= */
+
+/* Surface backgrounds */
+.surface-travertine { background-color: var(--surface-travertine); }
+.surface-oak { background-color: var(--surface-oak); }
+.surface-plaster { background-color: var(--surface-plaster); }
+.surface-linen { background-color: var(--surface-linen); }
+.surface-glass { background-color: var(--surface-glass); }
+.surface-upholstery { background-color: var(--surface-upholstery); }
+
+/* Brass accent - for CTAs, highlights, premium moments */
+.accent-brass { color: var(--accent-brass); }
+.bg-brass { background-color: var(--accent-brass); }
+.border-brass { border-color: var(--accent-brass); }
+
+/* Typography tracking utilities (from brand deck) */
+.tracking-display { letter-spacing: var(--tracking-display); } /* -0.02em: hero headlines */
+.tracking-title { letter-spacing: var(--tracking-title); }     /* -0.01em: section titles */
+.tracking-label { letter-spacing: var(--tracking-label); }     /* 0.15em: navigation, labels */
+.tracking-wide { letter-spacing: var(--tracking-wide); }       /* 0.2em: eyebrows */
+.tracking-ultra { letter-spacing: var(--tracking-ultra); }     /* 0.3em: decorative */
+
+/* Atmospheric depth - subtle blur overlay for hero sections */
+.atmospheric-depth {
+  position: relative;
+}
+.atmospheric-depth::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    to bottom,
+    transparent 0%,
+    rgba(0, 0, 0, 0.02) 50%,
+    rgba(0, 0, 0, 0.08) 100%
+  );
+  pointer-events: none;
+}
+
+/* Service-oriented inquiry button style (not cart/transactional) */
+.btn-inquiry {
+  @apply inline-flex items-center justify-center gap-2;
+  @apply px-6 py-3 min-h-[44px];
+  @apply bg-charcoal text-cream;
+  @apply text-xs uppercase;
+  letter-spacing: var(--tracking-label);
+  @apply transition-all duration-300;
+  @apply hover:bg-charcoal/90;
+  @apply press-effect;
+}
+
+.btn-inquiry-outline {
+  @apply inline-flex items-center justify-center gap-2;
+  @apply px-6 py-3 min-h-[44px];
+  @apply border border-charcoal text-charcoal;
+  @apply text-xs uppercase;
+  letter-spacing: var(--tracking-label);
+  @apply transition-all duration-300;
+  @apply hover:bg-charcoal hover:text-cream;
+}
+
+/* Project card hover state - subtle elevation per brand deck */
+.project-card {
+  @apply transition-all duration-500;
+}
+.project-card:hover {
+  @apply shadow-lg;
+  transform: translateY(-2px);
+}
+
+/* Quiet navigation - sparse, uppercase, rhythmic */
+.nav-quiet {
+  @apply text-xs uppercase;
+  letter-spacing: var(--tracking-label);
+  @apply font-light;
 }
 
 /* =============================================================================

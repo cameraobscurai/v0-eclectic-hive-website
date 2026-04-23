@@ -18,10 +18,10 @@ export default function ContactPage() {
       {/* Editorial header */}
       <section className="pt-40 px-6 lg:px-12">
         <div className="max-w-2xl mx-auto">
-          <p className="text-xs uppercase tracking-[0.3em] text-charcoal/50 mb-4">
+          <p className="text-xs uppercase tracking-wide text-charcoal/50 mb-4">
             Let&apos;s talk
           </p>
-          <h1 className="font-display text-4xl md:text-5xl lg:text-6xl tracking-[0.2em] font-light uppercase text-charcoal mb-6">
+          <h1 className="font-display text-4xl md:text-5xl lg:text-6xl tracking-display font-light text-charcoal mb-6">
             Start a Conversation
           </h1>
           <p className="text-charcoal/60 max-w-lg leading-relaxed mb-6">
