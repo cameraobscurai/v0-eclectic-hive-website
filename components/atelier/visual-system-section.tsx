@@ -272,66 +272,53 @@ export function VisualSystemSection() {
             </div>
           </div>
 
-          {/* Row 6: Signature Seating - Multi-Angle Product Cards */}
+          {/* Row 5: Styling Variations - Shows customization possibilities */}
           <div className="col-span-12 border-t border-charcoal/10 pt-8 mt-4">
-            <SectionLabel number="05" label="Signature Seating" />
+            <SectionLabel number="05" label="Styling Variations" />
             
-            {/* Horizontal scroll of multi-angle product cards */}
-            <div className="flex gap-6 overflow-x-auto pb-6 scrollbar-hide -mx-4 px-4">
+            {/* Horizontal scroll of styling variation cards */}
+            <div className="flex gap-6 overflow-x-auto pb-6 scrollbar-hide -mx-4 px-4 mt-6">
               {[
                 { 
-                  src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Apr%2023%2C%202026%2C%2005_11_28%20AM%20%286%29-lYpmyiS81qFDNgsRkfTsHW0YSpljEO.png", 
-                  name: "Rosalind Cream Velvet Round Banquette",
-                  dimensions: "90\" Dia × 30\"H"
+                  src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Apr%2023%2C%202026%2C%2007_33_25%20AM%20%281%29-nSfwPSIy0JjTuxEeXqqKmBeVK5W0e2.png", 
+                  name: "Sylvanus Green & Ash Sofa"
                 },
                 { 
-                  src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Apr%2023%2C%202026%2C%2005_11_27%20AM%20%283%29-0qcQ5hbbwcJshm8BWyIN1OPztzAHdO.png", 
-                  name: "Artesia Chair",
-                  dimensions: "28\"W × 28\"D × 32\"H"
+                  src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Apr%2023%2C%202026%2C%2007_33_25%20AM%20%282%29-1p8c5ii3LgfQWQxmATwpzo3ElFTAap.png", 
+                  name: "Lindt Toffee Velvet Channel Tufted Sofa"
                 },
                 { 
-                  src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Apr%2023%2C%202026%2C%2005_11_28%20AM%20%287%29-9TDTsweuOPUkyvW4Ed5CFdzxDLgKss.png", 
-                  name: "Lindt Toffee Velvet Channel Tufted Sofa",
-                  dimensions: "91\"W × 38\"D × 31\"H"
+                  src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Apr%2023%2C%202026%2C%2007_33_25%20AM%20%283%29-xSRvEAB09wEKncke2QV6KBxrin22oF.png", 
+                  name: "Sidony Wood + White Loveseat"
                 },
                 { 
-                  src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Apr%2023%2C%202026%2C%2005_11_27%20AM%20%282%29-2apBC5MfVkeCgmFq0t8CDDE3mgWQzq.png", 
-                  name: "Reshma Botanical Sculptural Sofa",
-                  dimensions: "82.5\"W × 34\"D × 28\"H"
+                  src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Apr%2023%2C%202026%2C%2007_33_26%20AM%20%284%29-K8Hfw7Dh32EW9v4TuBPC6dq9jQmBUQ.png", 
+                  name: "Reshma Botanical Sculptural Sofa"
                 },
                 { 
-                  src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Apr%2023%2C%202026%2C%2005_11_27%20AM%20%281%29-ueuKdp8IfGOb8XxfNDcBLowfTdmqol.png", 
-                  name: "Sylvanus Green & Ash Sofa",
-                  dimensions: "79\"W × 34\"D × 30\"H"
+                  src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Apr%2023%2C%202026%2C%2007_33_26%20AM%20%285%29-d7Z9qslCN4o22G8oq8xcBpSwIYr5lh.png", 
+                  name: "Ava Sage Velvet Chair"
                 },
                 { 
-                  src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Apr%2023%2C%202026%2C%2005_11_29%20AM%20%288%29-THD1sMx5FsRGs3RFErQ0Jjcv74pWqU.png", 
-                  name: "Alora Botanical Sculptural Chair",
-                  dimensions: "33\"W × 30.5\"D × 30\"H"
+                  src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Apr%2023%2C%202026%2C%2007_33_27%20AM%20%286%29-rBSgl4ESRhpXEk7GlhbWLDBDp2EnYf.png", 
+                  name: "Benecio Leather Knit Chair"
                 },
                 { 
-                  src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Apr%2023%2C%202026%2C%2005_11_28%20AM%20%285%29-UUCy5NsKMwYprrruLUS8IL41qb9XJK.png", 
-                  name: "Sidony Wood + White Loveseat",
-                  dimensions: "94\"W × 30\"D × 32\"H"
-                },
-                { 
-                  src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Apr%2023%2C%202026%2C%2005_11_28%20AM%20%284%29-4kZyZ7DWmgcJEtK9JfClJAZYqNfNwB.png", 
-                  name: "Ava Sage Velvet Chair",
-                  dimensions: "26\"W × 33\"D × 35\"H"
+                  src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Apr%2023%2C%202026%2C%2007_33_27%20AM%20%287%29-JlktV9arzGZUW84YXqm0s5MrccZaip.png", 
+                  name: "Alora Botanical Sculptural Chair"
                 },
               ].map((piece, i) => (
                 <div 
                   key={i}
-                  className="relative flex-shrink-0 w-[480px] md:w-[560px] lg:w-[640px] group"
+                  className="relative flex-shrink-0 w-[600px] md:w-[720px] lg:w-[840px] group"
                 >
-                  {/* The composed multi-angle image */}
-                  <div className="relative aspect-square bg-[#e8e6e2] overflow-hidden">
+                  <div className="relative aspect-[4/3] bg-[#f8f7f5] overflow-hidden">
                     <Image
                       src={piece.src}
-                      alt={piece.name}
+                      alt={`${piece.name} - Styling Variations`}
                       fill
-                      className="object-contain transition-transform duration-700 group-hover:scale-[1.02]"
-                      sizes="640px"
+                      className="object-contain transition-transform duration-700 group-hover:scale-[1.01]"
+                      sizes="840px"
                     />
                   </div>
                 </div>
