@@ -122,9 +122,9 @@ export default function HomePage() {
 
       {/* ========== VALUE PROPOSITION ========== */}
       <section className="bg-charcoal py-12 md:py-16">
-        <div className="container-padding max-w-4xl mx-auto text-center">
-          <p className="font-display text-xl sm:text-2xl md:text-[1.75rem] text-cream/80 italic tracking-wide leading-relaxed text-balance">
-            We design, build, and produce the environments you can&apos;t hire&nbsp;elsewhere.
+        <div className="container-padding mx-auto text-center">
+          <p className="font-display text-[3.8vw] sm:text-xl md:text-2xl lg:text-[1.7rem] text-cream/80 italic tracking-wide whitespace-nowrap">
+            We design, build, and produce the environments you can&apos;t hire elsewhere.
           </p>
         </div>
       </section>
