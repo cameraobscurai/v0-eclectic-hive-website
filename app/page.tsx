@@ -92,8 +92,8 @@ export default function HomePage() {
         {/* Hero Content */}
         <div className="relative z-10 text-center px-5">
           {/* Wordmark */}
-          <h1 className="font-display text-[2.75rem] sm:text-6xl md:text-7xl lg:text-[7rem] tracking-tight font-light italic text-cream mb-4 md:mb-6 overflow-hidden normal-case">
-            {'Eclectic Hive'.split('').map((char, i) => (
+          <h1 className="font-display text-[2.75rem] sm:text-6xl md:text-7xl lg:text-[7rem] tracking-[0.08em] font-light text-cream mb-4 md:mb-6 overflow-hidden uppercase">
+            {'ECLECTIC HIVE'.split('').map((char, i) => (
               <span
                 key={i}
                 className={cn(
