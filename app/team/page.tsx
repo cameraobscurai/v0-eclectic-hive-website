@@ -36,7 +36,7 @@ const team = [
   {
     name: 'Adrienne Moon',
     role: 'Purchasing & Inventory Specialist',
-    image: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/1709849155632-XVNC0GKKVIJY3KYXGQP6/Patrick+Batten+Headshot.jpg',
+    image: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/f12cd93a-f5bc-4a26-b18b-e63e2c68e754/Adrienne+Moon.jpg',
   },
 ]
 
