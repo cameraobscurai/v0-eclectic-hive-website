@@ -48,7 +48,7 @@ export default function StudioPage() {
   const [activeCategory, setActiveCategory] = useState<string | null>(null)
   const [activeProduct, setActiveProduct] = useState<Product | null>(null)
   
-  const { items, add, remove, hasItem } = useInquiryStore()
+  const { items, add, remove, has } = useInquiryStore()
 
   useEffect(() => { setLoaded(true) }, [])
 
@@ -89,7 +89,7 @@ export default function StudioPage() {
   }, [products])
 
   const toggleProduct = (product: Product) => {
-    if (hasItem(product.id)) {
+    if (has(product.id)) {
       remove(product.id)
     } else {
       add({
@@ -196,7 +196,7 @@ export default function StudioPage() {
               {/* Products */}
               <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
                 {subProducts.map((product) => {
-                  const isSelected = hasItem(product.id)
+                  const isSelected = has(product.id)
                   
                   return (
                     <div 
@@ -325,12 +325,12 @@ export default function StudioPage() {
                   onClick={() => toggleProduct(activeProduct)}
                   className={cn(
                     'mt-8 py-4 text-xs uppercase tracking-[0.15em] transition-colors flex items-center justify-center gap-3',
-                    hasItem(activeProduct.id)
+                    has(activeProduct.id)
                       ? 'bg-white border border-charcoal/20 text-charcoal hover:bg-cream'
                       : 'bg-charcoal text-cream hover:bg-charcoal/90'
                   )}
                 >
-                  {hasItem(activeProduct.id) ? (
+                  {has(activeProduct.id) ? (
                     <>
                       <Check className="w-4 h-4" />
                       <span>Added to Selections</span>

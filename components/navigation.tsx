@@ -9,7 +9,7 @@ import { cn } from '@/lib/utils'
 const NAV_LINKS = [
   { href: '/atelier', label: 'Atelier by The Hive' },
   { href: '/collection', label: 'Hive Signature Collection' },
-  { href: '/studio', label: 'Design Studio' },
+  { href: '/studio', label: 'Studio' },
   { href: '/gallery', label: 'The Gallery' },
   { href: '/contact', label: 'Contact' },
 ]
