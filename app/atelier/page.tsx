@@ -4,7 +4,7 @@ import { Footer } from '@/components/footer'
 import { AtelierHero } from '@/components/atelier/atelier-hero'
 import { TeamSection } from '@/components/atelier/team-section'
 import { ScopeSection } from '@/components/atelier/scope-section'
-import { MediaLibrarySection } from '@/components/atelier/media-library-section'
+import { VisualSystemSection } from '@/components/atelier/visual-system-section'
 import { StudioSection } from '@/components/atelier/studio-section'
 import { FabricationSection } from '@/components/atelier/fabrication-section'
 import { WarehouseSection } from '@/components/atelier/warehouse-section'
@@ -22,7 +22,7 @@ export default function AtelierPage() {
       <AtelierHero />
       <TeamSection />
       <ScopeSection />
-      <MediaLibrarySection />
+      <VisualSystemSection />
       <StudioSection />
       <FabricationSection />
       <WarehouseSection />
