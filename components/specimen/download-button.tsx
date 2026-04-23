@@ -57,12 +57,7 @@ export function DownloadButton({ targetId, filename }: DownloadButtonProps) {
     <button
       onClick={handleDownload}
       disabled={isExporting}
-      className="fixed top-6 right-6 z-50 px-4 py-2 text-xs uppercase tracking-[0.15em] transition-colors disabled:opacity-50 disabled:cursor-wait rounded border"
-      style={{
-        backgroundColor: '#1a1a1a',
-        color: '#f5f2ed',
-        borderColor: 'rgba(245, 242, 237, 0.2)',
-      }}
+      className="fixed top-6 right-6 z-50 px-4 py-2 text-xs uppercase tracking-[0.15em] transition-colors disabled:opacity-50 disabled:cursor-wait rounded border bg-charcoal text-cream border-cream/20"
     >
       {isExporting ? 'Exporting...' : 'Download PNG'}
     </button>

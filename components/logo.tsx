@@ -10,7 +10,7 @@ interface LogoProps {
 
 // Logo mark - circular icon with horizontal bar (from brand guide)
 export function LogoMark({ className, variant = 'dark' }: Omit<LogoProps, 'showTagline'>) {
-  const color = variant === 'dark' ? '#1a1a1a' : '#f5f2ed'
+  const color = variant === 'dark' ? 'var(--charcoal)' : 'var(--cream)'
   
   return (
     <svg 
