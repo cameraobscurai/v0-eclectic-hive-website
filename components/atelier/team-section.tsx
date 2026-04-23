@@ -60,24 +60,20 @@ export function TeamSection() {
 
   useEffect(() => {
     const element = ref.current
-    console.log("[v0] TeamSection: ref.current =", element)
     if (!element) return
     
     if (prefersReducedMotion) {
-      console.log("[v0] TeamSection: reduced motion, setting isInView=true")
       setIsInView(true)
       return
     }
     
     const observer = new IntersectionObserver(
       ([entry]) => {
-        console.log("[v0] TeamSection: intersection", entry.isIntersecting, entry.intersectionRatio)
         if (entry.isIntersecting) {
           setIsInView(true)
           observer.unobserve(element)
         }
       },
-      // Smoother trigger - earlier and lower threshold
       { threshold: 0.05, rootMargin: '0px 0px -60px 0px' }
     )
     observer.observe(element)
