@@ -146,14 +146,23 @@
     @apply tracking-[0.2em] font-light uppercase;
   }
   
-  /* Smooth scrolling */
+  /* Smooth scrolling + prevent layout shift from scrollbar */
   html {
     scroll-behavior: smooth;
+    scrollbar-gutter: stable;
   }
   
-  /* Selection color */
+  /* Selection color - on-brand cream/charcoal */
   ::selection {
-    @apply bg-accent/20 text-foreground;
+    background-color: var(--charcoal);
+    color: var(--cream);
+  }
+  
+  /* Dark sections get inverted selection */
+  .bg-charcoal ::selection,
+  .dark ::selection {
+    background-color: var(--cream);
+    color: var(--charcoal);
   }
 }
 
@@ -236,9 +245,24 @@
   text-wrap: balance;
 }
 
-/* Custom focus states */
+/* Custom focus states - elegant, on-brand */
 :focus-visible {
-  @apply outline-none ring-1 ring-charcoal/50 ring-offset-2 ring-offset-background;
+  outline: none;
+  box-shadow: 0 0 0 1px var(--charcoal), 0 0 0 3px var(--cream);
+}
+
+/* Dark sections get inverted focus */
+.bg-charcoal :focus-visible,
+.dark :focus-visible {
+  box-shadow: 0 0 0 1px var(--cream), 0 0 0 3px var(--charcoal);
+}
+
+/* Subtle focus for text inputs */
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+  outline: none;
+  box-shadow: inset 0 -2px 0 0 var(--charcoal);
 }
 
 /* Mobile-first touch utilities */
@@ -278,9 +302,23 @@
   overscroll-behavior: contain;
 }
 
-/* Improved image loading */
+/* Improved image loading with shimmer */
 img {
   @apply bg-muted;
+}
+
+/* Image loading shimmer - subtle gradient pulse */
+.img-loading {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(90deg, var(--muted) 0%, var(--secondary) 50%, var(--muted) 100%);
+  background-size: 200% 100%;
+  animation: img-shimmer 1.5s ease-in-out infinite;
+}
+
+@keyframes img-shimmer {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
 }
 
 /* Tabular numbers for consistent spacing */
@@ -841,6 +879,47 @@ html {
 .scroll-reveal-stagger.is-visible > *:nth-child(2) { transition-delay: 0.1s; opacity: 1; transform: translateY(0); }
 .scroll-reveal-stagger.is-visible > *:nth-child(3) { transition-delay: 0.2s; opacity: 1; transform: translateY(0); }
 .scroll-reveal-stagger.is-visible > *:nth-child(4) { transition-delay: 0.3s; opacity: 1; transform: translateY(0); }
+
+/* =============================================================================
+   VIEW TRANSITIONS API
+   Native page transitions - elements morph between pages
+   ============================================================================= */
+
+/* Enable view transitions */
+@view-transition {
+  navigation: auto;
+}
+
+/* Root crossfade - subtle, not jarring */
+::view-transition-old(root) {
+  animation: 200ms ease-out both fade-out;
+}
+
+::view-transition-new(root) {
+  animation: 200ms ease-in 50ms both fade-in;
+}
+
+@keyframes fade-out {
+  to { opacity: 0; }
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+}
+
+/* Logo persists across transitions - morphs position */
+.nav-logo {
+  view-transition-name: nav-logo;
+}
+
+/* Prevent view transitions on reduced motion */
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
 
 /* =============================================================================
    AAA SPACING SYSTEM

@@ -105,7 +105,7 @@ export function Navigation() {
           )}
         >
           {/* Wordmark */}
-          <Link href="/" className="relative group" aria-label="ECLECTIC HIVE — home">
+          <Link href="/" className="relative group nav-logo" aria-label="ECLECTIC HIVE — home">
             <span
               className={cn(
                 "font-display text-xl lg:text-2xl tracking-[0.15em] font-light uppercase transition-colors duration-300",
