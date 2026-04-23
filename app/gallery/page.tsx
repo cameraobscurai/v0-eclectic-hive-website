@@ -425,17 +425,6 @@ function ProjectPanel({
               bringing intentional design and material intelligence to {project.location}.
             </p>
             
-            {/* CTA */}
-            <div className="mt-10">
-              <Link
-                href="/contact#inquiry"
-                className="inline-flex items-center gap-3 text-cream text-sm uppercase tracking-[0.15em] hover:text-sand transition-colors group"
-              >
-                <span>Start Your Project</span>
-                <ArrowRight className="w-4 h-4 transition-transform group-hover:translate-x-1" />
-              </Link>
-            </div>
-            
             {/* Project Navigation */}
             <div className="flex items-center justify-between mt-12 pt-8 border-t border-cream/10">
               <button

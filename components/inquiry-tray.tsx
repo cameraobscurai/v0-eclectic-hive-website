@@ -79,14 +79,14 @@ export function InquiryTray() {
             )}
           </div>
 
-          {/* CTA */}
+          {/* View selections link */}
           <TransitionLink
             href="/contact#inquiry"
-            className="bg-cream text-charcoal rounded-full
-                       px-5 py-2.5 text-[10px] uppercase tracking-[0.15em] font-medium
-                       hover:bg-cream/90 transition-colors"
+            className="text-cream/70 hover:text-cream
+                       px-3 py-2 text-[10px] uppercase tracking-[0.12em]
+                       transition-colors"
           >
-            Start Inquiry
+            View
           </TransitionLink>
 
           {/* Clear all button */}
