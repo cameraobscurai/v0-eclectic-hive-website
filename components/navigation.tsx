@@ -7,10 +7,9 @@ import { TransitionLink } from '@/components/page-transition'
 import { cn } from '@/lib/utils'
 
 const NAV_LINKS = [
-  { href: '/atelier', label: 'Atelier by The Hive' },
-  { href: '/collection', label: 'Hive Signature Collection' },
-  { href: '/gallery', label: 'The Gallery' },
-  { href: '/process', label: 'Process' },
+  { href: '/atelier', label: 'Atelier' },
+  { href: '/collection', label: 'Collection' },
+  { href: '/gallery', label: 'Gallery' },
   { href: '/contact', label: 'Contact' },
 ]
 
