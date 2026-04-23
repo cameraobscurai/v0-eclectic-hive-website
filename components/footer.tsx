@@ -12,8 +12,12 @@ const footerLinks = {
     { href: '/contact', label: 'Contact' },
   ],
   info: [
+    { href: '/process', label: 'Process' },
     { href: '/faq', label: 'FAQ' },
-    { href: '/privacy', label: 'Privacy Policy' },
+    { href: '/privacy', label: 'Privacy' },
+  ],
+  internal: [
+    { href: '/brand', label: 'Brand Guidelines' },
   ],
 }
 
@@ -171,12 +175,20 @@ export function Footer() {
             <p className="text-xs text-cream/30">
               {new Date().getFullYear()} ECLECTIC HIVE. All rights reserved.
             </p>
-            <Link 
-              href="/privacy"
-              className="text-xs text-cream/30 hover:text-cream/60 transition-colors duration-300"
-            >
-              Privacy Policy
-            </Link>
+            <div className="flex items-center gap-6">
+              <Link 
+                href="/brand"
+                className="text-xs text-cream/20 hover:text-cream/50 transition-colors duration-300"
+              >
+                Brand
+              </Link>
+              <Link 
+                href="/privacy"
+                className="text-xs text-cream/30 hover:text-cream/60 transition-colors duration-300"
+              >
+                Privacy
+              </Link>
+            </div>
           </div>
         </div>
       </div>

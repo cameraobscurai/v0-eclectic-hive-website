@@ -31,6 +31,7 @@ export function Navigation() {
   const lastScrollY = useRef(0)
   const scrolledRef = useRef(false)
   const hiddenRef = useRef(false)
+  const [showScrollTop, setShowScrollTop] = useState(false)
 
   // Close mobile menu whenever the route changes and ensure scroll is restored
   useEffect(() => {
@@ -60,6 +61,9 @@ export function Navigation() {
         hiddenRef.current = nowHidden
         setHidden(nowHidden)
       }
+
+      // Show scroll-to-top after scrolling 50% of viewport
+      setShowScrollTop(y > window.innerHeight * 0.5)
 
       lastScrollY.current = y
     }
@@ -258,6 +262,22 @@ export function Navigation() {
           </div>
         </div>
       </div>
+
+      {/* Minimal scroll-to-top - appears as subtle line that grows on hover */}
+      <button
+        onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+        className={cn(
+          'fixed bottom-8 right-8 z-40 group flex items-center gap-2 transition-all duration-500',
+          showScrollTop ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4 pointer-events-none'
+        )}
+        style={{ bottom: 'max(2rem, env(safe-area-inset-bottom, 2rem))' }}
+        aria-label="Scroll to top"
+      >
+        <span className="text-[10px] uppercase tracking-[0.2em] text-cream/30 group-hover:text-cream/60 transition-colors duration-300 hidden sm:block">
+          Top
+        </span>
+        <span className="w-8 h-px bg-cream/20 group-hover:bg-cream/50 group-hover:w-12 transition-all duration-300" />
+      </button>
     </>
   )
 }
