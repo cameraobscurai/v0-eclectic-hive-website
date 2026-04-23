@@ -62,7 +62,16 @@ function extractColorsFromImage(): ExtractedColor[] {
   return palettes[Math.floor(Math.random() * palettes.length)]
 }
 
-export default function InquiryPage() {
+// Lifestyle imagery for visual appeal
+const LIFESTYLE_IMAGES = [
+  { src: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Apr%2023%2C%202026%2C%2006_36_40%20AM%20%282%29-jSp5dUwC7qE6Az74tbTrhyPsS9Hp3N.png', alt: 'Boucle chair vignette with lamp and accessories' },
+  { src: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Apr%2023%2C%202026%2C%2006_33_39%20AM-i3tVPuiTbhTLfdzp2THZmBRDfyaKBD.png', alt: 'Elegant tablescape with linen and ceramics' },
+  { src: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Apr%2023%2C%202026%2C%2006_36_41%20AM%20%284%29-d9QCIVvJ0A0HwHkvgomCLIsSZpTltS.png', alt: 'Textiles and pillows collection' },
+  { src: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Apr%2023%2C%202026%2C%2006_36_40%20AM%20%281%29-ysnOsz5FYFEPQzufogthldORvQWG5F.png', alt: 'Tableware vignette with pottery' },
+  { src: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Apr%2023%2C%202026%2C%2006_36_40%20AM%20%283%29-AJLa39oz4oGazs06HWIawRq61cYiuT.png', alt: 'Ceramics and decor still life' },
+]
+
+export default function StudioPage() {
   const [loaded, setLoaded] = useState(false)
   const [activeTab, setActiveTab] = useState<'inspiration' | 'palette' | 'inventory' | 'preview'>('inspiration')
   
@@ -167,98 +176,187 @@ export default function InquiryPage() {
     <main className="bg-cream min-h-screen">
       <Navigation />
       
-      {/* Header */}
-      <section className="pt-32 pb-8 px-6 lg:px-12">
-        <div className="max-w-7xl mx-auto">
-          <p className={cn(
-            'text-xs uppercase tracking-[0.3em] text-charcoal/50 mb-4 transition-all duration-700',
-            loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-          )}>
-            Start Your Project
-          </p>
-          <h1 className={cn(
-            'font-display text-3xl md:text-4xl lg:text-5xl tracking-[0.2em] font-light uppercase text-charcoal transition-all duration-700',
-            loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-          )} style={{ transitionDelay: '100ms' }}>
-            Inquiry
-          </h1>
-          <p className={cn(
-            'text-charcoal/60 mt-4 max-w-xl transition-all duration-700',
-            loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-          )} style={{ transitionDelay: '200ms' }}>
-            Build your vision with inspiration imagery, color palettes, and curated inventory selections from our collection.
-          </p>
+      {/* Hero with Lifestyle Imagery */}
+      <section className="relative pt-24 pb-12 lg:pb-0 min-h-[70vh] flex items-end">
+        {/* Background Image Grid */}
+        <div className="absolute inset-0 grid grid-cols-3 lg:grid-cols-5 gap-1 opacity-[0.08]">
+          {LIFESTYLE_IMAGES.map((img, i) => (
+            <div key={i} className="relative overflow-hidden">
+              <Image
+                src={img.src}
+                alt=""
+                fill
+                className="object-cover scale-110"
+                priority={i < 2}
+              />
+            </div>
+          ))}
         </div>
-      </section>
-
-      {/* Project Info Bar */}
-      <section className="px-6 lg:px-12 pb-8 border-b border-charcoal/10">
-        <div className="max-w-7xl mx-auto">
-          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-            <input
-              type="text"
-              placeholder="Project Name"
-              value={projectName}
-              onChange={(e) => setProjectName(e.target.value)}
-              className="bg-white border border-charcoal/10 px-4 py-3 text-sm text-charcoal placeholder:text-charcoal/40 focus:outline-none focus:border-charcoal/30 transition-colors"
-            />
-            <input
-              type="text"
-              placeholder="Client Name"
-              value={clientName}
-              onChange={(e) => setClientName(e.target.value)}
-              className="bg-white border border-charcoal/10 px-4 py-3 text-sm text-charcoal placeholder:text-charcoal/40 focus:outline-none focus:border-charcoal/30 transition-colors"
-            />
-            <input
-              type="text"
-              placeholder="Event Date"
-              value={eventDate}
-              onChange={(e) => setEventDate(e.target.value)}
-              className="bg-white border border-charcoal/10 px-4 py-3 text-sm text-charcoal placeholder:text-charcoal/40 focus:outline-none focus:border-charcoal/30 transition-colors"
-            />
-            <button className="bg-charcoal text-cream px-4 py-3 text-sm uppercase tracking-[0.1em] hover:bg-charcoal/90 transition-colors">
-              Submit Inquiry
-            </button>
+        
+        {/* Content */}
+        <div className="relative z-10 w-full px-6 lg:px-12 pb-12">
+          <div className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-12 items-end">
+            {/* Left: Text */}
+            <div>
+              <p className={cn(
+                'text-xs uppercase tracking-[0.3em] text-charcoal/50 mb-4 transition-all duration-700',
+                loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+              )}>
+                Design Studio
+              </p>
+              <h1 className={cn(
+                'font-display text-4xl md:text-5xl lg:text-6xl xl:text-7xl tracking-display font-light text-charcoal transition-all duration-700',
+                loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+              )} style={{ transitionDelay: '100ms' }}>
+                <span className="block">Build Your</span>
+                <span className="block italic">Vision</span>
+              </h1>
+              <p className={cn(
+                'text-charcoal/60 mt-6 max-w-md text-lg leading-relaxed transition-all duration-700',
+                loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+              )} style={{ transitionDelay: '200ms' }}>
+                Curate inspiration, define your palette, and select from our signature collection to bring your event to life.
+              </p>
+            </div>
+            
+            {/* Right: Featured Lifestyle Image */}
+            <div className={cn(
+              'relative aspect-[4/3] transition-all duration-1000',
+              loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+            )} style={{ transitionDelay: '300ms' }}>
+              <Image
+                src={LIFESTYLE_IMAGES[1].src}
+                alt={LIFESTYLE_IMAGES[1].alt}
+                fill
+                className="object-cover"
+                priority
+              />
+              <div className="absolute inset-0 ring-1 ring-inset ring-charcoal/5" />
+            </div>
           </div>
         </div>
       </section>
 
-      {/* Tabs */}
-      <section className="px-6 lg:px-12 py-6 border-b border-charcoal/10">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex gap-8">
+      {/* Project Info Bar - Floating Card Style */}
+      <section className="px-6 lg:px-12 -mt-6 relative z-20 pb-12">
+        <div className="max-w-5xl mx-auto">
+          <div className="bg-white shadow-xl shadow-charcoal/5 border border-charcoal/5 p-6 md:p-8">
+            <div className="flex items-center gap-3 mb-6">
+              <div className="w-2 h-2 bg-charcoal/20 rounded-full" />
+              <p className="text-xs uppercase tracking-[0.2em] text-charcoal/40">Project Details</p>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase tracking-[0.15em] text-charcoal/40">Project Name</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Canyon Point Wedding"
+                  value={projectName}
+                  onChange={(e) => setProjectName(e.target.value)}
+                  className="w-full bg-cream/50 border-0 border-b border-charcoal/10 px-0 py-2 text-sm text-charcoal placeholder:text-charcoal/30 focus:outline-none focus:border-charcoal/40 transition-colors"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase tracking-[0.15em] text-charcoal/40">Client</label>
+                <input
+                  type="text"
+                  placeholder="e.g. Sarah & James"
+                  value={clientName}
+                  onChange={(e) => setClientName(e.target.value)}
+                  className="w-full bg-cream/50 border-0 border-b border-charcoal/10 px-0 py-2 text-sm text-charcoal placeholder:text-charcoal/30 focus:outline-none focus:border-charcoal/40 transition-colors"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-[10px] uppercase tracking-[0.15em] text-charcoal/40">Event Date</label>
+                <input
+                  type="text"
+                  placeholder="e.g. October 2026"
+                  value={eventDate}
+                  onChange={(e) => setEventDate(e.target.value)}
+                  className="w-full bg-cream/50 border-0 border-b border-charcoal/10 px-0 py-2 text-sm text-charcoal placeholder:text-charcoal/30 focus:outline-none focus:border-charcoal/40 transition-colors"
+                />
+              </div>
+              <div className="flex items-end">
+                <button className="w-full bg-charcoal text-cream px-6 py-3 text-xs uppercase tracking-[0.15em] hover:bg-charcoal/90 transition-colors">
+                  Submit Inquiry
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Tabs - Step Indicators */}
+      <section className="px-6 lg:px-12 py-8 bg-white/50">
+        <div className="max-w-5xl mx-auto">
+          <div className="grid grid-cols-4 gap-4">
             {[
-              { id: 'inspiration', label: 'Inspiration' },
-              { id: 'palette', label: 'Color Palette' },
-              { id: 'inventory', label: 'Inventory' },
-              { id: 'preview', label: 'Preview' },
-            ].map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id as typeof activeTab)}
-                className={cn(
-                  'text-sm uppercase tracking-[0.15em] pb-2 border-b-2 transition-all',
-                  activeTab === tab.id 
-                    ? 'text-charcoal border-charcoal' 
-                    : 'text-charcoal/40 border-transparent hover:text-charcoal/70'
-                )}
-              >
-                {tab.label}
-                {tab.id === 'inspiration' && inspirationImages.length > 0 && (
-                  <span className="ml-2 text-[10px] bg-charcoal/10 px-1.5 py-0.5 rounded">{inspirationImages.length}</span>
-                )}
-                {tab.id === 'inventory' && selectedProducts.length > 0 && (
-                  <span className="ml-2 text-[10px] bg-charcoal/10 px-1.5 py-0.5 rounded">{selectedProducts.length}</span>
-                )}
-              </button>
-            ))}
+              { id: 'inspiration', label: 'Inspiration', step: '01', desc: 'Upload mood imagery' },
+              { id: 'palette', label: 'Palette', step: '02', desc: 'Define your colors' },
+              { id: 'inventory', label: 'Inventory', step: '03', desc: 'Select pieces' },
+              { id: 'preview', label: 'Preview', step: '04', desc: 'Review your deck' },
+            ].map((tab) => {
+              const isActive = activeTab === tab.id
+              const hasContent = 
+                (tab.id === 'inspiration' && inspirationImages.length > 0) ||
+                (tab.id === 'palette' && extractedColors.length > 0) ||
+                (tab.id === 'inventory' && selectedProducts.length > 0)
+              
+              return (
+                <button
+                  key={tab.id}
+                  onClick={() => setActiveTab(tab.id as typeof activeTab)}
+                  className={cn(
+                    'relative p-4 text-left transition-all border',
+                    isActive 
+                      ? 'bg-charcoal text-cream border-charcoal' 
+                      : 'bg-white text-charcoal border-charcoal/10 hover:border-charcoal/30'
+                  )}
+                >
+                  <span className={cn(
+                    'text-[10px] uppercase tracking-[0.2em]',
+                    isActive ? 'text-cream/50' : 'text-charcoal/30'
+                  )}>
+                    {tab.step}
+                  </span>
+                  <p className={cn(
+                    'text-sm uppercase tracking-[0.1em] mt-1',
+                    isActive ? 'text-cream' : 'text-charcoal'
+                  )}>
+                    {tab.label}
+                  </p>
+                  <p className={cn(
+                    'text-[10px] mt-1 hidden md:block',
+                    isActive ? 'text-cream/60' : 'text-charcoal/40'
+                  )}>
+                    {tab.desc}
+                  </p>
+                  {hasContent && (
+                    <div className={cn(
+                      'absolute top-2 right-2 w-2 h-2 rounded-full',
+                      isActive ? 'bg-cream/60' : 'bg-charcoal/30'
+                    )} />
+                  )}
+                </button>
+              )
+            })}
           </div>
         </div>
       </section>
 
-      {/* Content Area */}
-      <section className="px-6 lg:px-12 py-12">
-        <div className="max-w-7xl mx-auto">
+      {/* Content Area with Lifestyle Accent */}
+      <section className="px-6 lg:px-12 py-12 relative">
+        {/* Decorative Side Images - Only on large screens */}
+        <div className="hidden xl:block absolute right-0 top-12 w-48 space-y-4 opacity-30">
+          <div className="relative aspect-square">
+            <Image src={LIFESTYLE_IMAGES[0].src} alt="" fill className="object-cover" />
+          </div>
+          <div className="relative aspect-[4/3]">
+            <Image src={LIFESTYLE_IMAGES[3].src} alt="" fill className="object-cover" />
+          </div>
+        </div>
+        
+        <div className="max-w-5xl mx-auto">
           
           {/* Inspiration Tab */}
           {activeTab === 'inspiration' && (
