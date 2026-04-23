@@ -763,10 +763,19 @@ img {
   to   { opacity: 1; transform: translateY(0); }
 }
 
+/* Fallback for Safari/Firefox - just show elements immediately */
 .scroll-reveal-native {
-  animation: reveal-on-scroll linear both;
-  animation-timeline: view();
-  animation-range: entry 0% entry 30%;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Chrome 115+ supports animation-timeline: view() */
+@supports (animation-timeline: view()) {
+  .scroll-reveal-native {
+    animation: reveal-on-scroll linear both;
+    animation-timeline: view();
+    animation-range: entry 0% entry 30%;
+  }
 }
 
 /* Process timeline line that draws itself */
@@ -775,11 +784,19 @@ img {
   to   { transform: scaleY(1); }
 }
 
+/* Fallback - show full line immediately */
 .timeline-line-native {
   transform-origin: top center;
-  animation: draw-line linear both;
-  animation-timeline: view();
-  animation-range: entry 10% cover 80%;
+  transform: scaleY(1);
+}
+
+/* Chrome 115+ supports animation-timeline: view() */
+@supports (animation-timeline: view()) {
+  .timeline-line-native {
+    animation: draw-line linear both;
+    animation-timeline: view();
+    animation-range: entry 10% cover 80%;
+  }
 }
 
 /* @starting-style for product cards - native entry animation */

@@ -518,7 +518,7 @@ export default function CollectionPage() {
                     key={sub}
                     onClick={() => setActiveSubCategory(sub)}
                     className={cn(
-                      "flex-shrink-0 px-3 py-1.5 min-h-[36px] text-[10px] tracking-[0.1em] uppercase whitespace-nowrap transition-all duration-200 rounded-full flex items-center gap-1.5 touch-manipulation",
+                      "flex-shrink-0 px-3 py-2.5 min-h-[44px] text-[10px] tracking-[0.1em] uppercase whitespace-nowrap transition-all duration-200 rounded-full flex items-center gap-1.5 touch-manipulation",
                       activeSubCategory === sub 
                         ? "bg-charcoal text-cream" 
                         : "text-charcoal/50 hover:text-charcoal/80 hover:bg-charcoal/5"
@@ -544,7 +544,7 @@ export default function CollectionPage() {
               <select
                 value={sortBy ?? 'type'}
                 onChange={(e) => setSortBy(e.target.value)}
-                className="text-[10px] tracking-wide bg-transparent border border-charcoal/10 rounded-full px-3 py-2 min-h-[36px] focus:outline-none focus:border-charcoal/30 text-charcoal/60 cursor-pointer touch-manipulation"
+                className="text-[10px] tracking-wide bg-transparent border border-charcoal/10 rounded-full px-3 py-2.5 min-h-[44px] focus:outline-none focus:border-charcoal/30 text-charcoal/60 cursor-pointer touch-manipulation"
               >
                 <option value="type">By Type</option>
                 <option value="name">A-Z</option>
@@ -585,7 +585,7 @@ export default function CollectionPage() {
               {hasActiveFilters && (
                 <button
                   onClick={resetFilters}
-                  className="text-[10px] tracking-wide text-charcoal/50 hover:text-charcoal underline underline-offset-2 whitespace-nowrap min-h-[36px] px-2 touch-manipulation"
+                  className="text-[10px] tracking-wide text-charcoal/50 hover:text-charcoal underline underline-offset-2 whitespace-nowrap min-h-[44px] px-2 touch-manipulation"
                 >
                   Reset
                 </button>

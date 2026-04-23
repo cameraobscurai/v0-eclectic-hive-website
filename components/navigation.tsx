@@ -191,7 +191,7 @@ export function Navigation() {
             : 'opacity-0 pointer-events-none'
         )}
       >
-        <div className="flex flex-col h-full pt-24 pb-12 px-6">
+        <div className="flex flex-col h-full pt-24 px-6" style={{ paddingBottom: 'max(3rem, env(safe-area-inset-bottom, 3rem))' }}>
           <nav className="flex-1 flex flex-col justify-center">
             {/* Home link - minimum touch target */}
             <TransitionLink
@@ -205,7 +205,7 @@ export function Navigation() {
               )}
               style={{ transitionDelay: isOpen ? '100ms' : '0ms' }}
             >
-              <span className="text-cream font-display text-4xl md:text-5xl tracking-tight font-light italic hover:text-sand transition-colors">
+              <span className="text-cream font-display text-[7vw] sm:text-4xl md:text-5xl tracking-tight font-light italic hover:text-sand transition-colors">
                 Home
               </span>
             </TransitionLink>
@@ -226,7 +226,7 @@ export function Navigation() {
               >
                 <span
                   className={cn(
-                    'font-display text-4xl md:text-5xl tracking-tight font-light italic transition-colors',
+                    'font-display text-[7vw] sm:text-4xl md:text-5xl tracking-tight font-light italic transition-colors',
                     pathname === link.href
                       ? 'text-cream'
                       : 'text-cream/70 hover:text-cream'

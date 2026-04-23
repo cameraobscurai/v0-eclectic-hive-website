@@ -41,7 +41,7 @@ export function Footer() {
 
   return (
     <footer ref={ref} className="bg-charcoal text-cream">
-      <div className="px-6 lg:px-12 py-24 lg:py-36">
+      <div className="px-6 lg:px-12 pt-24 lg:pt-36" style={{ paddingBottom: 'max(6rem, env(safe-area-inset-bottom, 6rem))' }}>
         <div className="max-w-7xl mx-auto">
           {/* Main Footer Content */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8">

@@ -280,10 +280,11 @@ function ProjectPanel({
       aria-modal="true"
       aria-label={`${project.title} project details`}
     >
-      {/* Close Button */}
+      {/* Close Button - safe area for notched phones */}
       <button
         onClick={onClose}
-        className="absolute top-6 right-6 z-10 w-12 h-12 flex items-center justify-center text-cream/70 hover:text-cream transition-colors"
+        className="absolute top-6 right-6 z-10 w-12 h-12 flex items-center justify-center text-cream/70 hover:text-cream transition-colors safe-area-top"
+        style={{ top: 'max(1.5rem, env(safe-area-inset-top, 1.5rem))' }}
         aria-label="Close project details"
       >
         <X className="w-6 h-6" />
@@ -311,8 +312,8 @@ function ProjectPanel({
       
       {/* Content */}
       <div className="h-full flex flex-col lg:flex-row">
-        {/* Image Side */}
-        <div className="relative h-[50vh] lg:h-full lg:w-2/3">
+        {/* Image Side - taller on mobile for better viewing */}
+        <div className="relative h-[55svh] lg:h-full lg:w-2/3">
           <Image
             src={currentImage}
             alt={`${project.title} - Image ${currentImageIndex + 1} of ${totalImages}`}
@@ -388,8 +389,8 @@ function ProjectPanel({
           )}
         </div>
         
-        {/* Info Side */}
-        <div className="flex-1 lg:w-1/3 p-8 lg:p-12 xl:p-16 flex flex-col justify-center overflow-y-auto">
+        {/* Info Side - with safe area bottom for home indicator */}
+        <div className="flex-1 lg:w-1/3 p-8 pb-safe lg:p-12 xl:p-16 flex flex-col justify-center overflow-y-auto" style={{ paddingBottom: 'max(2rem, env(safe-area-inset-bottom, 2rem))' }}>
           <div className="max-w-md">
             {/* Project Number */}
             <span className="text-cream/30 text-sm tracking-[0.3em] font-light">
