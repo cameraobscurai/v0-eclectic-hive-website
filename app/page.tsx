@@ -121,10 +121,10 @@ export default function HomePage() {
       </section>
 
       {/* ========== VALUE PROPOSITION ========== */}
-      <section className="bg-charcoal py-10 md:py-14">
-        <div className="container-padding max-w-3xl mx-auto text-center">
-          <p className="font-display text-lg sm:text-xl md:text-2xl text-cream/80 italic tracking-wide leading-relaxed">
-            We design, build, and produce the environments you can&apos;t hire elsewhere.
+      <section className="bg-charcoal py-12 md:py-16">
+        <div className="container-padding max-w-4xl mx-auto text-center">
+          <p className="font-display text-xl sm:text-2xl md:text-[1.75rem] text-cream/80 italic tracking-wide leading-relaxed text-balance">
+            We design, build, and produce the environments you can&apos;t hire&nbsp;elsewhere.
           </p>
         </div>
       </section>
@@ -133,10 +133,10 @@ export default function HomePage() {
       <section className="bg-charcoal">
         <div 
           ref={cardsSectionRef}
-          className="container-padding max-w-5xl mx-auto pt-0 pb-12 md:pb-16"
+          className="container-padding max-w-4xl mx-auto pb-16 md:pb-20"
         >
           {/* Cards Grid - scroll-triggered stagger animation */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-5">
             {DESTINATIONS.map((dest, i) => (
               <TransitionLink
                 key={dest.href}
@@ -149,41 +149,41 @@ export default function HomePage() {
                 onMouseEnter={() => setHoveredIndex(i)}
                 onMouseLeave={() => setHoveredIndex(null)}
               >
-                {/* Glassmorphic card */}
+                {/* Glassmorphic card - tighter proportions */}
                 <div className={cn(
                   'relative h-full glass-interactive',
-                  'py-6 px-5 md:py-10 md:px-6 lg:py-12 lg:px-8',
+                  'py-8 px-6 md:py-10 md:px-8',
                   'touch-target',
                   hoveredIndex === i && 'bg-white/[0.08] border-cream/20'
                 )}>
                   {/* Mobile: horizontal | Desktop: vertical centered */}
-                  <div className="flex items-center justify-between md:flex-col md:items-center md:justify-center md:text-center md:min-h-[160px] lg:min-h-[180px]">
+                  <div className="flex items-center justify-between md:flex-col md:items-center md:justify-center md:text-center md:gap-4">
                     {/* Text content */}
                     <div className="md:flex md:flex-col md:items-center">
                       <h2 className={cn(
-                        'font-display text-xl sm:text-2xl md:text-2xl lg:text-3xl tracking-[0.12em] md:tracking-[0.15em] font-light uppercase transition-colors duration-300',
+                        'font-display text-xl sm:text-2xl md:text-[1.5rem] lg:text-[1.65rem] tracking-[0.12em] md:tracking-[0.14em] font-light uppercase transition-colors duration-300',
                         hoveredIndex === i ? 'text-cream' : 'text-cream/80'
                       )}>
                         {dest.title}
                       </h2>
                       <p className={cn(
-                        'text-[9px] sm:text-[10px] uppercase tracking-[0.15em] md:tracking-[0.2em] transition-colors duration-300 mt-1 md:mt-3',
-                        hoveredIndex === i ? 'text-cream/60' : 'text-cream/35'
+                        'text-[9px] sm:text-[10px] uppercase tracking-[0.15em] md:tracking-[0.18em] transition-colors duration-300 mt-1.5 md:mt-2.5',
+                        hoveredIndex === i ? 'text-cream/60' : 'text-cream/40'
                       )}>
                         {dest.label}
                       </p>
                     </div>
                     
-                    {/* Arrow indicator */}
+                    {/* Arrow indicator - more prominent */}
                     <div className={cn(
-                      'flex items-center gap-2 transition-all duration-300 md:mt-6',
-                      hoveredIndex === i ? 'opacity-100' : 'opacity-50'
+                      'flex items-center gap-2.5 transition-all duration-300 md:mt-5',
+                      hoveredIndex === i ? 'opacity-100' : 'opacity-60'
                     )}>
                       <span className={cn(
-                        'h-px bg-cream/50 transition-all duration-300',
-                        hoveredIndex === i ? 'w-6 md:w-8' : 'w-3 md:w-4'
+                        'h-px bg-cream/60 transition-all duration-300',
+                        hoveredIndex === i ? 'w-8 md:w-10' : 'w-4 md:w-5'
                       )} />
-                      <svg className="w-3.5 h-3.5 md:w-4 md:h-4 text-cream/70" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <svg className="w-4 h-4 text-cream/80" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                         <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
                       </svg>
                     </div>
@@ -197,17 +197,17 @@ export default function HomePage() {
         {/* CTA Section with scroll-triggered animation */}
         <div 
           ref={ctaSectionRef}
-          className="glass-subtle mx-5 md:mx-8 rounded-sm"
+          className="glass-subtle mx-5 md:mx-8 lg:mx-auto lg:max-w-4xl rounded-sm"
         >
           <div 
             className={cn(
-              'py-10 md:py-14 text-center transition-all duration-1000 ease-[cubic-bezier(0.22,1,0.36,1)]',
+              'py-12 md:py-16 text-center transition-all duration-1000 ease-[cubic-bezier(0.22,1,0.36,1)]',
               ctaVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
             )}
           >
             <p 
               className={cn(
-                'text-cream/40 text-xs sm:text-sm mb-6 tracking-wide max-w-md mx-auto px-5 transition-all duration-700',
+                'text-cream/50 text-xs sm:text-sm mb-8 tracking-wide transition-all duration-700',
                 ctaVisible ? 'opacity-100' : 'opacity-0'
               )}
               style={{ transitionDelay: ctaVisible ? '150ms' : '0ms' }}
@@ -218,15 +218,15 @@ export default function HomePage() {
             <TransitionLink
               href="/contact#inquiry"
               className={cn(
-                'inline-flex flex-col sm:flex-row items-center gap-3 sm:gap-4 group transition-all duration-700',
+                'inline-flex items-center gap-4 group transition-all duration-700',
                 ctaVisible ? 'opacity-100' : 'opacity-0'
               )}
               style={{ transitionDelay: ctaVisible ? '250ms' : '0ms' }}
             >
-              <span className="font-display text-xl sm:text-2xl md:text-3xl tracking-[0.08em] sm:tracking-[0.1em] font-light uppercase text-cream group-hover:text-cream/80 transition-colors duration-300">
+              <span className="font-display text-xl sm:text-2xl md:text-[1.65rem] tracking-[0.1em] font-light uppercase text-cream group-hover:text-cream/80 transition-colors duration-300">
                 Start a Conversation
               </span>
-              <span className="hidden sm:block w-6 h-px bg-cream/40 group-hover:w-10 transition-all duration-300" />
+              <span className="w-8 h-px bg-cream/50 group-hover:w-12 transition-all duration-300" />
             </TransitionLink>
           </div>
         </div>
