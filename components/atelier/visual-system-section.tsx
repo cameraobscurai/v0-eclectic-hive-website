@@ -1,7 +1,7 @@
 'use client'
 
 import Image from 'next/image'
-import { useRef } from 'react'
+import { useRef, useState, useEffect, useCallback } from 'react'
 
 // Figma-style numbered section header
 function SectionLabel({ number, label }: { number: string; label: string }) {
@@ -67,6 +67,105 @@ function Swatch({ color, label }: { color: string; label: string }) {
         style={{ backgroundColor: color }}
       />
       <span className="text-[8px] uppercase tracking-wide text-charcoal/40">{label}</span>
+    </div>
+  )
+}
+
+// Horizontal scroll carousel with navigation
+function HorizontalCarousel({ 
+  children, 
+  itemCount,
+  accentColor = '#c4a962'
+}: { 
+  children: React.ReactNode
+  itemCount: number
+  accentColor?: string
+}) {
+  const scrollRef = useRef<HTMLDivElement>(null)
+  const [activeIndex, setActiveIndex] = useState(0)
+  const [canScrollLeft, setCanScrollLeft] = useState(false)
+  const [canScrollRight, setCanScrollRight] = useState(true)
+
+  const updateScrollState = useCallback(() => {
+    if (!scrollRef.current) return
+    const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current
+    const itemWidth = scrollWidth / itemCount
+    const newIndex = Math.round(scrollLeft / itemWidth)
+    setActiveIndex(newIndex)
+    setCanScrollLeft(scrollLeft > 10)
+    setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10)
+  }, [itemCount])
+
+  useEffect(() => {
+    const el = scrollRef.current
+    if (!el) return
+    el.addEventListener('scroll', updateScrollState, { passive: true })
+    updateScrollState()
+    return () => el.removeEventListener('scroll', updateScrollState)
+  }, [updateScrollState])
+
+  const scrollTo = (index: number) => {
+    if (!scrollRef.current) return
+    const itemWidth = scrollRef.current.scrollWidth / itemCount
+    scrollRef.current.scrollTo({ left: itemWidth * index, behavior: 'smooth' })
+  }
+
+  const scrollPrev = () => scrollTo(Math.max(0, activeIndex - 1))
+  const scrollNext = () => scrollTo(Math.min(itemCount - 1, activeIndex + 1))
+
+  return (
+    <div className="relative">
+      {/* Navigation arrows */}
+      <div className="absolute -top-12 right-0 flex items-center gap-3 z-10">
+        <button 
+          onClick={scrollPrev}
+          disabled={!canScrollLeft}
+          className="w-8 h-8 flex items-center justify-center border border-charcoal/20 hover:border-charcoal/40 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+          aria-label="Previous"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+          </svg>
+        </button>
+        <button 
+          onClick={scrollNext}
+          disabled={!canScrollRight}
+          className="w-8 h-8 flex items-center justify-center border border-charcoal/20 hover:border-charcoal/40 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+          aria-label="Next"
+        >
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+          </svg>
+        </button>
+      </div>
+
+      {/* Scroll container */}
+      <div 
+        ref={scrollRef}
+        className="flex gap-6 overflow-x-auto pb-8 scrollbar-hide -mx-4 px-4 snap-x snap-mandatory"
+      >
+        {children}
+      </div>
+
+      {/* Progress dots */}
+      <div className="flex justify-center gap-2 mt-2">
+        {Array.from({ length: itemCount }).map((_, i) => (
+          <button
+            key={i}
+            onClick={() => scrollTo(i)}
+            className="group p-1"
+            aria-label={`Go to item ${i + 1}`}
+          >
+            <div 
+              className="h-1.5 rounded-full transition-all duration-300"
+              style={{
+                width: activeIndex === i ? '24px' : '8px',
+                backgroundColor: activeIndex === i ? accentColor : 'rgba(26, 26, 26, 0.15)'
+              }}
+            />
+          </button>
+        ))}
+      </div>
     </div>
   )
 }
@@ -247,10 +346,10 @@ export function VisualSystemSection() {
             </div>
           </div>
 
-          {/* Row 5: Dinnerware Variations - Horizontal Scroll */}
+          {/* Row 4: Dinnerware Variations */}
           <div className="col-span-12 border-t border-charcoal/10 pt-8 mt-4">
             <SectionLabel number="04" label="Dinnerware Variations" />
-            <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide -mx-4 px-4">
+            <HorizontalCarousel itemCount={3} accentColor="#5a6b4a">
               {[
                 { src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Apr%2023%2C%202026%2C%2006_15_29%20AM%20%283%29-ISawYAP157izouDbFgfnV2fKubjwQQ.png", alt: "Dinnerware set - grey, botanical, speckle" },
                 { src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Apr%2023%2C%202026%2C%2006_15_29%20AM%20%281%29-VwfITiRdTSCrFbSP4c2A7fZG6DVZxD.png", alt: "Dinnerware set - sage, marble, fluted" },
@@ -258,7 +357,7 @@ export function VisualSystemSection() {
               ].map((item, i) => (
                 <div 
                   key={i}
-                  className="relative flex-shrink-0 w-[400px] md:w-[500px] aspect-[16/9] bg-white border border-charcoal/5 overflow-hidden"
+                  className="relative flex-shrink-0 w-[400px] md:w-[500px] aspect-[16/9] bg-white border border-charcoal/5 overflow-hidden snap-start"
                 >
                   <Image
                     src={item.src}
@@ -269,15 +368,13 @@ export function VisualSystemSection() {
                   />
                 </div>
               ))}
-            </div>
+            </HorizontalCarousel>
           </div>
 
           {/* Row 5: Styling Variations - Shows customization possibilities */}
           <div className="col-span-12 border-t border-charcoal/10 pt-8 mt-4">
             <SectionLabel number="05" label="Styling Variations" />
-            
-            {/* Horizontal scroll of styling variation cards */}
-            <div className="flex gap-6 overflow-x-auto pb-6 scrollbar-hide -mx-4 px-4 mt-6">
+            <HorizontalCarousel itemCount={7} accentColor="#c4a962">
               {[
                 { 
                   src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Apr%2023%2C%202026%2C%2007_33_25%20AM%20%281%29-nSfwPSIy0JjTuxEeXqqKmBeVK5W0e2.png", 
@@ -310,7 +407,7 @@ export function VisualSystemSection() {
               ].map((piece, i) => (
                 <div 
                   key={i}
-                  className="relative flex-shrink-0 w-[600px] md:w-[720px] lg:w-[840px] group"
+                  className="relative flex-shrink-0 w-[600px] md:w-[720px] lg:w-[840px] group snap-start"
                 >
                   <div className="relative aspect-[4/3] bg-[#f8f7f5] overflow-hidden">
                     <Image
@@ -323,7 +420,7 @@ export function VisualSystemSection() {
                   </div>
                 </div>
               ))}
-            </div>
+            </HorizontalCarousel>
           </div>
 
         </div>
