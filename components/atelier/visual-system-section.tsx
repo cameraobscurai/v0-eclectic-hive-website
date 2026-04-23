@@ -406,6 +406,63 @@ export function VisualSystemSection() {
 
         </div>
       </div>
+      
+      {/* Design System Documentation - Full Cinematic Treatment */}
+      <div className="mt-32 border-t border-charcoal/10 pt-24">
+        <div className="max-w-7xl mx-auto px-6 lg:px-12 mb-16">
+          <div className="max-w-2xl">
+            <span className="text-[10px] uppercase tracking-[0.3em] text-charcoal/40 mb-4 block">
+              System Documentation
+            </span>
+            <h2 className="font-display text-3xl md:text-4xl tracking-display text-charcoal mb-6">
+              The Design Language
+            </h2>
+            <p className="text-charcoal/60 leading-relaxed">
+              Every detail is intentional. From typography behavior to inventory logic, 
+              our system ensures cohesion across every touchpoint—digital and physical.
+            </p>
+          </div>
+        </div>
+        
+        {/* Light Theme UX System Board - Full Width */}
+        <div className="relative w-full mb-8">
+          <div className="relative aspect-[16/9] md:aspect-[21/9] bg-[#f5f3ef]">
+            <Image
+              src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Apr%2023%2C%202026%2C%2004_02_30%20AM-dKB3X5rjPAsOC3U6ZO5AlPWEGyH2V0.png"
+              alt="UX System - Light theme showing Hero System, Wordmark Behavior, Material Evidence, Site Architecture, Project Anatomy, Archive Logic, Gallery Navigation, Inquiry Flow, and System Summary"
+              fill
+              className="object-contain"
+              sizes="100vw"
+            />
+          </div>
+        </div>
+        
+        {/* Dark Theme UX System Board - Full Width */}
+        <div className="relative w-full mb-8 bg-charcoal">
+          <div className="relative aspect-[16/9] md:aspect-[21/9]">
+            <Image
+              src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Apr%2023%2C%202026%2C%2003_58_02%20AM-M87sJh5MMhUZlLkNwDYp7TelXmI9lq.png"
+              alt="UX System - Dark theme with atmospheric mood, showing complete system architecture including the Amangiri project example"
+              fill
+              className="object-contain"
+              sizes="100vw"
+            />
+          </div>
+        </div>
+        
+        {/* Product Photography System - Full Width */}
+        <div className="relative w-full bg-[#f5f3ef]">
+          <div className="relative aspect-[16/9] md:aspect-[21/9]">
+            <Image
+              src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Apr%2023%2C%202026%2C%2004_32_57%20AM-rdUJTiGa8Js7itjyO9w1qt4FCv5IbI.png"
+              alt="Product Photography System - Isometric views, Top views, Process flow from source to exploded view, Material cues, and Palette"
+              fill
+              className="object-contain"
+              sizes="100vw"
+            />
+          </div>
+        </div>
+      </div>
     </section>
   )
 }
