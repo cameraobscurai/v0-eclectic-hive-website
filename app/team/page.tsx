@@ -11,32 +11,32 @@ const team = [
   {
     name: 'Jill Livingston',
     role: 'Owner & Creative Director',
-    image: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/4abbdec3-cc0e-47c9-b75e-9eecef715811/Jill+Livingston+2023+Headshot+Close+Up.jpg',
+    image: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Jill%2BLivingston%2B2023%2BHeadshot%2BClose%2BUp-spNoA1HfpVVz4VIjYrosoBRqMxnSw2.webp',
   },
   {
     name: 'Annie Ohman',
     role: 'Director of Company Operations',
-    image: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/fb2af9f1-b449-42c1-9fd6-4429fcd73350/Annie-001.jpg',
+    image: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Annie-001-jPybkfdr51JwyKqRheGMTm7xDqvW3F.webp',
   },
   {
     name: 'Sam Young',
     role: 'Project Manager',
-    image: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/261b3a32-4959-4e54-a945-67666a7b0709/Sam+Young+v3.png',
+    image: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Sam%2BYoung%2Bv3-OuZGA85vMisZxBaVFvAECeqHNkCJGa.webp',
   },
   {
     name: 'Amanda Ferguson',
     role: 'Senior Designer',
-    image: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/b56b8da0-ecf7-42b4-b81b-99fe7b64e4ad/Amanda+Ferguson%2C+Senior+Designer+B%2BW.jpg',
+    image: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/Amanda%2BFerguson%2C%2BSenior%2BDesigner%2BB%2BW-BiVL2YuJRVMSAbtr9cQ9DsSONEG0p4.webp',
   },
   {
     name: 'Patrick Batten',
     role: 'Director of Warehouse Operations',
-    image: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/f12cd93a-f5bc-4a26-b18b-e63e2c68e754/Adrienne+Moon.jpg?v=3',
+    image: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/PAT-aPnp2misGRmwtvwRDbonB20HPpAraT.webp',
   },
   {
     name: 'Adrienne Moon',
     role: 'Purchasing & Inventory Specialist',
-    image: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/c932a1b6-1a1b-4c88-9e06-a237a6443aa1/Eclectic+Hive-Carrie+King+Photographer-154.jpg?v=3',
+    image: 'https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ADRIENNE-HGFhUJ0Q7QPg8tQ7sUzncVkfXrhrxX.webp',
   },
 ]
 
