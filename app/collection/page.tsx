@@ -234,7 +234,8 @@ export default function CollectionPage() {
   const brokenImagesRef = useRef<Set<string>>(new Set())
   
   // URL state - shareable links for planners
-  const [activeCategory, setActiveCategory] = useQueryState('category', parseAsString.withDefault(''))
+  // Default to 'Seating' (highest priority) so products load immediately without flash
+  const [activeCategory, setActiveCategory] = useQueryState('category', parseAsString.withDefault('Seating'))
   
   // B1: Fetch categories first (long cache - rarely changes)
   const { data: categoriesData } = useSWR('/api/categories', fetcher, {
@@ -302,22 +303,8 @@ export default function CollectionPage() {
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null)
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false)
   
-  // Set initial category to highest priority category
-  useEffect(() => {
-    if (!activeCategory && categories.length > 0) {
-      // Find first category in priority order
-      const firstPriorityCategory = CATEGORY_PRIORITY.find(cat => 
-        categories.includes(cat)
-      )
-      
-      if (firstPriorityCategory) {
-        setActiveCategory(firstPriorityCategory)
-      } else if (categories.length > 0) {
-        // Fallback to first available if none in priority list
-        setActiveCategory(categories[0])
-      }
-    }
-  }, [categories, activeCategory])
+  // Initial category is now defaulted to 'Seating' in useQueryState above
+  // This eliminates the flash of empty content on first load
   
   // Check if any filters are active
   const hasActiveFilters = activeSubCategory !== 'All' || searchQuery.trim() !== ''
