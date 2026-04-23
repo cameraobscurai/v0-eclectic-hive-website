@@ -321,6 +321,16 @@ img {
   100% { background-position: -200% 0; }
 }
 
+/* Universal shimmer for loading skeletons */
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(100%); }
+}
+
+.animate-shimmer {
+  animation: shimmer 1.5s infinite;
+}
+
 /* Tabular numbers for consistent spacing */
   .tabular-nums {
   font-variant-numeric: tabular-nums;

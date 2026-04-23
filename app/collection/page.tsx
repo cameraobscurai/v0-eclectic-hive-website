@@ -268,7 +268,9 @@ export default function CollectionPage() {
   }, [cache])
   
   const products: Product[] = productsData?.products || []
-  const isLoading = !productsData && activeCategory !== ''
+  // Show loading if: no categories yet, OR has category but no products data yet
+  const isInitializing = !categoriesData
+  const isLoading = isInitializing || (!productsData && activeCategory !== '')
   
   // B2: Pre-compute subcategories once per product load (not on every render)
   const productsWithSubCategory = useMemo(() =>
@@ -625,8 +627,14 @@ export default function CollectionPage() {
         {/* Active filters summary + result count */}
         <div className="flex items-center justify-between px-4 md:px-6 py-2 bg-neutral-50/50 text-[10px] tracking-wide text-charcoal/50">
           <span>
-            {filteredProducts.length} {filteredProducts.length === 1 ? 'piece' : 'pieces'}
-            {debouncedSearch && ` matching "${debouncedSearch}"`}
+            {isLoading ? (
+              <span className="inline-block h-3 w-20 bg-neutral-200/50 rounded animate-pulse" />
+            ) : (
+              <>
+                {filteredProducts.length} {filteredProducts.length === 1 ? 'piece' : 'pieces'}
+                {debouncedSearch && ` matching "${debouncedSearch}"`}
+              </>
+            )}
           </span>
           {hasActiveFilters && (
             <span className="flex items-center gap-1">
