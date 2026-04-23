@@ -59,10 +59,16 @@ const DEFAULT_PALETTE = [
   { hex: '#1a1a1a', name: 'Charcoal' },
 ]
 
+// Password for studio access
+const STUDIO_PASSWORD = 'eclectic2026'
+
 type Step = 'intro' | 'inspiration' | 'palette' | 'preview'
 
 export default function StudioPage() {
   const [loaded, setLoaded] = useState(false)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [password, setPassword] = useState('')
+  const [passwordError, setPasswordError] = useState(false)
   const [activeStep, setActiveStep] = useState<Step>('intro')
   const [inspirationImages, setInspirationImages] = useState<string[]>([])
   const [selectedPalette, setSelectedPalette] = useState<typeof DEFAULT_PALETTE>(DEFAULT_PALETTE)
@@ -71,7 +77,23 @@ export default function StudioPage() {
   const { items } = useInquiryStore()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  useEffect(() => { setLoaded(true) }, [])
+  useEffect(() => { 
+    setLoaded(true) 
+    // Check if already authenticated in session
+    const authenticated = sessionStorage.getItem('studio_auth') === 'true'
+    setIsAuthenticated(authenticated)
+  }, [])
+
+  const handlePasswordSubmit = (e: React.FormEvent) => {
+    e.preventDefault()
+    if (password === STUDIO_PASSWORD) {
+      setIsAuthenticated(true)
+      sessionStorage.setItem('studio_auth', 'true')
+      setPasswordError(false)
+    } else {
+      setPasswordError(true)
+    }
+  }
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files
@@ -98,6 +120,65 @@ export default function StudioPage() {
     { id: 'palette', label: 'Palette', icon: Palette },
     { id: 'preview', label: 'Preview', icon: Grid3X3 },
   ]
+
+  // Password gate
+  if (!isAuthenticated) {
+    return (
+      <main className="bg-cream min-h-screen">
+        <Navigation />
+        <div className="min-h-[80vh] flex items-center justify-center px-6">
+          <div className={cn(
+            'max-w-md w-full transition-all duration-700',
+            loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+          )}>
+            <div className="text-center mb-12">
+              <p className="text-xs uppercase tracking-[0.3em] text-charcoal/40 mb-4">
+                Private Access
+              </p>
+              <h1 className="font-display text-3xl tracking-display text-charcoal">
+                Design Studio
+              </h1>
+              <p className="text-charcoal/50 mt-4 text-sm">
+                This area is currently under development.
+              </p>
+            </div>
+            
+            <form onSubmit={handlePasswordSubmit} className="space-y-6">
+              <div>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => {
+                    setPassword(e.target.value)
+                    setPasswordError(false)
+                  }}
+                  placeholder="Enter password"
+                  className={cn(
+                    'w-full bg-white border px-4 py-3 text-sm text-charcoal placeholder:text-charcoal/30 focus:outline-none transition-colors text-center tracking-wider',
+                    passwordError 
+                      ? 'border-red-400 focus:border-red-400' 
+                      : 'border-charcoal/10 focus:border-charcoal/30'
+                  )}
+                />
+                {passwordError && (
+                  <p className="text-red-500 text-xs mt-2 text-center">
+                    Incorrect password
+                  </p>
+                )}
+              </div>
+              <button
+                type="submit"
+                className="w-full bg-charcoal text-cream py-3 text-xs uppercase tracking-[0.15em] hover:bg-charcoal/90 transition-colors"
+              >
+                Enter
+              </button>
+            </form>
+          </div>
+        </div>
+        <Footer />
+      </main>
+    )
+  }
 
   return (
     <main className="bg-cream min-h-screen">
