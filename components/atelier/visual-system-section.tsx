@@ -71,100 +71,118 @@ function Swatch({ color, label }: { color: string; label: string }) {
   )
 }
 
-// Horizontal scroll carousel with navigation
-function HorizontalCarousel({ 
-  children, 
-  itemCount,
-  accentColor = '#c4a962'
+// Cinematic filmstrip for styling variations - mirrors gallery experience
+function StylingFilmstrip({ 
+  items 
 }: { 
-  children: React.ReactNode
-  itemCount: number
-  accentColor?: string
+  items: { src: string; name: string }[]
 }) {
   const scrollRef = useRef<HTMLDivElement>(null)
   const [activeIndex, setActiveIndex] = useState(0)
-  const [canScrollLeft, setCanScrollLeft] = useState(false)
-  const [canScrollRight, setCanScrollRight] = useState(true)
 
-  const updateScrollState = useCallback(() => {
+  const updateActiveIndex = useCallback(() => {
     if (!scrollRef.current) return
-    const { scrollLeft, scrollWidth, clientWidth } = scrollRef.current
-    const itemWidth = scrollWidth / itemCount
+    const { scrollLeft, clientWidth } = scrollRef.current
+    // Each item is roughly 70vw on desktop
+    const itemWidth = clientWidth * 0.75
     const newIndex = Math.round(scrollLeft / itemWidth)
-    setActiveIndex(newIndex)
-    setCanScrollLeft(scrollLeft > 10)
-    setCanScrollRight(scrollLeft < scrollWidth - clientWidth - 10)
-  }, [itemCount])
+    setActiveIndex(Math.min(newIndex, items.length - 1))
+  }, [items.length])
 
   useEffect(() => {
     const el = scrollRef.current
     if (!el) return
-    el.addEventListener('scroll', updateScrollState, { passive: true })
-    updateScrollState()
-    return () => el.removeEventListener('scroll', updateScrollState)
-  }, [updateScrollState])
+    el.addEventListener('scroll', updateActiveIndex, { passive: true })
+    updateActiveIndex()
+    return () => el.removeEventListener('scroll', updateActiveIndex)
+  }, [updateActiveIndex])
 
   const scrollTo = (index: number) => {
     if (!scrollRef.current) return
-    const itemWidth = scrollRef.current.scrollWidth / itemCount
+    const itemWidth = scrollRef.current.clientWidth * 0.75
     scrollRef.current.scrollTo({ left: itemWidth * index, behavior: 'smooth' })
   }
 
-  const scrollPrev = () => scrollTo(Math.max(0, activeIndex - 1))
-  const scrollNext = () => scrollTo(Math.min(itemCount - 1, activeIndex + 1))
-
   return (
-    <div className="relative">
-      {/* Navigation arrows */}
-      <div className="absolute -top-12 right-0 flex items-center gap-3 z-10">
-        <button 
-          onClick={scrollPrev}
-          disabled={!canScrollLeft}
-          className="w-8 h-8 flex items-center justify-center border border-charcoal/20 hover:border-charcoal/40 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-          aria-label="Previous"
-        >
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-          </svg>
-        </button>
-        <button 
-          onClick={scrollNext}
-          disabled={!canScrollRight}
-          className="w-8 h-8 flex items-center justify-center border border-charcoal/20 hover:border-charcoal/40 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-          aria-label="Next"
-        >
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-          </svg>
-        </button>
-      </div>
+    <div className="relative -mx-6 lg:-mx-12">
+      {/* Film strip container - dark background like gallery */}
+      <div className="bg-charcoal py-12 lg:py-16">
+        {/* Navigation + Counter */}
+        <div className="flex items-center justify-between px-6 lg:px-12 mb-6">
+          <div className="flex items-center gap-4 text-cream/40 text-xs tracking-wider font-mono">
+            <span>{(activeIndex + 1).toString().padStart(2, '0')}</span>
+            <span className="w-8 h-px bg-cream/20" />
+            <span>{items.length.toString().padStart(2, '0')}</span>
+          </div>
+          <div className="flex items-center gap-3">
+            <button 
+              onClick={() => scrollTo(Math.max(0, activeIndex - 1))}
+              disabled={activeIndex === 0}
+              className="w-10 h-10 flex items-center justify-center border border-cream/20 text-cream/60 hover:text-cream hover:border-cream/40 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+              aria-label="Previous"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
+              </svg>
+            </button>
+            <button 
+              onClick={() => scrollTo(Math.min(items.length - 1, activeIndex + 1))}
+              disabled={activeIndex === items.length - 1}
+              className="w-10 h-10 flex items-center justify-center border border-cream/20 text-cream/60 hover:text-cream hover:border-cream/40 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+              aria-label="Next"
+            >
+              <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+              </svg>
+            </button>
+          </div>
+        </div>
 
-      {/* Scroll container */}
-      <div 
-        ref={scrollRef}
-        className="flex gap-6 overflow-x-auto pb-8 scrollbar-hide -mx-4 px-4 snap-x snap-mandatory"
-      >
-        {children}
-      </div>
+        {/* Scrollable filmstrip */}
+        <div 
+          ref={scrollRef}
+          className="flex gap-4 lg:gap-6 overflow-x-auto scrollbar-hide snap-x snap-mandatory px-6 lg:px-12"
+        >
+          {items.map((item, i) => (
+            <button
+              key={i}
+              onClick={() => scrollTo(i)}
+              className={cn(
+                'relative flex-shrink-0 w-[80vw] md:w-[65vw] lg:w-[55vw] snap-center transition-all duration-500',
+                i === activeIndex 
+                  ? 'opacity-100 scale-100' 
+                  : 'opacity-40 scale-[0.97] hover:opacity-60'
+              )}
+            >
+              <div className="relative aspect-[4/3] bg-[#f8f7f5] overflow-hidden shadow-2xl shadow-black/40">
+                <Image
+                  src={item.src}
+                  alt={`${item.name} - Styling Variations`}
+                  fill
+                  className="object-contain"
+                  sizes="(max-width: 768px) 80vw, 55vw"
+                />
+              </div>
+              {/* Product name - only show for active */}
+              <div className={cn(
+                'mt-4 text-left transition-opacity duration-300',
+                i === activeIndex ? 'opacity-100' : 'opacity-0'
+              )}>
+                <p className="text-cream/80 text-sm font-light">{item.name}</p>
+              </div>
+            </button>
+          ))}
+        </div>
 
-      {/* Progress dots */}
-      <div className="flex justify-center gap-2 mt-2">
-        {Array.from({ length: itemCount }).map((_, i) => (
-          <button
-            key={i}
-            onClick={() => scrollTo(i)}
-            className="group p-1"
-            aria-label={`Go to item ${i + 1}`}
-          >
+        {/* Progress bar */}
+        <div className="px-6 lg:px-12 mt-8">
+          <div className="h-px bg-cream/10 relative">
             <div 
-              className="h-1.5 rounded-full transition-all duration-300"
-              style={{
-                width: activeIndex === i ? '24px' : '8px',
-                backgroundColor: activeIndex === i ? accentColor : 'rgba(26, 26, 26, 0.15)'
-              }}
+              className="absolute top-0 left-0 h-full bg-sand transition-all duration-300"
+              style={{ width: `${((activeIndex + 1) / items.length) * 100}%` }}
             />
-          </button>
-        ))}
+          </div>
+        </div>
       </div>
     </div>
   )
@@ -346,10 +364,10 @@ export function VisualSystemSection() {
             </div>
           </div>
 
-          {/* Row 4: Dinnerware Variations */}
+          {/* Row 4: Dinnerware Variations - Just show all 3, no carousel */}
           <div className="col-span-12 border-t border-charcoal/10 pt-8 mt-4">
             <SectionLabel number="04" label="Dinnerware Variations" />
-            <HorizontalCarousel itemCount={3} accentColor="#5a6b4a">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-6">
               {[
                 { src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Apr%2023%2C%202026%2C%2006_15_29%20AM%20%283%29-ISawYAP157izouDbFgfnV2fKubjwQQ.png", alt: "Dinnerware set - grey, botanical, speckle" },
                 { src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Apr%2023%2C%202026%2C%2006_15_29%20AM%20%281%29-VwfITiRdTSCrFbSP4c2A7fZG6DVZxD.png", alt: "Dinnerware set - sage, marble, fluted" },
@@ -357,70 +375,39 @@ export function VisualSystemSection() {
               ].map((item, i) => (
                 <div 
                   key={i}
-                  className="relative flex-shrink-0 w-[400px] md:w-[500px] aspect-[16/9] bg-white border border-charcoal/5 overflow-hidden snap-start"
+                  className="relative aspect-[16/10] bg-white border border-charcoal/5 overflow-hidden"
                 >
                   <Image
                     src={item.src}
                     alt={item.alt}
                     fill
                     className="object-contain p-4"
-                    sizes="500px"
+                    sizes="(max-width: 768px) 100vw, 33vw"
                   />
                 </div>
               ))}
-            </HorizontalCarousel>
+            </div>
           </div>
 
-          {/* Row 5: Styling Variations - Shows customization possibilities */}
-          <div className="col-span-12 border-t border-charcoal/10 pt-8 mt-4">
-            <SectionLabel number="05" label="Styling Variations" />
-            <HorizontalCarousel itemCount={7} accentColor="#c4a962">
-              {[
-                { 
-                  src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Apr%2023%2C%202026%2C%2007_33_25%20AM%20%281%29-nSfwPSIy0JjTuxEeXqqKmBeVK5W0e2.png", 
-                  name: "Sylvanus Green & Ash Sofa"
-                },
-                { 
-                  src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Apr%2023%2C%202026%2C%2007_33_25%20AM%20%282%29-1p8c5ii3LgfQWQxmATwpzo3ElFTAap.png", 
-                  name: "Lindt Toffee Velvet Channel Tufted Sofa"
-                },
-                { 
-                  src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Apr%2023%2C%202026%2C%2007_33_25%20AM%20%283%29-xSRvEAB09wEKncke2QV6KBxrin22oF.png", 
-                  name: "Sidony Wood + White Loveseat"
-                },
-                { 
-                  src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Apr%2023%2C%202026%2C%2007_33_26%20AM%20%284%29-K8Hfw7Dh32EW9v4TuBPC6dq9jQmBUQ.png", 
-                  name: "Reshma Botanical Sculptural Sofa"
-                },
-                { 
-                  src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Apr%2023%2C%202026%2C%2007_33_26%20AM%20%285%29-d7Z9qslCN4o22G8oq8xcBpSwIYr5lh.png", 
-                  name: "Ava Sage Velvet Chair"
-                },
-                { 
-                  src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Apr%2023%2C%202026%2C%2007_33_27%20AM%20%286%29-rBSgl4ESRhpXEk7GlhbWLDBDp2EnYf.png", 
-                  name: "Benecio Leather Knit Chair"
-                },
-                { 
-                  src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Apr%2023%2C%202026%2C%2007_33_27%20AM%20%287%29-JlktV9arzGZUW84YXqm0s5MrccZaip.png", 
-                  name: "Alora Botanical Sculptural Chair"
-                },
-              ].map((piece, i) => (
-                <div 
-                  key={i}
-                  className="relative flex-shrink-0 w-[600px] md:w-[720px] lg:w-[840px] group snap-start"
-                >
-                  <div className="relative aspect-[4/3] bg-[#f8f7f5] overflow-hidden">
-                    <Image
-                      src={piece.src}
-                      alt={`${piece.name} - Styling Variations`}
-                      fill
-                      className="object-contain transition-transform duration-700 group-hover:scale-[1.01]"
-                      sizes="840px"
-                    />
-                  </div>
-                </div>
-              ))}
-            </HorizontalCarousel>
+          {/* Row 5: Styling Variations - Cinematic filmstrip */}
+          <div className="col-span-12 pt-12 mt-8">
+            <div className="mb-8">
+              <SectionLabel number="05" label="Styling Variations" />
+              <p className="text-charcoal/50 text-sm mt-2 max-w-lg">
+                Every piece can be customized. Different rugs, pillows, and accessories to match your vision.
+              </p>
+            </div>
+            <StylingFilmstrip 
+              items={[
+                { src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Apr%2023%2C%202026%2C%2007_33_25%20AM%20%281%29-nSfwPSIy0JjTuxEeXqqKmBeVK5W0e2.png", name: "Sylvanus Green & Ash Sofa" },
+                { src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Apr%2023%2C%202026%2C%2007_33_25%20AM%20%282%29-1p8c5ii3LgfQWQxmATwpzo3ElFTAap.png", name: "Lindt Toffee Velvet Channel Tufted Sofa" },
+                { src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Apr%2023%2C%202026%2C%2007_33_25%20AM%20%283%29-xSRvEAB09wEKncke2QV6KBxrin22oF.png", name: "Sidony Wood + White Loveseat" },
+                { src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Apr%2023%2C%202026%2C%2007_33_26%20AM%20%284%29-K8Hfw7Dh32EW9v4TuBPC6dq9jQmBUQ.png", name: "Reshma Botanical Sculptural Sofa" },
+                { src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Apr%2023%2C%202026%2C%2007_33_26%20AM%20%285%29-d7Z9qslCN4o22G8oq8xcBpSwIYr5lh.png", name: "Ava Sage Velvet Chair" },
+                { src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Apr%2023%2C%202026%2C%2007_33_27%20AM%20%286%29-rBSgl4ESRhpXEk7GlhbWLDBDp2EnYf.png", name: "Benecio Leather Knit Chair" },
+                { src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Apr%2023%2C%202026%2C%2007_33_27%20AM%20%287%29-JlktV9arzGZUW84YXqm0s5MrccZaip.png", name: "Alora Botanical Sculptural Chair" },
+              ]}
+            />
           </div>
 
         </div>
