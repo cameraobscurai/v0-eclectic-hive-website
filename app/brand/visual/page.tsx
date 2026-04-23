@@ -21,21 +21,23 @@ const MATERIALS = [
   { name: 'Raw Plaster', tone: 'Tactile', desc: 'Imperfect, handmade quality' },
 ]
 
-const SPACING = [
-  { px: 4, rem: '0.25', use: 'Tight spacing' },
-  { px: 8, rem: '0.5', use: 'Base unit' },
-  { px: 16, rem: '1', use: 'Component padding' },
-  { px: 24, rem: '1.5', use: 'Section gaps' },
-  { px: 32, rem: '2', use: 'Card padding' },
-  { px: 48, rem: '3', use: 'Section padding mobile' },
-  { px: 64, rem: '4', use: 'Section padding tablet' },
-  { px: 80, rem: '5', use: 'Section padding desktop' },
-  { px: 96, rem: '6', use: 'Hero spacing' },
-  { px: 128, rem: '8', use: 'Major sections' },
+const MOOD_WORDS = [
+  { word: 'Cinematic', desc: 'Every frame could be a still from a film. Dramatic lighting, intentional composition.' },
+  { word: 'Grounded', desc: 'Natural materials, warm tones, tactile textures. Nothing artificial or cold.' },
+  { word: 'Curated', desc: 'Every element chosen with purpose. Less but better. Museum-quality editing.' },
+  { word: 'Intimate', desc: 'Approachable luxury. Warmth over opulence. Inviting, never intimidating.' },
+  { word: 'Artful', desc: 'Gallery-worthy. Design as installation. Environments that provoke and inspire.' },
+]
+
+const MOTION_PRINCIPLES = [
+  { principle: 'Slow reveals', desc: 'Content emerges gradually. Never jarring. Time to breathe and appreciate.' },
+  { principle: 'Natural easing', desc: 'Organic movement like candlelight. Ease-out, never linear or mechanical.' },
+  { principle: 'Purpose-driven', desc: 'Animation serves the story. If it doesn\'t add meaning, it doesn\'t move.' },
+  { principle: 'Restraint', desc: 'One animation at a time. Let the eye settle before the next transition.' },
 ]
 
 export default function Visual() {
-  const [view, setView] = useState<'colors' | 'materials' | 'grid' | 'spacing'>('colors')
+  const [view, setView] = useState<'colors' | 'materials' | 'mood' | 'motion'>('colors')
   const [theme, setTheme] = useState<'dark' | 'light'>('dark')
   
   const bg = theme === 'dark' ? 'bg-charcoal' : 'bg-cream'
@@ -54,7 +56,7 @@ export default function Visual() {
             ← Brand
           </Link>
           <div className="flex gap-1">
-            {(['colors', 'materials', 'grid', 'spacing'] as const).map((v) => (
+            {(['colors', 'materials', 'mood', 'motion'] as const).map((v) => (
               <button
                 key={v}
                 onClick={() => setView(v)}
@@ -161,116 +163,124 @@ export default function Visual() {
         </div>
       )}
 
-      {/* GRID VIEW */}
-      {view === 'grid' && (
-        <div className="pt-24 bg-cream min-h-screen">
-          <div className="max-w-6xl mx-auto p-8 lg:p-16">
-            <div className="mb-12">
-              <p className="text-charcoal/40 text-xs font-mono uppercase tracking-[0.2em] mb-2">Layout System</p>
-              <h2 className="font-serif text-charcoal text-3xl tracking-wide">12-Column Grid</h2>
+      {/* MOOD VIEW */}
+      {view === 'mood' && (
+        <div className={`pt-24 min-h-screen ${bg}`}>
+          <div className="max-w-5xl mx-auto p-8 lg:p-16">
+            <div className="mb-16">
+              <p className={`${textMuted} text-xs font-mono uppercase tracking-[0.2em] mb-2`}>Visual Language</p>
+              <h2 className={`font-display ${text} text-3xl lg:text-4xl tracking-wide italic`}>Atmosphere + Feeling</h2>
+              <p className={`${textMuted} text-sm mt-4 max-w-xl`}>
+                The brand should feel like walking into a beautifully lit room at golden hour. 
+                Warm, intentional, memorable.
+              </p>
             </div>
             
-            {/* Grid visualization */}
-            <div className="relative h-64 mb-12 rounded-lg overflow-hidden border border-charcoal/10">
-              <div className="absolute inset-0 grid grid-cols-12 gap-4 p-4">
-                {Array.from({ length: 12 }).map((_, i) => (
-                  <div key={i} className="bg-charcoal/10 rounded flex items-end justify-center pb-2">
-                    <span className="text-charcoal/30 text-[10px] font-mono">{i + 1}</span>
-                  </div>
-                ))}
+            {/* Mood words */}
+            <div className="space-y-8 mb-20">
+              {MOOD_WORDS.map((item, i) => (
+                <div 
+                  key={item.word} 
+                  className={`border-l-2 ${theme === 'dark' ? 'border-cream/20' : 'border-charcoal/20'} pl-8 py-2`}
+                >
+                  <p className={`font-display ${text} text-2xl lg:text-3xl tracking-wide italic mb-2`}>{item.word}</p>
+                  <p className={`${textMuted} text-sm max-w-lg`}>{item.desc}</p>
+                </div>
+              ))}
+            </div>
+            
+            {/* Visual contrast */}
+            <div className="mt-16">
+              <p className={`${textMuted} text-xs font-mono uppercase tracking-[0.2em] mb-6`}>The Formula</p>
+              <div className={`border ${border} rounded-lg p-8 lg:p-12`}>
+                <p className={`font-display ${text} text-xl lg:text-2xl tracking-wide text-center italic`}>
+                  "Two parts luxe, one part regal, and a dash of edge."
+                </p>
+                <div className="flex flex-wrap justify-center gap-4 mt-8">
+                  {['Luxe', 'Luxe', 'Regal', 'Edge'].map((part, i) => (
+                    <span 
+                      key={i} 
+                      className={`px-4 py-2 rounded-full text-xs uppercase tracking-wider ${
+                        part === 'Edge' 
+                          ? 'bg-charcoal text-cream' 
+                          : theme === 'dark' ? 'bg-cream/10 text-cream/60' : 'bg-charcoal/10 text-charcoal/60'
+                      }`}
+                    >
+                      {part}
+                    </span>
+                  ))}
+                </div>
               </div>
-            </div>
-            
-            {/* Column spans */}
-            <div className="space-y-4 mb-12">
-              <p className="text-charcoal/40 text-[10px] font-mono uppercase tracking-wider mb-4">Common Spans</p>
-              {[
-                { cols: 12, label: 'Full Width', use: 'Hero sections, full-bleed' },
-                { cols: 8, label: 'Content', use: 'Main content, centered' },
-                { cols: 6, label: 'Half', use: 'Side-by-side layouts' },
-                { cols: 4, label: 'Third', use: 'Cards, gallery items' },
-                { cols: 3, label: 'Quarter', use: 'Thumbnails, icons' },
-              ].map((span) => (
-                <div key={span.cols} className="grid grid-cols-12 gap-4 items-center">
-                  <div className={`col-span-${span.cols} bg-charcoal h-10 rounded flex items-center px-4`}>
-                    <span className="text-cream text-xs font-mono">{span.cols} cols</span>
-                  </div>
-                  <div className={`col-span-${12 - span.cols} flex items-center gap-4`}>
-                    <span className="text-charcoal/60 text-sm">{span.label}</span>
-                    <span className="text-charcoal/40 text-xs">{span.use}</span>
-                  </div>
-                </div>
-              ))}
-            </div>
-            
-            {/* Container specs */}
-            <div className="grid md:grid-cols-3 gap-6">
-              {[
-                { breakpoint: 'Mobile', width: '100%', padding: '20px', cols: '4' },
-                { breakpoint: 'Tablet', width: '768px', padding: '32px', cols: '8' },
-                { breakpoint: 'Desktop', width: '1280px', padding: '48px', cols: '12' },
-              ].map((bp) => (
-                <div key={bp.breakpoint} className="border border-charcoal/10 rounded-lg p-4">
-                  <p className="font-serif text-charcoal text-lg mb-3">{bp.breakpoint}</p>
-                  <div className="space-y-1 text-xs font-mono text-charcoal/60">
-                    <p>Max: {bp.width}</p>
-                    <p>Padding: {bp.padding}</p>
-                    <p>Columns: {bp.cols}</p>
-                  </div>
-                </div>
-              ))}
             </div>
           </div>
         </div>
       )}
 
-      {/* SPACING VIEW */}
-      {view === 'spacing' && (
-        <div className={`pt-24 p-8 lg:p-16 ${bg}`}>
-          <div className="max-w-4xl mx-auto">
-            <div className="mb-12">
-              <p className={`${textMuted} text-xs font-mono uppercase tracking-[0.2em] mb-2`}>Spacing System</p>
-              <h2 className={`font-serif ${text} text-3xl tracking-wide`}>8px Base Unit</h2>
+      {/* MOTION VIEW */}
+      {view === 'motion' && (
+        <div className={`pt-24 min-h-screen ${bg}`}>
+          <div className="max-w-5xl mx-auto p-8 lg:p-16">
+            <div className="mb-16">
+              <p className={`${textMuted} text-xs font-mono uppercase tracking-[0.2em] mb-2`}>Movement + Pacing</p>
+              <h2 className={`font-display ${text} text-3xl lg:text-4xl tracking-wide italic`}>Video movement to hold interest</h2>
+              <p className={`${textMuted} text-sm mt-4 max-w-xl`}>
+                Motion is a storytelling tool. Used sparingly, it creates intrigue. 
+                Overused, it distracts from the work.
+              </p>
             </div>
             
-            {/* Scale visualization */}
-            <div className="space-y-4">
-              {SPACING.map((space) => (
-                <div key={space.px} className="flex items-center gap-6">
-                  <div className="w-20 text-right">
-                    <span className={`${textMuted} text-xs font-mono`}>{space.px}px</span>
-                  </div>
-                  <div 
-                    className={`h-6 ${theme === 'dark' ? 'bg-cream/40' : 'bg-charcoal/40'} rounded-sm`}
-                    style={{ width: `${space.px}px` }}
-                  />
-                  <div className="flex-1 flex items-center justify-between">
-                    <span className={`${textMuted} text-xs font-mono`}>{space.rem}rem</span>
-                    <span className={`${textMuted} text-xs`}>{space.use}</span>
-                  </div>
+            {/* Motion principles */}
+            <div className="grid md:grid-cols-2 gap-8 mb-20">
+              {MOTION_PRINCIPLES.map((item) => (
+                <div 
+                  key={item.principle} 
+                  className={`border ${border} rounded-lg p-6 lg:p-8`}
+                >
+                  <p className={`font-display ${text} text-xl tracking-wide mb-3`}>{item.principle}</p>
+                  <p className={`${textMuted} text-sm`}>{item.desc}</p>
                 </div>
               ))}
             </div>
             
-            {/* Section padding examples */}
+            {/* Live examples */}
             <div className="mt-16">
-              <p className={`${textMuted} text-xs font-mono uppercase tracking-wider mb-6`}>Section Padding</p>
-              <div className="grid md:grid-cols-3 gap-6">
-                {[
-                  { size: 'Small', py: '48px', use: 'Compact sections' },
-                  { size: 'Medium', py: '80px', use: 'Standard sections' },
-                  { size: 'Large', py: '128px', use: 'Hero, major breaks' },
-                ].map((section) => (
+              <p className={`${textMuted} text-xs font-mono uppercase tracking-[0.2em] mb-8`}>In Practice</p>
+              
+              {/* Slow fade example */}
+              <div className={`border ${border} rounded-lg p-8 mb-6`}>
+                <div className="flex items-center justify-between mb-4">
+                  <p className={`${text} text-sm font-mono`}>Fade In</p>
+                  <p className={`${textMuted} text-xs`}>Content reveals on scroll</p>
+                </div>
+                <div className="flex gap-4">
+                  {[0, 0.3, 0.6, 1].map((opacity) => (
+                    <div 
+                      key={opacity}
+                      className={`flex-1 h-16 rounded ${theme === 'dark' ? 'bg-cream' : 'bg-charcoal'}`}
+                      style={{ opacity }}
+                    />
+                  ))}
+                </div>
+              </div>
+              
+              {/* Hover lift example */}
+              <div className={`border ${border} rounded-lg p-8`}>
+                <div className="flex items-center justify-between mb-4">
+                  <p className={`${text} text-sm font-mono`}>Hover Response</p>
+                  <p className={`${textMuted} text-xs`}>Subtle lift on interaction</p>
+                </div>
+                <div className="flex gap-4">
                   <div 
-                    key={section.size} 
-                    className={`border ${border} rounded-lg flex flex-col items-center justify-center`}
-                    style={{ paddingTop: section.py, paddingBottom: section.py }}
+                    className={`flex-1 h-16 rounded ${theme === 'dark' ? 'bg-cream/20' : 'bg-charcoal/20'} flex items-center justify-center`}
                   >
-                    <p className={`font-serif ${text} text-lg`}>{section.size}</p>
-                    <p className={`${textMuted} text-xs font-mono mt-1`}>{section.py}</p>
-                    <p className={`${textMuted} text-[10px] mt-2`}>{section.use}</p>
+                    <span className={`${textMuted} text-xs`}>Default</span>
                   </div>
-                ))}
+                  <div 
+                    className={`flex-1 h-16 rounded ${theme === 'dark' ? 'bg-cream/40' : 'bg-charcoal/40'} flex items-center justify-center -translate-y-1 shadow-lg`}
+                  >
+                    <span className={`${textMuted} text-xs`}>Hovered</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>

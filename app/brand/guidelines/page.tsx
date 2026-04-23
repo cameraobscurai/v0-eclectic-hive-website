@@ -5,7 +5,7 @@ import Link from 'next/link'
 import { DownloadButton } from '@/components/specimen/download-button'
 
 export default function Guidelines() {
-  const [view, setView] = useState<'architecture' | 'photography' | 'components' | 'donts'>('architecture')
+  const [view, setView] = useState<'architecture' | 'photography' | 'applications' | 'donts'>('architecture')
   const [theme, setTheme] = useState<'dark' | 'light'>('dark')
   
   const bg = theme === 'dark' ? 'bg-charcoal' : 'bg-cream'
@@ -24,7 +24,7 @@ export default function Guidelines() {
             ← Brand
           </Link>
           <div className="flex gap-1">
-            {(['architecture', 'photography', 'components', 'donts'] as const).map((v) => (
+            {(['architecture', 'photography', 'applications', 'donts'] as const).map((v) => (
               <button
                 key={v}
                 onClick={() => setView(v)}
@@ -168,80 +168,99 @@ export default function Guidelines() {
         </div>
       )}
 
-      {/* COMPONENTS VIEW */}
-      {view === 'components' && (
-        <div className={`pt-24 p-8 lg:p-16 ${bg}`}>
-          <div className="max-w-4xl mx-auto">
+      {/* APPLICATIONS VIEW */}
+      {view === 'applications' && (
+        <div className={`pt-24 min-h-screen ${bg}`}>
+          <div className="max-w-5xl mx-auto p-8 lg:p-16">
             <div className="mb-12">
-              <p className={`${textMuted} text-xs font-mono uppercase tracking-[0.2em] mb-2`}>UI Components</p>
-              <h2 className={`font-serif ${text} text-3xl tracking-wide`}>Interface Patterns</h2>
+              <p className={`${textMuted} text-xs font-mono uppercase tracking-[0.2em] mb-2`}>Brand In Use</p>
+              <h2 className={`font-display ${text} text-3xl tracking-wide`}>Applications</h2>
             </div>
             
-            {/* Buttons */}
+            {/* Email Signature */}
             <div className="mb-16">
-              <p className={`${textMuted} text-[10px] font-mono uppercase tracking-wider mb-6`}>Buttons</p>
-              <div className="flex flex-wrap gap-4 mb-4">
-                <button className="bg-charcoal text-cream px-6 py-3 text-sm uppercase tracking-wider rounded hover:bg-charcoal/90 transition-colors">
-                  Primary
-                </button>
-                <button className={`border ${theme === 'dark' ? 'border-cream text-cream' : 'border-charcoal text-charcoal'} px-6 py-3 text-sm uppercase tracking-wider rounded hover:bg-charcoal/5 transition-colors`}>
-                  Secondary
-                </button>
-                <button className={`${textMuted} px-6 py-3 text-sm uppercase tracking-wider rounded hover:${text} transition-colors`}>
-                  Ghost
-                </button>
-              </div>
-              <p className={`${textMuted} text-xs font-mono`}>Height: 48px / Padding: 24px horizontal / Font: 14px uppercase</p>
-            </div>
-            
-            {/* Glass panels */}
-            <div className="mb-16">
-              <p className={`${textMuted} text-[10px] font-mono uppercase tracking-wider mb-6`}>Glass Effect</p>
-              <div className="relative h-48 rounded-lg overflow-hidden" style={{ backgroundColor: theme === 'dark' ? '#2a2a2a' : '#e8e4de' }}>
-                <div className="absolute inset-4 backdrop-blur-[12px] bg-white/[0.04] border border-white/[0.08] rounded-lg flex items-center justify-center">
-                  <span className={`${text} text-sm uppercase tracking-wider`}>Glass Panel</span>
-                </div>
-              </div>
-              <p className={`${textMuted} text-xs font-mono mt-4`}>backdrop-blur-[12px] / bg-white/[0.04] / border-white/[0.08]</p>
-            </div>
-            
-            {/* Cards */}
-            <div className="mb-16">
-              <p className={`${textMuted} text-[10px] font-mono uppercase tracking-wider mb-6`}>Cards</p>
-              <div className="grid md:grid-cols-2 gap-6">
-                <div className={`border ${border} rounded-lg overflow-hidden`}>
-                  <div className="aspect-[4/3] bg-charcoal/10" />
-                  <div className="p-6">
-                    <p className={`font-serif ${text} text-lg mb-2`}>Card Title</p>
-                    <p className={`${textMuted} text-sm`}>Description text goes here with supporting details.</p>
+              <p className={`${textMuted} text-[10px] font-mono uppercase tracking-wider mb-6`}>Email Signature</p>
+              <div className={`border ${border} rounded-lg p-8 max-w-md`}>
+                <div className="border-l-2 border-charcoal pl-4">
+                  <p className={`font-display ${text} text-base tracking-wide`}>Jill Livingston</p>
+                  <p className={`${textMuted} text-sm mt-1`}>Founder & Creative Director</p>
+                  <div className={`${textMuted} text-xs mt-4 space-y-1`}>
+                    <p>jill@eclectichive.com</p>
+                    <p>303.555.0100</p>
+                    <p className="mt-2 uppercase tracking-wider text-[10px]">ECLECTIC HIVE</p>
                   </div>
                 </div>
-                <div className="space-y-2 text-xs font-mono text-charcoal/50">
-                  <p>Border radius: 8px</p>
-                  <p>Image aspect: 4:3</p>
-                  <p>Content padding: 24px</p>
-                  <p>Title: Saol Display, 18px</p>
-                  <p>Body: Inter, 14px</p>
+              </div>
+            </div>
+            
+            {/* Business Card */}
+            <div className="mb-16">
+              <p className={`${textMuted} text-[10px] font-mono uppercase tracking-wider mb-6`}>Business Card</p>
+              <div className="grid md:grid-cols-2 gap-6">
+                {/* Front */}
+                <div className="aspect-[3.5/2] bg-charcoal rounded-lg flex items-center justify-center p-8">
+                  <p className="font-display text-cream text-xl tracking-[0.15em] uppercase">ECLECTIC HIVE</p>
+                </div>
+                {/* Back */}
+                <div className="aspect-[3.5/2] bg-cream border border-charcoal/10 rounded-lg flex flex-col justify-between p-6">
+                  <div>
+                    <p className="font-display text-charcoal text-sm tracking-wide">Jill Livingston</p>
+                    <p className="text-charcoal/50 text-xs mt-1">Founder & Creative Director</p>
+                  </div>
+                  <div className="text-charcoal/60 text-[10px] space-y-0.5">
+                    <p>jill@eclectichive.com</p>
+                    <p>303.555.0100</p>
+                    <p>Denver, Colorado</p>
+                  </div>
                 </div>
               </div>
             </div>
             
-            {/* Form inputs */}
-            <div>
-              <p className={`${textMuted} text-[10px] font-mono uppercase tracking-wider mb-6`}>Form Inputs</p>
-              <div className="max-w-md space-y-4">
-                <input 
-                  type="text" 
-                  placeholder="Text input"
-                  className={`w-full px-4 py-3 rounded border ${border} ${bg} ${text} text-sm focus:outline-none focus:border-charcoal/30 transition-colors`}
-                />
-                <textarea 
-                  placeholder="Textarea"
-                  rows={3}
-                  className={`w-full px-4 py-3 rounded border ${border} ${bg} ${text} text-sm focus:outline-none focus:border-charcoal/30 transition-colors resize-none`}
-                />
+            {/* Event Signage */}
+            <div className="mb-16">
+              <p className={`${textMuted} text-[10px] font-mono uppercase tracking-wider mb-6`}>Event Signage</p>
+              <div className="grid md:grid-cols-3 gap-6">
+                {/* Welcome sign */}
+                <div className="aspect-[3/4] bg-charcoal rounded-lg flex flex-col items-center justify-center p-8 text-center">
+                  <p className="text-cream/40 text-[8px] uppercase tracking-[0.3em] mb-4">Welcome to</p>
+                  <p className="font-display text-cream text-lg tracking-[0.1em] uppercase">THE MORRISON</p>
+                  <p className="font-display text-cream/60 text-sm italic mt-2">Wedding</p>
+                  <p className="text-cream/30 text-[8px] uppercase tracking-[0.2em] mt-8">Designed by ECLECTIC HIVE</p>
+                </div>
+                {/* Table number */}
+                <div className="aspect-[3/4] bg-cream border border-charcoal/10 rounded-lg flex flex-col items-center justify-center">
+                  <p className="font-display text-charcoal text-5xl">7</p>
+                  <p className="text-charcoal/30 text-[8px] uppercase tracking-[0.2em] mt-4">Table</p>
+                </div>
+                {/* Menu card */}
+                <div className="aspect-[3/4] bg-cream border border-charcoal/10 rounded-lg p-6 flex flex-col">
+                  <p className="text-charcoal/40 text-[8px] uppercase tracking-[0.2em] mb-2">Dinner</p>
+                  <p className="font-display text-charcoal text-sm tracking-wide mb-4">Evening Menu</p>
+                  <div className="flex-1 space-y-3 text-[10px] text-charcoal/60">
+                    <p>First Course</p>
+                    <p>Second Course</p>
+                    <p>Main</p>
+                    <p>Dessert</p>
+                  </div>
+                </div>
               </div>
-              <p className={`${textMuted} text-xs font-mono mt-4`}>Height: 48px / Padding: 16px / Border: 1px</p>
+            </div>
+            
+            {/* Inventory Tags */}
+            <div>
+              <p className={`${textMuted} text-[10px] font-mono uppercase tracking-wider mb-6`}>Collection Tags</p>
+              <div className="flex gap-4">
+                <div className="w-32 bg-cream border border-charcoal/10 rounded p-4">
+                  <p className="text-charcoal/30 text-[8px] uppercase tracking-wider mb-2">HSC</p>
+                  <p className="text-charcoal text-xs font-medium">Brass Arc Lamp</p>
+                  <p className="text-charcoal/50 text-[10px] mt-1">HSC-001</p>
+                </div>
+                <div className="w-32 bg-charcoal rounded p-4">
+                  <p className="text-cream/30 text-[8px] uppercase tracking-wider mb-2">Atelier</p>
+                  <p className="text-cream text-xs font-medium">Custom Build</p>
+                  <p className="text-cream/50 text-[10px] mt-1">ATL-2024-001</p>
+                </div>
+              </div>
             </div>
           </div>
         </div>
