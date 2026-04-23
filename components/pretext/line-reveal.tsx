@@ -47,7 +47,7 @@ export function LineReveal({
       if (!containerRef.current) return
 
       const containerWidth = containerRef.current.offsetWidth
-      const family = fontFamily === 'serif' ? 'Playfair Display' : 'Inter'
+      const family = fontFamily === 'serif' ? 'Saol Display' : 'Inter'
       const font = createFontString(fontSize, family, fontWeight)
       
       const prepared = prepareWithSegments(text, font)

@@ -28,7 +28,7 @@ export function ShrinkwrapBubble({
       await waitForFonts()
       setFontsReady(true)
       
-      const font = createFontString(18, 'Playfair Display', 400, 'italic')
+      const font = createFontString(18, 'Saol Display', 400, 'italic')
       const lineHeight = 28
       
       const prepared = prepare(text, font)
@@ -89,7 +89,7 @@ export function TestimonialBubble({
       await waitForFonts()
       setFontsReady(true)
       
-      const font = createFontString(18, 'Playfair Display', 400, 'italic')
+      const font = createFontString(18, 'Saol Display', 400, 'italic')
       const lineHeight = 28
       
       const prepared = prepare(text, font)

@@ -92,7 +92,7 @@ function buildEmailHtml(d: InquiryPayload): string {
   return `<!DOCTYPE html>
 <html>
 <head><meta charset="utf-8"/></head>
-<body style="margin:0;padding:0;background:#f5f2ed;font-family:Georgia,serif">
+<body style="margin:0;padding:0;background:#f5f2ed;font-family:'Saol Display',Georgia,serif">
 <table width="100%" cellpadding="0" cellspacing="0">
   <tr><td align="center" style="padding:48px 24px">
     <table width="560" cellpadding="0" cellspacing="0"

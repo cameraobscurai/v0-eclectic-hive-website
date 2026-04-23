@@ -71,7 +71,7 @@ function getCanvasContext(): CanvasRenderingContext2D | null {
 // =============================================================================
 
 export const FONTS = {
-  serif: 'Playfair Display',
+  serif: 'Saol Display',
   sans: 'Inter',
 } as const
 
