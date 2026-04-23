@@ -1,7 +1,8 @@
 'use client'
 
-import { useState, useRef, useCallback, useEffect } from 'react'
+import { useState, useRef, useCallback, useEffect, useMemo } from 'react'
 import Image from 'next/image'
+import useSWR from 'swr'
 import { Navigation } from '@/components/navigation'
 import { Footer } from '@/components/footer'
 import { cn } from '@/lib/utils'
@@ -18,26 +19,23 @@ interface ExtractedColor {
   name: string
 }
 
-interface InventoryItem {
+interface Product {
   id: string
   name: string
-  image: string
+  primary_image_url: string | null
   category: string
+  dims_display?: string
+  stock_count?: number
 }
 
-// Sample inventory items (would come from collection)
-const SAMPLE_INVENTORY: InventoryItem[] = [
-  { id: '1', name: 'LINDT Sofa', image: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/1712174636489-IBJC8QYVZ26G4NI9KQVT/Lindt-Velvet-Olive-1.png', category: 'Sofas' },
-  { id: '2', name: 'BROOKLYN Plush', image: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/e5c5b65c-2bb6-417e-8d99-f25ce8881498/Brooklyn+Plush+Charcoal.png', category: 'Sofas' },
-  { id: '3', name: 'GEORGIA Sconce', image: 'https://blob.v0.app/Us442.webp', category: 'Lighting' },
-  { id: '4', name: 'CRESSIDA Lamp', image: 'https://blob.v0.app/T3jOQ.webp', category: 'Lighting' },
-  { id: '5', name: 'JINA Duo', image: 'https://blob.v0.app/SjVug.webp', category: 'Decor' },
-  { id: '6', name: 'AGATHA Duo', image: 'https://blob.v0.app/PQP0Z.webp', category: 'Decor' },
-]
+// SWR fetcher
+const fetcher = async (url: string) => {
+  const res = await fetch(url)
+  return res.json()
+}
 
 // Color extraction from images (simplified - in production use canvas API)
-function extractColorsFromImage(imageSrc: string): ExtractedColor[] {
-  // Simulated extraction - in production, use canvas to sample pixels
+function extractColorsFromImage(): ExtractedColor[] {
   const palettes = [
     [
       { hex: '#2C3E50', name: 'Midnight' },
@@ -64,13 +62,9 @@ function extractColorsFromImage(imageSrc: string): ExtractedColor[] {
   return palettes[Math.floor(Math.random() * palettes.length)]
 }
 
-export default function StudioPage() {
+export default function InquiryPage() {
   const [loaded, setLoaded] = useState(false)
   const [activeTab, setActiveTab] = useState<'inspiration' | 'palette' | 'inventory' | 'preview'>('inspiration')
-  
-  // Resources state (Blob storage)
-  const [resourceFiles, setResourceFiles] = useState<Record<string, { pathname: string; url: string }[]>>({})
-  const [loadingResources, setLoadingResources] = useState(false)
   
   // Project state
   const [projectName, setProjectName] = useState('')
@@ -79,25 +73,33 @@ export default function StudioPage() {
   const [designDescription, setDesignDescription] = useState('')
   const [inspirationImages, setInspirationImages] = useState<InspirationImage[]>([])
   const [extractedColors, setExtractedColors] = useState<ExtractedColor[]>([])
-  const [selectedInventory, setSelectedInventory] = useState<string[]>([])
+  const [selectedProducts, setSelectedProducts] = useState<Product[]>([])
+  
+  // Inventory state
+  const [activeCategory, setActiveCategory] = useState('Seating')
   
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => { setLoaded(true) }, [])
   
-  // Load resources when inventory tab is selected
-  useEffect(() => {
-    if (activeTab === 'inventory' && Object.keys(resourceFiles).length === 0) {
-      setLoadingResources(true)
-      fetch('/api/upload-inventory')
-        .then(res => res.json())
-        .then(data => {
-          setResourceFiles(data.byCategory || {})
-          setLoadingResources(false)
-        })
-        .catch(() => setLoadingResources(false))
+  // Fetch categories
+  const { data: categoriesData } = useSWR('/api/categories', fetcher, {
+    revalidateOnFocus: false,
+  })
+  const categories: string[] = categoriesData?.categories || []
+  
+  // Fetch products by category
+  const { data: productsData, isValidating } = useSWR(
+    activeCategory 
+      ? `/api/products?imagesOnly=true&category=${encodeURIComponent(activeCategory)}&limit=50`
+      : null,
+    fetcher,
+    {
+      revalidateOnFocus: false,
+      keepPreviousData: true,
     }
-  }, [activeTab, resourceFiles])
+  )
+  const products: Product[] = productsData?.products || []
 
   // Handle image upload
   const handleImageUpload = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
@@ -116,7 +118,7 @@ export default function StudioPage() {
         setInspirationImages(prev => [...prev, newImage])
         
         // Extract colors from the new image
-        const colors = extractColorsFromImage(src)
+        const colors = extractColorsFromImage()
         setExtractedColors(prev => {
           const existing = new Set(prev.map(c => c.hex))
           const newColors = colors.filter(c => !existing.has(c.hex))
@@ -131,11 +133,17 @@ export default function StudioPage() {
     setInspirationImages(prev => prev.filter(img => img.id !== id))
   }
 
-  const toggleInventory = (id: string) => {
-    setSelectedInventory(prev => 
-      prev.includes(id) ? prev.filter(i => i !== id) : [...prev, id]
-    )
+  const toggleProduct = (product: Product) => {
+    setSelectedProducts(prev => {
+      const exists = prev.find(p => p.id === product.id)
+      if (exists) {
+        return prev.filter(p => p.id !== product.id)
+      }
+      return [...prev, product]
+    })
   }
+  
+  const isProductSelected = (id: string) => selectedProducts.some(p => p.id === id)
 
   const removeColor = (hex: string) => {
     setExtractedColors(prev => prev.filter(c => c.hex !== hex))
@@ -144,6 +152,16 @@ export default function StudioPage() {
   const copyColor = (hex: string) => {
     navigator.clipboard.writeText(hex)
   }
+
+  // Group selected products by category for preview
+  const selectedByCategory = useMemo(() => {
+    return selectedProducts.reduce((acc, product) => {
+      const cat = product.category || 'Other'
+      if (!acc[cat]) acc[cat] = []
+      acc[cat].push(product)
+      return acc
+    }, {} as Record<string, Product[]>)
+  }, [selectedProducts])
 
   return (
     <main className="bg-cream min-h-screen">
@@ -156,19 +174,19 @@ export default function StudioPage() {
             'text-xs uppercase tracking-[0.3em] text-charcoal/50 mb-4 transition-all duration-700',
             loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
           )}>
-            Design Studio
+            Start Your Project
           </p>
           <h1 className={cn(
             'font-display text-3xl md:text-4xl lg:text-5xl tracking-[0.2em] font-light uppercase text-charcoal transition-all duration-700',
             loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
           )} style={{ transitionDelay: '100ms' }}>
-            Style Guide Builder
+            Inquiry
           </h1>
           <p className={cn(
             'text-charcoal/60 mt-4 max-w-xl transition-all duration-700',
             loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
           )} style={{ transitionDelay: '200ms' }}>
-            Create beautiful client presentations with inspiration imagery, color palettes, and curated inventory selections.
+            Build your vision with inspiration imagery, color palettes, and curated inventory selections from our collection.
           </p>
         </div>
       </section>
@@ -199,7 +217,7 @@ export default function StudioPage() {
               className="bg-white border border-charcoal/10 px-4 py-3 text-sm text-charcoal placeholder:text-charcoal/40 focus:outline-none focus:border-charcoal/30 transition-colors"
             />
             <button className="bg-charcoal text-cream px-4 py-3 text-sm uppercase tracking-[0.1em] hover:bg-charcoal/90 transition-colors">
-              Export PDF
+              Submit Inquiry
             </button>
           </div>
         </div>
@@ -229,8 +247,8 @@ export default function StudioPage() {
                 {tab.id === 'inspiration' && inspirationImages.length > 0 && (
                   <span className="ml-2 text-[10px] bg-charcoal/10 px-1.5 py-0.5 rounded">{inspirationImages.length}</span>
                 )}
-                {tab.id === 'inventory' && selectedInventory.length > 0 && (
-                  <span className="ml-2 text-[10px] bg-charcoal/10 px-1.5 py-0.5 rounded">{selectedInventory.length}</span>
+                {tab.id === 'inventory' && selectedProducts.length > 0 && (
+                  <span className="ml-2 text-[10px] bg-charcoal/10 px-1.5 py-0.5 rounded">{selectedProducts.length}</span>
                 )}
               </button>
             ))}
@@ -342,100 +360,103 @@ export default function StudioPage() {
             </div>
           )}
 
-          {/* Inventory Tab - Combined with Blob Resources */}
+          {/* Inventory Tab - Connected to real products API */}
           {activeTab === 'inventory' && (
-            <div className="space-y-10">
-              {/* Header with link to admin */}
-              <div className="flex items-center justify-between">
-                <p className="text-xs uppercase tracking-[0.15em] text-charcoal/60">
-                  Browse & select pieces for this project
-                </p>
-                <a 
-                  href="/admin/upload" 
-                  className="text-xs uppercase tracking-[0.1em] text-charcoal/60 hover:text-charcoal underline underline-offset-4"
-                >
-                  Manage Uploads
-                </a>
+            <div className="space-y-8">
+              {/* Category Tabs */}
+              <div className="flex flex-wrap gap-2">
+                {categories.map((cat) => (
+                  <button
+                    key={cat}
+                    onClick={() => setActiveCategory(cat)}
+                    className={cn(
+                      'px-4 py-2 text-xs uppercase tracking-[0.1em] transition-all border',
+                      activeCategory === cat 
+                        ? 'bg-charcoal text-cream border-charcoal' 
+                        : 'bg-white text-charcoal/60 border-charcoal/10 hover:border-charcoal/30'
+                    )}
+                  >
+                    {cat}
+                  </button>
+                ))}
               </div>
               
-              {/* Blob Resources by Category */}
-              {loadingResources ? (
-                <div className="text-center py-16">
-                  <p className="text-charcoal/40">Loading inventory...</p>
-                </div>
-              ) : Object.keys(resourceFiles).length === 0 ? (
-                <div className="text-center py-16">
-                  <p className="text-charcoal/40 mb-4">No inventory items uploaded yet</p>
-                  <a 
-                    href="/admin/upload"
-                    className="inline-block px-6 py-2 bg-charcoal text-cream text-xs uppercase tracking-[0.1em] hover:bg-charcoal/90 transition-colors"
+              {/* Selected Items Summary */}
+              {selectedProducts.length > 0 && (
+                <div className="bg-charcoal/5 px-4 py-3 flex items-center justify-between">
+                  <span className="text-xs uppercase tracking-[0.1em] text-charcoal/60">
+                    {selectedProducts.length} items selected
+                  </span>
+                  <button 
+                    onClick={() => setSelectedProducts([])}
+                    className="text-xs uppercase tracking-[0.1em] text-charcoal/40 hover:text-charcoal"
                   >
-                    Upload Images
-                  </a>
+                    Clear All
+                  </button>
                 </div>
-              ) : (
-                <div className="space-y-10">
-                  {(['seating', 'tables', 'lighting', 'decor'] as const).map(cat => {
-                    const catFiles = resourceFiles[cat] || []
-                    if (catFiles.length === 0) return null
-                    
-                    return (
-                      <div key={cat}>
-                        <h3 className="text-sm uppercase tracking-[0.15em] text-charcoal mb-4 flex items-center gap-3">
-                          {cat}
-                          <span className="text-xs text-charcoal/40 font-normal">
-                            {catFiles.length} items
-                          </span>
-                        </h3>
-                        <div className="grid grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-3">
-                          {catFiles.map((blob, i) => {
-                            const filename = blob.pathname.split('/').pop() || ''
-                            const isSelected = selectedInventory.includes(blob.pathname)
-                            return (
-                              <div 
-                                key={i} 
-                                onClick={() => toggleInventory(blob.pathname)}
-                                className={cn(
-                                  "group relative aspect-square bg-white overflow-hidden cursor-pointer transition-all border border-charcoal/5",
-                                  isSelected && "ring-2 ring-charcoal ring-offset-2"
-                                )}
-                                title={filename.replace('.png', '').replace(/-/g, ' ')}
-                              >
-                                <img 
-                                  src={`/api/inventory-image?pathname=${encodeURIComponent(blob.pathname)}`} 
-                                  alt={filename} 
-                                  className="w-full h-full object-contain"
-                                />
-                                {isSelected && (
-                                  <div className="absolute top-1 right-1 w-5 h-5 bg-charcoal text-cream rounded-full flex items-center justify-center">
-                                    <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
-                                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                                    </svg>
-                                  </div>
-                                )}
-                                <div className="absolute inset-0 bg-charcoal/0 group-hover:bg-charcoal/40 transition-colors flex items-center justify-center opacity-0 group-hover:opacity-100">
-                                  <p className="text-cream text-[10px] px-2 text-center truncate max-w-full">
-                                    {filename.replace('.png', '').replace(/-/g, ' ')}
-                                  </p>
-                                </div>
-                              </div>
-                            )
-                          })}
+              )}
+              
+              {/* Product Grid */}
+              <div className={cn(
+                "grid grid-cols-3 md:grid-cols-5 lg:grid-cols-6 gap-3 transition-opacity duration-200",
+                isValidating ? "opacity-60" : "opacity-100"
+              )}>
+                {products.map((product) => {
+                  const isSelected = isProductSelected(product.id)
+                  return (
+                    <button
+                      key={product.id}
+                      onClick={() => toggleProduct(product)}
+                      className={cn(
+                        "group relative aspect-square bg-white overflow-hidden cursor-pointer transition-all border text-left",
+                        isSelected 
+                          ? "ring-2 ring-charcoal ring-offset-2 border-charcoal" 
+                          : "border-charcoal/5 hover:border-charcoal/20"
+                      )}
+                    >
+                      {product.primary_image_url && (
+                        <img
+                          src={product.primary_image_url}
+                          alt={product.name}
+                          className="w-full h-full object-contain p-2"
+                          loading="lazy"
+                        />
+                      )}
+                      
+                      {/* Selection indicator */}
+                      {isSelected && (
+                        <div className="absolute top-1 right-1 w-5 h-5 bg-charcoal text-cream rounded-full flex items-center justify-center">
+                          <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                          </svg>
                         </div>
+                      )}
+                      
+                      {/* Hover overlay */}
+                      <div className="absolute inset-0 bg-charcoal/0 group-hover:bg-charcoal/60 transition-colors flex items-end opacity-0 group-hover:opacity-100 p-2">
+                        <p className="text-cream text-[10px] uppercase tracking-wide truncate w-full">
+                          {product.name}
+                        </p>
                       </div>
-                    )
-                  })}
+                    </button>
+                  )
+                })}
+              </div>
+              
+              {products.length === 0 && !isValidating && (
+                <div className="text-center py-16">
+                  <p className="text-charcoal/40">No products found in this category</p>
                 </div>
               )}
             </div>
           )}
 
-          {/* Preview Tab - Landscape oriented deck preview */}
+          {/* Preview Tab */}
           {activeTab === 'preview' && (
             <div className="space-y-8">
-              <p className="text-xs uppercase tracking-[0.15em] text-charcoal/60">Presentation Preview</p>
+              <p className="text-xs uppercase tracking-[0.15em] text-charcoal/60">Inquiry Preview</p>
               
-              {/* Deck Container - Landscape 16:9 */}
+              {/* Deck Container */}
               <div className="space-y-6">
                 
                 {/* Slide 1: Cover */}
@@ -444,7 +465,7 @@ export default function StudioPage() {
                     <p className="text-cream/50 text-xs uppercase tracking-[0.3em]">Eclectic Hive</p>
                   </div>
                   <div>
-                    <p className="text-cream/50 text-xs uppercase tracking-[0.3em] mb-4">Style Guide</p>
+                    <p className="text-cream/50 text-xs uppercase tracking-[0.3em] mb-4">Project Inquiry</p>
                     <h2 className="font-display text-cream text-3xl md:text-5xl lg:text-6xl font-light italic">
                       {projectName || 'Project Name'}
                     </h2>
@@ -487,24 +508,34 @@ export default function StudioPage() {
                   </div>
                 </div>
 
-                {/* Slide 4: Selected Inventory */}
-                {selectedInventory.length > 0 && (
-                  <div className="aspect-[16/9] bg-white p-8 lg:p-16">
-                    <p className="text-charcoal/50 text-xs uppercase tracking-[0.3em] mb-8">Curated Pieces</p>
+                {/* Slide 4+: Selected Inventory by Category */}
+                {Object.entries(selectedByCategory).map(([category, items]) => (
+                  <div key={category} className="aspect-[16/9] bg-white p-8 lg:p-16">
+                    <p className="text-charcoal/50 text-xs uppercase tracking-[0.3em] mb-8">{category}</p>
                     <div className="grid grid-cols-4 gap-6 h-[calc(100%-4rem)]">
-                      {SAMPLE_INVENTORY.filter(i => selectedInventory.includes(i.id)).map((item) => (
-                        <div key={item.id} className="flex flex-col">
+                      {items.slice(0, 8).map((product) => (
+                        <div key={product.id} className="flex flex-col">
                           <div className="relative flex-1 bg-[#F8F6F3]">
-                            <Image src={item.image} alt={item.name} fill className="object-contain p-4" />
+                            {product.primary_image_url && (
+                              <Image 
+                                src={product.primary_image_url} 
+                                alt={product.name} 
+                                fill 
+                                className="object-contain p-4" 
+                              />
+                            )}
                           </div>
-                          <p className="text-sm text-charcoal mt-2">{item.name}</p>
+                          <p className="text-sm text-charcoal mt-2 truncate">{product.name}</p>
+                          {product.dims_display && (
+                            <p className="text-xs text-charcoal/40">{product.dims_display}</p>
+                          )}
                         </div>
                       ))}
                     </div>
                   </div>
-                )}
+                ))}
 
-                {/* Slide 5: Contact */}
+                {/* Final Slide: Contact */}
                 <div className="aspect-[16/9] bg-charcoal p-8 lg:p-16 flex flex-col justify-between">
                   <div />
                   <div className="text-center">

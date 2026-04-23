@@ -9,13 +9,13 @@ import { cn } from '@/lib/utils'
 const NAV_LINKS = [
   { href: '/atelier', label: 'Atelier by The Hive' },
   { href: '/collection', label: 'Hive Signature Collection' },
-  { href: '/studio', label: 'Design Studio' },
+  { href: '/inquiry', label: 'Start Inquiry' },
   { href: '/gallery', label: 'The Gallery' },
   { href: '/contact', label: 'Contact' },
 ]
 
 // Pages with light (cream) backgrounds need dark nav text
-const LIGHT_BG_PAGES = ['/collection', '/contact', '/faq', '/privacy', '/studio', '/process']
+const LIGHT_BG_PAGES = ['/collection', '/contact', '/faq', '/privacy', '/inquiry', '/process']
 
 export function Navigation() {
   const [isOpen, setIsOpen] = useState(false)
