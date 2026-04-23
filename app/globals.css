@@ -2,8 +2,9 @@
 @import 'tw-animate-css';
 
 /* Saol Display - Brand Font (served from private Blob via API) */
-/* B8: Using font-display: swap - shows fallback immediately, swaps in Saol when ready */
-/* Fallback font with adjusted metrics to minimize layout shift */
+/* Using font-display: optional for display font at hero scale (7rem) */
+/* Better to show nothing than a jarring Georgia→Saol swap at that size */
+/* Fallback font with adjusted metrics for body text contexts */
 @font-face {
   font-family: 'Saol Display Fallback';
   src: local('Georgia'), local('Times New Roman'), local('serif');
@@ -18,7 +19,7 @@
   src: url('/api/fonts/SaolDisplay-LightItalic.otf') format('opentype');
   font-weight: 300;
   font-style: italic;
-  font-display: swap;
+  font-display: optional;
 }
 
 @font-face {
@@ -26,7 +27,7 @@
   src: url('/api/fonts/SaolDisplay-Regular.otf') format('opentype');
   font-weight: 400;
   font-style: normal;
-  font-display: swap;
+  font-display: optional;
 }
 
 @font-face {
@@ -34,7 +35,7 @@
   src: url('/api/fonts/SaolDisplay-Semibold.otf') format('opentype');
   font-weight: 600;
   font-style: normal;
-  font-display: swap;
+  font-display: optional;
 }
 
 @custom-variant dark (&:is(.dark *));
@@ -765,16 +766,78 @@ img {
   pointer-events: none;
 }
 
-/* Service-oriented inquiry button style (not cart/transactional) */
+/* =============================================================================
+   DATA-SURFACE SYSTEM (from brand deck)
+   Three surfaces that can coexist on same page: dark, light, over-image
+   Use data-surface attribute on section elements for scoped token overrides
+   ============================================================================= */
+
+[data-surface="dark"] {
+  --surface-bg: var(--charcoal);
+  --surface-text: var(--cream);
+  --surface-text-muted: rgba(245, 242, 237, 0.6);
+  --surface-border: rgba(245, 242, 237, 0.1);
+}
+
+[data-surface="light"] {
+  --surface-bg: var(--cream);
+  --surface-text: var(--charcoal);
+  --surface-text-muted: rgba(26, 26, 26, 0.6);
+  --surface-border: rgba(26, 26, 26, 0.1);
+}
+
+[data-surface="over-image"] {
+  --surface-bg: transparent;
+  --surface-text: var(--cream);
+  --surface-text-muted: rgba(245, 242, 237, 0.7);
+  --surface-border: rgba(245, 255, 255, 0.2);
+}
+
+/* Apply surface tokens to children automatically */
+[data-surface] {
+  background-color: var(--surface-bg);
+  color: var(--surface-text);
+}
+
+/* Service-oriented inquiry button - THE ONE LOUD MOMENT */
+/* Clip-path wipe reveal on hover breaks the quiet pattern deliberately */
 .btn-inquiry {
   @apply inline-flex items-center justify-center gap-2;
   @apply px-6 py-3 min-h-[44px];
   @apply bg-charcoal text-cream;
   @apply text-xs uppercase;
   letter-spacing: var(--tracking-label);
-  @apply transition-all duration-300;
-  @apply hover:bg-charcoal/90;
-  @apply press-effect;
+  position: relative;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.1s ease;
+}
+
+.btn-inquiry:active {
+  transform: scale(0.98);
+}
+
+.btn-inquiry::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: var(--accent-brass);
+  clip-path: inset(0 100% 0 0);
+  transition: clip-path 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-inquiry:hover::before {
+  clip-path: inset(0 0 0 0);
+}
+
+.btn-inquiry span {
+  position: relative;
+  z-index: 1;
+  transition: color 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.btn-inquiry:hover span {
+  color: var(--charcoal);
 }
 
 .btn-inquiry-outline {
