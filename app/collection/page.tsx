@@ -246,7 +246,7 @@ export default function CollectionPage() {
   const categories: string[] = categoriesData?.categories || []
   
   // B1: Fetch by category, not all 500 products - biggest perf win
-  const { data: productsData, mutate: mutateProducts } = useSWR(
+  const { data: productsData, mutate: mutateProducts, isValidating } = useSWR(
     activeCategory
       ? `/api/products?imagesOnly=true&category=${encodeURIComponent(activeCategory)}&limit=100`
       : null,
@@ -268,9 +268,13 @@ export default function CollectionPage() {
   }, [cache])
   
   const products: Product[] = productsData?.products || []
-  // Show loading if: no categories yet, OR has category but no products data yet
+  // Show loading ONLY on initial load (no data yet), not when switching categories
+  // keepPreviousData handles showing old items while new ones load
   const isInitializing = !categoriesData
-  const isLoading = isInitializing || (!productsData && activeCategory !== '')
+  const isFirstLoad = !productsData && activeCategory !== '' && !isValidating
+  const isLoading = isInitializing || isFirstLoad
+  // Track if we're fetching new category data (for opacity transition)
+  const isSwitchingCategories = isValidating && productsData
   
   // B2: Pre-compute subcategories once per product load (not on every render)
   const productsWithSubCategory = useMemo(() =>
@@ -492,9 +496,11 @@ export default function CollectionPage() {
                 )}
               >
                 {getCategoryDisplay(cat)}
-                {/* Active underline */}
+                {/* Active underline - animates when loading */}
                 {activeCategory === cat && (
-                  <span className="absolute bottom-1 left-3 right-3 h-px bg-charcoal" />
+                  <span className={`absolute bottom-1 left-3 right-3 h-px bg-charcoal ${
+                    isSwitchingCategories ? 'animate-pulse' : ''
+                  }`} />
                 )}
               </button>
             ))}
@@ -650,16 +656,23 @@ export default function CollectionPage() {
       ───────────────────────────────────────────────────────────── */}
       <section className="flex-1 bg-white">
         {isLoading ? (
-          // Skeleton grid - instant visual feedback
+          // Skeleton grid - matches exact grid structure, subtle shimmer
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
             {Array.from({ length: 24 }).map((_, i) => (
-              <div key={i} className="border-r border-b border-charcoal/5">
-                <div className="aspect-square bg-neutral-100 animate-pulse" />
+              <div key={i} className="border-r border-b border-charcoal/5 relative overflow-hidden">
+                <div className="aspect-square bg-neutral-50">
+                  {/* Shimmer overlay */}
+                  <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/40 to-transparent" />
+                </div>
               </div>
             ))}
           </div>
         ) : filteredProducts.length > 0 ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+          <div 
+            className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 transition-opacity duration-200 ${
+              isSwitchingCategories ? 'opacity-60' : 'opacity-100'
+            }`}
+          >
             {filteredProducts.map((product, index) => (
               <ProductCard 
                 key={product.id} 

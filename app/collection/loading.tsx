@@ -53,8 +53,8 @@ export default function CollectionLoading() {
                 >
                   {/* Shimmer effect */}
                   <div 
-                    className="absolute inset-0 bg-gradient-to-r from-transparent via-white/60 to-transparent animate-shimmer"
-                    style={{ animationDelay: `${(i % 6) * 150}ms` }}
+                    className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/40 to-transparent"
+                    style={{ animationDelay: `${(i % 6) * 100}ms` }}
                   />
                 </div>
               </div>
