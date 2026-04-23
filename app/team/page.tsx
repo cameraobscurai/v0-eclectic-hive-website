@@ -29,13 +29,13 @@ const team = [
     image: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/b56b8da0-ecf7-42b4-b81b-99fe7b64e4ad/Amanda+Ferguson%2C+Senior+Designer+B%2BW.jpg',
   },
   {
-    name: 'Adrienne Moon',
-    role: 'Purchasing & Inventory Specialist',
+    name: 'Patrick Batten',
+    role: 'Director of Warehouse Operations',
     image: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/c932a1b6-1a1b-4c88-9e06-a237a6443aa1/Eclectic+Hive-Carrie+King+Photographer-154.jpg',
   },
   {
-    name: 'Patrick Batten',
-    role: 'Director of Warehouse Operations',
+    name: 'Adrienne Moon',
+    role: 'Purchasing & Inventory Specialist',
     image: 'https://images.squarespace-cdn.com/content/v1/57239bd5f8baf385ff553066/1709849155632-XVNC0GKKVIJY3KYXGQP6/Patrick+Batten+Headshot.jpg',
   },
 ]
