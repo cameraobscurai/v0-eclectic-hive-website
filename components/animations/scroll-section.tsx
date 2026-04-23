@@ -3,6 +3,19 @@
 import { useRef, useEffect, useState, type ReactNode, type CSSProperties } from 'react'
 import { cn } from '@/lib/utils'
 
+// Check for reduced motion preference
+function usePrefersReducedMotion() {
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
+    setPrefersReducedMotion(mq.matches)
+    const handler = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches)
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
+  }, [])
+  return prefersReducedMotion
+}
+
 interface ScrollSectionProps {
   children: ReactNode
   className?: string
@@ -21,10 +34,13 @@ export function ScrollSection({
   const ref = useRef<HTMLElement>(null)
   const [isInView, setIsInView] = useState(false)
   const [offset, setOffset] = useState(0)
+  const reducedMotion = usePrefersReducedMotion()
 
   useEffect(() => {
     const element = ref.current
     if (!element) return
+    
+    if (reducedMotion) { setIsInView(true); return }
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -32,12 +48,12 @@ export function ScrollSection({
           setIsInView(true)
         }
       },
-      { threshold: 0.05, rootMargin: '0px 0px -100px 0px' }
+      { threshold: 0.05, rootMargin: '0px 0px -60px 0px' }
     )
 
     observer.observe(element)
     return () => observer.disconnect()
-  }, [])
+  }, [reducedMotion])
 
   useEffect(() => {
     if (!parallax) return
@@ -61,12 +77,12 @@ export function ScrollSection({
     ? {
         opacity: isInView ? 1 : 0,
         transform: parallax 
-          ? `translateY(${offset}px)` 
+          ? `translateY(${reducedMotion ? 0 : offset}px)` 
           : isInView 
             ? 'translateY(0)' 
-            : 'translateY(30px)',
+            : 'translateY(16px)',
         transitionProperty: 'opacity, transform',
-        transitionDuration: '1s',
+        transitionDuration: '0.6s',
         transitionTimingFunction: 'cubic-bezier(0.22, 1, 0.36, 1)',
       }
     : parallax
@@ -95,10 +111,13 @@ export function ImageReveal({
 }: ImageRevealProps) {
   const ref = useRef<HTMLDivElement>(null)
   const [isInView, setIsInView] = useState(false)
+  const reducedMotion = usePrefersReducedMotion()
 
   useEffect(() => {
     const element = ref.current
     if (!element) return
+    
+    if (reducedMotion) { setIsInView(true); return }
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -107,12 +126,12 @@ export function ImageReveal({
           observer.unobserve(element)
         }
       },
-      { threshold: 0.1, rootMargin: '0px 0px -50px 0px' }
+      { threshold: 0.05, rootMargin: '0px 0px -60px 0px' }
     )
 
     observer.observe(element)
     return () => observer.disconnect()
-  }, [])
+  }, [reducedMotion])
 
   const overlayOrigin = {
     up: 'origin-bottom',
@@ -228,10 +247,13 @@ export function SplitImage({
 }: SplitImageProps) {
   const ref = useRef<HTMLDivElement>(null)
   const [isInView, setIsInView] = useState(false)
+  const reducedMotion = usePrefersReducedMotion()
 
   useEffect(() => {
     const element = ref.current
     if (!element) return
+    
+    if (reducedMotion) { setIsInView(true); return }
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -240,12 +262,12 @@ export function SplitImage({
           observer.unobserve(element)
         }
       },
-      { threshold: 0.2 }
+      { threshold: 0.1, rootMargin: '0px 0px -60px 0px' }
     )
 
     observer.observe(element)
     return () => observer.disconnect()
-  }, [])
+  }, [reducedMotion])
 
   return (
     <div ref={ref} className={cn('relative overflow-hidden', className)}>

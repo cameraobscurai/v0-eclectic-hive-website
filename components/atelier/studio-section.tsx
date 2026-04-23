@@ -3,13 +3,28 @@
 import { useRef, useState, useEffect } from 'react'
 import { cn } from '@/lib/utils'
 
+// Check for reduced motion preference
+function usePrefersReducedMotion() {
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
+    setPrefersReducedMotion(mq.matches)
+    const handler = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches)
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
+  }, [])
+  return prefersReducedMotion
+}
+
 export function StudioSection() {
   const [isInView, setIsInView] = useState(false)
   const ref = useRef<HTMLElement>(null)
+  const reducedMotion = usePrefersReducedMotion()
 
   useEffect(() => {
     const element = ref.current
     if (!element) return
+    if (reducedMotion) { setIsInView(true); return }
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -17,11 +32,11 @@ export function StudioSection() {
           observer.unobserve(element)
         }
       },
-      { threshold: 0.2 }
+      { threshold: 0.05, rootMargin: '0px 0px -60px 0px' }
     )
     observer.observe(element)
     return () => observer.disconnect()
-  }, [])
+  }, [reducedMotion])
 
   return (
     <section ref={ref} className="bg-cream py-24 lg:py-40">
@@ -30,8 +45,8 @@ export function StudioSection() {
           {/* Image */}
           <div 
             className={cn(
-              'relative aspect-[4/3] bg-sand transition-all duration-1000',
-              isInView ? 'opacity-100 scale-100' : 'opacity-0 scale-105'
+              'relative aspect-[4/3] bg-sand transition-all duration-600 ease-out',
+              isInView ? 'opacity-100 scale-100' : 'opacity-0 scale-[1.02]'
             )}
           >
             <div className="absolute inset-0 flex flex-col items-center justify-center">
@@ -48,28 +63,28 @@ export function StudioSection() {
           <div>
             <p 
               className={cn(
-                'text-xs uppercase tracking-[0.3em] text-charcoal/50 mb-6 transition-all duration-700',
-                isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+                'text-xs uppercase tracking-[0.3em] text-charcoal/50 mb-6 transition-all duration-500 ease-out',
+                isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3'
               )}
-              style={{ transitionDelay: '200ms' }}
+              style={{ transitionDelay: '100ms' }}
             >
               Design Studio
             </p>
             <h2 
               className={cn(
-                'font-display text-2xl md:text-3xl tracking-[0.2em] font-light uppercase text-charcoal transition-all duration-700',
-                isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+                'font-display text-2xl md:text-3xl tracking-[0.2em] font-light uppercase text-charcoal transition-all duration-500 ease-out',
+                isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3'
               )}
-              style={{ transitionDelay: '300ms' }}
+              style={{ transitionDelay: '160ms' }}
             >
               The creative work hub
             </h2>
             <p 
               className={cn(
-                'mt-6 text-charcoal/70 leading-relaxed transition-all duration-700',
-                isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+                'mt-6 text-charcoal/70 leading-relaxed transition-all duration-500 ease-out',
+                isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3'
               )}
-              style={{ transitionDelay: '400ms' }}
+              style={{ transitionDelay: '220ms' }}
             >
               Our Denver studio is where ideas become tangible. Here, design concepts 
               are developed, materials are sourced and tested, and every detail is 
@@ -77,10 +92,10 @@ export function StudioSection() {
             </p>
             <p 
               className={cn(
-                'mt-4 text-charcoal/70 leading-relaxed transition-all duration-700',
-                isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+                'mt-4 text-charcoal/70 leading-relaxed transition-all duration-500 ease-out',
+                isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3'
               )}
-              style={{ transitionDelay: '500ms' }}
+              style={{ transitionDelay: '280ms' }}
             >
               This is where the cinematic, art-forward approach that defines our work 
               takes shape—where mood boards become environments and sketches become 

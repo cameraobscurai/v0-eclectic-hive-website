@@ -8,14 +8,40 @@ interface ScrollAnimationOptions {
   once?: boolean
 }
 
+// Check for reduced motion preference
+function prefersReducedMotion(): boolean {
+  if (typeof window === 'undefined') return false
+  return window.matchMedia('(prefers-reduced-motion: reduce)').matches
+}
+
 export function useScrollAnimation(options: ScrollAnimationOptions = {}) {
-  const { threshold = 0.1, rootMargin = '0px 0px -50px 0px', once = true } = options
+  // Lower threshold (0.05) and earlier trigger (-80px) for smoother reveal
+  const { threshold = 0.05, rootMargin = '0px 0px -80px 0px', once = true } = options
   const ref = useRef<HTMLElement>(null)
   const [isInView, setIsInView] = useState(false)
+  const [reducedMotion, setReducedMotion] = useState(false)
+
+  useEffect(() => {
+    // Check reduced motion on mount
+    setReducedMotion(prefersReducedMotion())
+    
+    // Listen for changes to reduced motion preference
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const handleChange = (e: MediaQueryListEvent) => setReducedMotion(e.matches)
+    mediaQuery.addEventListener('change', handleChange)
+    
+    return () => mediaQuery.removeEventListener('change', handleChange)
+  }, [])
 
   useEffect(() => {
     const element = ref.current
     if (!element) return
+    
+    // If reduced motion is preferred, show immediately
+    if (reducedMotion) {
+      setIsInView(true)
+      return
+    }
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -31,10 +57,13 @@ export function useScrollAnimation(options: ScrollAnimationOptions = {}) {
 
     observer.observe(element)
     return () => observer.disconnect()
-  }, [threshold, rootMargin, once])
+  }, [threshold, rootMargin, once, reducedMotion])
 
-  return { ref, isInView }
+  return { ref, isInView, reducedMotion }
 }
+
+// Export for use in components that manage their own observers
+export { prefersReducedMotion }
 
 interface ScrollProgressOptions {
   offset?: [string, string]

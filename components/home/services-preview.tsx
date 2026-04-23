@@ -35,10 +35,10 @@ function ServiceRow({
   return (
     <div 
       className={cn(
-        'py-14 lg:py-18 border-b border-cream/10 grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 group cursor-pointer transition-all duration-500',
-        isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+        'py-14 lg:py-18 border-b border-cream/10 grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-8 group cursor-pointer transition-all duration-500 ease-out',
+        isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
       )}
-      style={{ transitionDelay: `${index * 100}ms` }}
+      style={{ transitionDelay: `${index * 80}ms` }}
     >
       <div className="lg:col-span-1">
         <span className="text-xs text-cream/30 tabular-nums">{service.number}</span>
@@ -66,13 +66,35 @@ function ServiceRow({
   )
 }
 
+// Check for reduced motion preference
+function usePrefersReducedMotion() {
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
+  
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
+    setPrefersReducedMotion(mediaQuery.matches)
+    
+    const handleChange = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches)
+    mediaQuery.addEventListener('change', handleChange)
+    return () => mediaQuery.removeEventListener('change', handleChange)
+  }, [])
+  
+  return prefersReducedMotion
+}
+
 export function ServicesPreview() {
   const ref = useRef<HTMLDivElement>(null)
   const [isInView, setIsInView] = useState(false)
+  const prefersReducedMotion = usePrefersReducedMotion()
 
   useEffect(() => {
     const element = ref.current
     if (!element) return
+    
+    if (prefersReducedMotion) {
+      setIsInView(true)
+      return
+    }
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -81,12 +103,13 @@ export function ServicesPreview() {
           observer.unobserve(element)
         }
       },
-      { threshold: 0.1, rootMargin: '0px 0px -100px 0px' }
+      // Smoother trigger - earlier reveal
+      { threshold: 0.05, rootMargin: '0px 0px -60px 0px' }
     )
 
     observer.observe(element)
     return () => observer.disconnect()
-  }, [])
+  }, [prefersReducedMotion])
 
   return (
     <section className="bg-charcoal text-cream py-28 lg:py-44">

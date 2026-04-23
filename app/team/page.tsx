@@ -59,14 +59,37 @@ const values = [
   },
 ]
 
+// Check for reduced motion preference
+function usePrefersReducedMotion() {
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
+  
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
+    setPrefersReducedMotion(mediaQuery.matches)
+    
+    const handleChange = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches)
+    mediaQuery.addEventListener('change', handleChange)
+    return () => mediaQuery.removeEventListener('change', handleChange)
+  }, [])
+  
+  return prefersReducedMotion
+}
+
 function TeamMember({ member, index }: { member: typeof team[0]; index: number }) {
   const [isInView, setIsInView] = useState(false)
   const [imageLoaded, setImageLoaded] = useState(false)
   const ref = useRef<HTMLDivElement>(null)
+  const prefersReducedMotion = usePrefersReducedMotion()
 
   useEffect(() => {
     const element = ref.current
     if (!element) return
+    
+    // Skip animation if reduced motion is preferred
+    if (prefersReducedMotion) {
+      setIsInView(true)
+      return
+    }
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -75,21 +98,23 @@ function TeamMember({ member, index }: { member: typeof team[0]; index: number }
           observer.unobserve(element)
         }
       },
-      { threshold: 0.2 }
+      // Lower threshold, earlier trigger for smoother reveal
+      { threshold: 0.05, rootMargin: '0px 0px -60px 0px' }
     )
 
     observer.observe(element)
     return () => observer.disconnect()
-  }, [])
+  }, [prefersReducedMotion])
 
   return (
     <div 
       ref={ref}
       className={cn(
-        'group transition-all duration-700',
-        isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-12'
+        'group transition-all duration-500 ease-out',
+        // Smaller translate (6 instead of 12) for smoother feel
+        isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
       )}
-      style={{ transitionDelay: `${index * 100}ms` }}
+      style={{ transitionDelay: `${index * 80}ms` }}
     >
       <div className="relative aspect-[3/4] mb-8 overflow-hidden bg-muted">
         <Image

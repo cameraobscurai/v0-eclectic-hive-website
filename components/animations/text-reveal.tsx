@@ -3,6 +3,19 @@
 import { useRef, useEffect, useState, type ReactNode, type CSSProperties } from 'react'
 import { cn } from '@/lib/utils'
 
+// Check for reduced motion preference
+function usePrefersReducedMotion() {
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
+    setPrefersReducedMotion(mq.matches)
+    const handler = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches)
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
+  }, [])
+  return prefersReducedMotion
+}
+
 interface TextRevealProps {
   children: ReactNode
   className?: string
@@ -18,19 +31,22 @@ export function TextReveal({
   children,
   className,
   delay = 0,
-  duration = 0.8,
+  duration = 0.6,
   as: Component = 'div',
   splitBy = 'word',
-  stagger = 0.05,
+  stagger = 0.04,
   once = true,
 }: TextRevealProps) {
   const ref = useRef<HTMLElement>(null)
   const [isInView, setIsInView] = useState(false)
   const text = typeof children === 'string' ? children : ''
+  const reducedMotion = usePrefersReducedMotion()
 
   useEffect(() => {
     const element = ref.current
     if (!element) return
+    
+    if (reducedMotion) { setIsInView(true); return }
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -41,12 +57,12 @@ export function TextReveal({
           setIsInView(false)
         }
       },
-      { threshold: 0.1, rootMargin: '0px 0px -30px 0px' }
+      { threshold: 0.05, rootMargin: '0px 0px -40px 0px' }
     )
 
     observer.observe(element)
     return () => observer.disconnect()
-  }, [once])
+  }, [once, reducedMotion])
 
   if (!text) {
     return (
@@ -117,15 +133,18 @@ export function HighlightText({
   className,
   highlightClassName = 'bg-terracotta/20',
   delay = 0,
-  duration = 1.2,
+  duration = 0.8,
   as: Component = 'span',
 }: HighlightTextProps) {
   const ref = useRef<HTMLElement>(null)
   const [isInView, setIsInView] = useState(false)
+  const reducedMotion = usePrefersReducedMotion()
 
   useEffect(() => {
     const element = ref.current
     if (!element) return
+    
+    if (reducedMotion) { setIsInView(true); return }
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -134,12 +153,12 @@ export function HighlightText({
           observer.unobserve(element)
         }
       },
-      { threshold: 0.5 }
+      { threshold: 0.3, rootMargin: '0px 0px -40px 0px' }
     )
 
     observer.observe(element)
     return () => observer.disconnect()
-  }, [])
+  }, [reducedMotion])
 
   return (
     <Component
@@ -178,17 +197,20 @@ export function FadeUp({
   children,
   className,
   delay = 0,
-  duration = 0.8,
-  distance = 40,
+  duration = 0.5,
+  distance = 24,
   once = true,
   as: Component = 'div',
 }: FadeUpProps) {
   const ref = useRef<HTMLElement>(null)
   const [isInView, setIsInView] = useState(false)
+  const reducedMotion = usePrefersReducedMotion()
 
   useEffect(() => {
     const element = ref.current
     if (!element) return
+    
+    if (reducedMotion) { setIsInView(true); return }
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -199,12 +221,12 @@ export function FadeUp({
           setIsInView(false)
         }
       },
-      { threshold: 0.1, rootMargin: '0px 0px -50px 0px' }
+      { threshold: 0.05, rootMargin: '0px 0px -60px 0px' }
     )
 
     observer.observe(element)
     return () => observer.disconnect()
-  }, [once])
+  }, [once, reducedMotion])
 
   const style: CSSProperties = {
     transform: isInView ? 'translateY(0)' : `translateY(${distance}px)`,
@@ -236,15 +258,18 @@ interface StaggerContainerProps {
 export function StaggerContainer({
   children,
   className,
-  stagger = 0.1,
+  stagger = 0.08,
   delay = 0,
 }: StaggerContainerProps) {
   const ref = useRef<HTMLDivElement>(null)
   const [isInView, setIsInView] = useState(false)
+  const reducedMotion = usePrefersReducedMotion()
 
   useEffect(() => {
     const element = ref.current
     if (!element) return
+    
+    if (reducedMotion) { setIsInView(true); return }
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -253,12 +278,12 @@ export function StaggerContainer({
           observer.unobserve(element)
         }
       },
-      { threshold: 0.1, rootMargin: '0px 0px -50px 0px' }
+      { threshold: 0.05, rootMargin: '0px 0px -60px 0px' }
     )
 
     observer.observe(element)
     return () => observer.disconnect()
-  }, [])
+  }, [reducedMotion])
 
   return (
     <div
@@ -290,10 +315,13 @@ export function LineReveal({
 }: LineRevealProps) {
   const ref = useRef<HTMLDivElement>(null)
   const [isInView, setIsInView] = useState(false)
+  const reducedMotion = usePrefersReducedMotion()
 
   useEffect(() => {
     const element = ref.current
     if (!element) return
+    
+    if (reducedMotion) { setIsInView(true); return }
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -302,12 +330,12 @@ export function LineReveal({
           observer.unobserve(element)
         }
       },
-      { threshold: 0.1 }
+      { threshold: 0.05, rootMargin: '0px 0px -40px 0px' }
     )
 
     observer.observe(element)
     return () => observer.disconnect()
-  }, [])
+  }, [reducedMotion])
 
   const originClass = direction === 'left' 
     ? 'origin-left' 

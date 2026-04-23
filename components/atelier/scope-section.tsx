@@ -30,13 +30,28 @@ const capabilities = [
   },
 ]
 
+// Check for reduced motion preference
+function usePrefersReducedMotion() {
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
+    setPrefersReducedMotion(mq.matches)
+    const handler = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches)
+    mq.addEventListener('change', handler)
+    return () => mq.removeEventListener('change', handler)
+  }, [])
+  return prefersReducedMotion
+}
+
 export function ScopeSection() {
   const [isInView, setIsInView] = useState(false)
   const ref = useRef<HTMLElement>(null)
+  const reducedMotion = usePrefersReducedMotion()
 
   useEffect(() => {
     const element = ref.current
     if (!element) return
+    if (reducedMotion) { setIsInView(true); return }
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -44,11 +59,11 @@ export function ScopeSection() {
           observer.unobserve(element)
         }
       },
-      { threshold: 0.15 }
+      { threshold: 0.05, rootMargin: '0px 0px -60px 0px' }
     )
     observer.observe(element)
     return () => observer.disconnect()
-  }, [])
+  }, [reducedMotion])
 
   return (
     <section ref={ref} className="bg-charcoal text-cream py-24 lg:py-40">
@@ -58,18 +73,18 @@ export function ScopeSection() {
           <div className="lg:col-span-4 lg:sticky lg:top-32 lg:self-start">
             <p 
               className={cn(
-                'text-xs uppercase tracking-[0.3em] text-cream/50 mb-6 transition-all duration-700',
-                isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+                'text-xs uppercase tracking-[0.3em] text-cream/50 mb-6 transition-all duration-500 ease-out',
+                isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3'
               )}
             >
               Scope of Work
             </p>
             <h2 
               className={cn(
-                'font-display text-2xl md:text-3xl tracking-[0.2em] font-light uppercase transition-all duration-700',
-                isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+                'font-display text-2xl md:text-3xl tracking-[0.2em] font-light uppercase transition-all duration-500 ease-out',
+                isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3'
               )}
-              style={{ transitionDelay: '100ms' }}
+              style={{ transitionDelay: '80ms' }}
             >
               Full-service design + production
             </h2>
@@ -82,10 +97,10 @@ export function ScopeSection() {
                 <div 
                   key={item.title}
                   className={cn(
-                    'border-t border-cream/20 pt-6 transition-all duration-700',
-                    isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+                    'border-t border-cream/20 pt-6 transition-all duration-500 ease-out',
+                    isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
                   )}
-                  style={{ transitionDelay: `${200 + i * 80}ms` }}
+                  style={{ transitionDelay: `${160 + i * 60}ms` }}
                 >
                   <h3 className="font-display text-xl tracking-tight font-normal mb-3">{item.title}</h3>
                   <p className="text-cream/60 text-sm leading-relaxed">{item.description}</p>

@@ -37,13 +37,36 @@ const team = [
   },
 ]
 
+// Check for reduced motion preference
+function usePrefersReducedMotion() {
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
+  
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
+    setPrefersReducedMotion(mediaQuery.matches)
+    
+    const handleChange = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches)
+    mediaQuery.addEventListener('change', handleChange)
+    return () => mediaQuery.removeEventListener('change', handleChange)
+  }, [])
+  
+  return prefersReducedMotion
+}
+
 export function TeamSection() {
   const [isInView, setIsInView] = useState(false)
   const ref = useRef<HTMLElement>(null)
+  const prefersReducedMotion = usePrefersReducedMotion()
 
   useEffect(() => {
     const element = ref.current
     if (!element) return
+    
+    if (prefersReducedMotion) {
+      setIsInView(true)
+      return
+    }
+    
     const observer = new IntersectionObserver(
       ([entry]) => {
         if (entry.isIntersecting) {
@@ -51,11 +74,12 @@ export function TeamSection() {
           observer.unobserve(element)
         }
       },
-      { threshold: 0.2 }
+      // Smoother trigger - earlier and lower threshold
+      { threshold: 0.05, rootMargin: '0px 0px -60px 0px' }
     )
     observer.observe(element)
     return () => observer.disconnect()
-  }, [])
+  }, [prefersReducedMotion])
 
   return (
     <section ref={ref} className="bg-cream py-24 lg:py-40">
@@ -65,27 +89,27 @@ export function TeamSection() {
           <div className="lg:col-span-4">
             <p 
               className={cn(
-                'text-xs uppercase tracking-[0.3em] text-charcoal/50 mb-6 transition-all duration-700',
-                isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+                'text-xs uppercase tracking-[0.3em] text-charcoal/50 mb-6 transition-all duration-500 ease-out',
+                isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3'
               )}
             >
               The Team
             </p>
             <h2 
               className={cn(
-                'font-display text-2xl md:text-3xl tracking-[0.2em] font-light uppercase text-charcoal transition-all duration-700',
-                isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+                'font-display text-2xl md:text-3xl tracking-[0.2em] font-light uppercase text-charcoal transition-all duration-500 ease-out',
+                isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3'
               )}
-              style={{ transitionDelay: '100ms' }}
+              style={{ transitionDelay: '80ms' }}
             >
               Professional but approachable
             </h2>
             <p 
               className={cn(
-                'mt-6 text-charcoal/70 leading-relaxed transition-all duration-700',
-                isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+                'mt-6 text-charcoal/70 leading-relaxed transition-all duration-500 ease-out',
+                isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3'
               )}
-              style={{ transitionDelay: '200ms' }}
+              style={{ transitionDelay: '160ms' }}
             >
               Our team brings together design intelligence, fabrication expertise, 
               and production experience. We love what we do—and it shows in every 
@@ -100,10 +124,10 @@ export function TeamSection() {
                 <div
                   key={member.name + i}
                   className={cn(
-                    'group transition-all duration-700',
-                    isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+                    'group transition-all duration-500 ease-out',
+                    isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
                   )}
-                  style={{ transitionDelay: `${300 + i * 100}ms` }}
+                  style={{ transitionDelay: `${240 + i * 60}ms` }}
                 >
                   <div className="relative aspect-[3/4] mb-4 overflow-hidden bg-sand">
                     <Image

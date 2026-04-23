@@ -28,10 +28,10 @@ function ProcessStep({
   return (
     <div 
       className={cn(
-        'py-7 border-b border-border flex gap-6 lg:gap-8 cursor-pointer transition-all duration-700',
-        isInView ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-8'
+        'py-7 border-b border-border flex gap-6 lg:gap-8 cursor-pointer transition-all duration-500 ease-out',
+        isInView ? 'opacity-100 translate-x-0' : 'opacity-0 -translate-x-4'
       )}
-      style={{ transitionDelay: `${300 + index * 100}ms` }}
+      style={{ transitionDelay: `${200 + index * 80}ms` }}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
@@ -54,13 +54,35 @@ function ProcessStep({
   )
 }
 
+// Check for reduced motion preference
+function usePrefersReducedMotion() {
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
+  
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
+    setPrefersReducedMotion(mediaQuery.matches)
+    
+    const handleChange = (e: MediaQueryListEvent) => setPrefersReducedMotion(e.matches)
+    mediaQuery.addEventListener('change', handleChange)
+    return () => mediaQuery.removeEventListener('change', handleChange)
+  }, [])
+  
+  return prefersReducedMotion
+}
+
 export function ProcessPreview() {
   const ref = useRef<HTMLDivElement>(null)
   const [isInView, setIsInView] = useState(false)
+  const prefersReducedMotion = usePrefersReducedMotion()
 
   useEffect(() => {
     const element = ref.current
     if (!element) return
+    
+    if (prefersReducedMotion) {
+      setIsInView(true)
+      return
+    }
 
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -69,12 +91,13 @@ export function ProcessPreview() {
           observer.unobserve(element)
         }
       },
-      { threshold: 0.1, rootMargin: '0px 0px -100px 0px' }
+      // Smoother trigger
+      { threshold: 0.05, rootMargin: '0px 0px -60px 0px' }
     )
 
     observer.observe(element)
     return () => observer.disconnect()
-  }, [])
+  }, [prefersReducedMotion])
 
   return (
     <section className="bg-secondary py-28 lg:py-44">
