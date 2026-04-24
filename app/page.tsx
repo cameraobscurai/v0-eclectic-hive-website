@@ -80,8 +80,8 @@ export default function HomePage() {
           />
         </div>
         
-        {/* Frosted glass overlay - elegant mystery */}
-        <div className="absolute inset-0 backdrop-blur-[6px] bg-charcoal/25" />
+        {/* Subtle overlay */}
+        <div className="absolute inset-0 bg-charcoal/10" />
         
         {/* Vignette for depth and focus */}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_30%,rgba(20,20,20,0.6)_100%)]" />
