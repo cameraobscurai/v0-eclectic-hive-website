@@ -1,5 +1,6 @@
 'use client'
 
+// Animation primitives for Eclectic Hive - v2
 import { 
   motion, 
   useInView, 
