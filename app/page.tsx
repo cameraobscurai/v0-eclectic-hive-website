@@ -70,12 +70,12 @@ export default function HomePage() {
         {/* Background image */}
         <div className="absolute inset-0">
           <Image
-            src="/images/hero-desert-venue.jpg"
-            alt="Luxury desert event venue at twilight"
+            src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/D9D9D665-C36F-4654-9687-7303B1A05765-9rOvJvBIwpsvY9Af2AsIgMz4b3gf75.jpeg"
+            alt="Desert tablescape with woven chairs against sandstone cliffs"
             fill
             priority
             quality={90}
-            className="object-cover object-center"
+            className="object-cover object-[center_40%]"
             sizes="100vw"
           />
         </div>
