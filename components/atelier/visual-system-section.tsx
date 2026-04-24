@@ -2,6 +2,7 @@
 
 import Image from 'next/image'
 import { useRef, useState, useEffect, useCallback } from 'react'
+import { cn } from '@/lib/utils'
 
 // Figma-style numbered section header
 function SectionLabel({ number, label }: { number: string; label: string }) {
