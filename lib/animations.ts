@@ -29,7 +29,9 @@ export const DURATIONS = {
 } as const
 
 export const STAGGER = {
+  tight: 0.03,
   normal: 0.05,
+  relaxed: 0.08,
 } as const
 
 // =============================================================================
