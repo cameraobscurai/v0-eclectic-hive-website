@@ -26,6 +26,7 @@ export const DURATIONS = {
   normal: 0.4,
   slow: 0.6,
   slower: 0.8,
+  cinematic: 0.7,
 } as const
 
 export const STAGGER = {
