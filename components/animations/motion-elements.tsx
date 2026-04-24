@@ -518,7 +518,6 @@ interface SplitTextProps {
   charClassName?: string
   delay?: number
   stagger?: number
-  as?: 'h1' | 'h2' | 'h3' | 'h4' | 'p' | 'span'
 }
 
 export function SplitText({ 
@@ -527,19 +526,18 @@ export function SplitText({
   charClassName,
   delay = 0,
   stagger = STAGGER.tight,
-  as: Component = 'span',
 }: SplitTextProps) {
-  const ref = useRef(null)
+  const ref = useRef<HTMLSpanElement>(null)
   const isInView = useInView(ref, { once: true, amount: 0.5 })
   
   if (prefersReducedMotion()) {
-    return <Component className={className}>{children}</Component>
+    return <span className={className}>{children}</span>
   }
   
   const chars = children.split('')
   
   return (
-    <Component ref={ref} className={className} aria-label={children}>
+    <span ref={ref} className={className} aria-label={children}>
       {chars.map((char, i) => (
         <motion.span
           key={i}
@@ -556,7 +554,7 @@ export function SplitText({
           {char === ' ' ? '\u00A0' : char}
         </motion.span>
       ))}
-    </Component>
+    </span>
   )
 }
 
@@ -566,7 +564,6 @@ interface WordRevealProps {
   wordClassName?: string
   delay?: number
   stagger?: number
-  as?: 'h1' | 'h2' | 'h3' | 'h4' | 'p' | 'span' | 'div'
 }
 
 export function WordReveal({ 
@@ -575,19 +572,18 @@ export function WordReveal({
   wordClassName,
   delay = 0,
   stagger = STAGGER.normal,
-  as: Component = 'div',
 }: WordRevealProps) {
-  const ref = useRef(null)
+  const ref = useRef<HTMLDivElement>(null)
   const isInView = useInView(ref, { once: true, amount: 0.3 })
   
   if (prefersReducedMotion()) {
-    return <Component className={className}>{children}</Component>
+    return <div className={className}>{children}</div>
   }
   
   const words = children.split(' ')
   
   return (
-    <Component ref={ref} className={className} aria-label={children}>
+    <div ref={ref} className={className} aria-label={children}>
       {words.map((word, i) => (
         <span key={i} className="inline-block overflow-hidden">
           <motion.span
@@ -606,7 +602,7 @@ export function WordReveal({
           {i < words.length - 1 && '\u00A0'}
         </span>
       ))}
-    </Component>
+    </div>
   )
 }
 
