@@ -39,7 +39,6 @@ export function InquiryFlowWrapper({ onSuccess }: { onSuccess?: () => void }) {
         onSuccess?.()
       }}
       preselectedItems={items}
-      autoFocus={items.length > 0}
     />
   )
 }
