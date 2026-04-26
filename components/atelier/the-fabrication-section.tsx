@@ -92,7 +92,7 @@ function ProductFilmstrip({ items }: { items: typeof stylingVariations }) {
   return (
     <div className="relative">
       {/* Navigation */}
-      <div className="flex items-center justify-between px-6 lg:px-12 mb-6">
+      <div className="flex items-center justify-between section-padding mb-6">
         <div className="flex items-center gap-4 text-cream/40 text-xs tracking-wider font-mono">
           <span>{(activeIndex + 1).toString().padStart(2, '0')}</span>
           <span className="w-8 h-px bg-cream/20" />
@@ -125,7 +125,7 @@ function ProductFilmstrip({ items }: { items: typeof stylingVariations }) {
       {/* Filmstrip */}
       <div 
         ref={scrollRef}
-        className="flex gap-4 lg:gap-6 overflow-x-auto scrollbar-hide snap-x snap-mandatory px-6 lg:px-12"
+        className="flex gap-4 lg:gap-6 overflow-x-auto scrollbar-hide snap-x snap-mandatory px-5 md:px-8 lg:px-12"
       >
         {items.map((item, i) => (
           <button

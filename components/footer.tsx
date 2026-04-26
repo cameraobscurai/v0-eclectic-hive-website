@@ -8,7 +8,6 @@ const footerLinks = {
   studio: [
     { href: '/atelier', label: 'Atelier by The Hive' },
     { href: '/collection', label: 'Hive Signature Collection' },
-    { href: '/studio', label: 'Studio' },
     { href: '/gallery', label: 'The Gallery' },
     { href: '/contact', label: 'Contact' },
   ],
@@ -69,7 +68,7 @@ export function Footer() {
 
   return (
     <footer ref={ref} className="bg-charcoal text-cream">
-      <div className="px-6 lg:px-12 pt-24 lg:pt-36" style={{ paddingBottom: 'max(6rem, env(safe-area-inset-bottom, 6rem))' }}>
+      <div className="section-padding pt-24 lg:pt-36" style={{ paddingBottom: 'max(6rem, env(safe-area-inset-bottom, 6rem))' }}>
         <div className="max-w-7xl mx-auto">
           {/* Main Footer Content */}
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 lg:gap-8">

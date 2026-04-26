@@ -5,7 +5,7 @@ import Link from 'next/link'
 export function AtelierCTA() {
   return (
     <section className="bg-charcoal text-cream py-24 lg:py-32">
-      <div className="px-6 lg:px-12 max-w-7xl mx-auto">
+      <div className="section-padding max-w-7xl mx-auto">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-24 items-end">
           <div>
             <h2 className="font-display text-3xl md:text-4xl lg:text-5xl leading-[1.05] tracking-display font-light">

@@ -41,7 +41,7 @@ export function TheSpaceSection() {
   return (
     <section ref={ref} id="the-space" className="bg-cream">
       {/* Section Header */}
-      <div className="px-6 lg:px-12 pt-24 lg:pt-32 pb-12">
+      <div className="section-padding pt-24 lg:pt-32 pb-12">
         <div className="max-w-7xl mx-auto">
           <div className="flex items-baseline gap-4 mb-4">
             <span className="font-mono text-xs text-charcoal/40">01</span>

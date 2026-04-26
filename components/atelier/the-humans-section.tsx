@@ -73,7 +73,7 @@ export function TheHumansSection() {
 
   return (
     <section ref={ref} id="the-humans" className="bg-sand py-24 lg:py-32">
-      <div className="px-6 lg:px-12 max-w-7xl mx-auto">
+      <div className="section-padding max-w-7xl mx-auto">
         {/* Section Header */}
         <div className="mb-16">
           <div className="flex items-baseline gap-4 mb-4">

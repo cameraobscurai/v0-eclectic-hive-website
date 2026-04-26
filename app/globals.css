@@ -148,6 +148,14 @@
     @apply bg-background text-foreground;
   }
   
+  /* Standardized section padding - use site-wide for consistency */
+  .section-padding {
+    @apply px-5 md:px-8 lg:px-12;
+  }
+  .section-padding-y {
+    @apply py-16 md:py-24 lg:py-32;
+  }
+  
 /* Brand typography - Saol Display with context-aware tracking */
   /* Per brand deck: display text uses TIGHT tracking for architectural feel */
   /* Labels/navigation use WIDE tracking for rhythm and balance */

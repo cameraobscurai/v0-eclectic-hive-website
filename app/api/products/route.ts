@@ -46,7 +46,7 @@ export async function GET(request: NextRequest) {
       name,
       slug,
       category,
-      subcategory,
+      sub_category,
       description,
       primary_image_url,
       is_active,

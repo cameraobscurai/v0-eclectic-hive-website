@@ -16,7 +16,7 @@ export default function ContactPage() {
       <Navigation />
 
       {/* Editorial header */}
-      <section className="pt-40 px-6 lg:px-12">
+      <section className="pt-40 section-padding">
         <div className="max-w-2xl mx-auto">
           <p className="text-xs uppercase tracking-wide text-charcoal/50 mb-4">
             Let&apos;s talk

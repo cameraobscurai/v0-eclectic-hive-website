@@ -87,10 +87,10 @@ function ProductCard({
         }}
       >
         <div className="bg-white/96 backdrop-blur-sm px-4 py-4 border-t border-charcoal/6">
-          <p className="text-[11px] tracking-[0.1em] text-charcoal uppercase font-medium truncate">
+          <p className="text-xs sm:text-[11px] tracking-[0.08em] text-charcoal uppercase font-medium truncate">
             {product.name}
           </p>
-          <p className="text-[9px] tracking-[0.12em] text-charcoal/40 uppercase mt-1">
+          <p className="text-[10px] sm:text-[9px] tracking-[0.1em] text-charcoal/40 uppercase mt-1">
             Quick View
           </p>
         </div>

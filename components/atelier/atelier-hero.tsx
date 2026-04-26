@@ -19,7 +19,7 @@ export function AtelierHero() {
       </div>
       
       {/* Content */}
-      <div className="relative z-10 flex flex-col justify-end min-h-[80vh] lg:min-h-screen px-6 lg:px-12 pb-16 lg:pb-24 pt-32">
+      <div className="relative z-10 flex flex-col justify-end min-h-[80vh] lg:min-h-screen section-padding pb-16 lg:pb-24 pt-32">
         <div className="max-w-7xl mx-auto w-full">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-end">
             {/* Label */}
@@ -40,10 +40,9 @@ export function AtelierHero() {
             
             {/* Subtext */}
             <div className="lg:col-span-5">
-              <p className="text-cream/70 text-base lg:text-lg leading-relaxed max-w-md">
-                The atelier is the creative engine of ECLECTIC HIVE—a space where 
-                fabrication, material exploration, and design authorship converge to 
-                shape environments that cannot be replicated.
+              <p className="text-cream/70 text-sm md:text-base lg:text-lg leading-relaxed max-w-xs md:max-w-md">
+                The atelier is the creative engine of ECLECTIC HIVE—where fabrication, 
+                material exploration, and design authorship converge.
               </p>
             </div>
           </div>
