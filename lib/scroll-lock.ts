@@ -26,12 +26,15 @@ function setSavedScrollY(y: number) {
 export function lockScroll() {
   const count = getLockCount()
   if (count === 0) {
-    setSavedScrollY(window.scrollY)
+    // Capture scroll position before any style changes
+    const scrollY = window.scrollY || document.documentElement.scrollTop || 0
+    setSavedScrollY(scrollY)
     // iOS Safari requires position:fixed to truly prevent background scroll
     document.body.style.overflow = 'hidden'
     document.body.style.position = 'fixed'
-    document.body.style.top = `-${window.scrollY}px`
+    document.body.style.top = `-${scrollY}px`
     document.body.style.width = '100%'
+    document.body.style.left = '0'
   }
   setLockCount(count + 1)
 }
@@ -43,11 +46,17 @@ export function unlockScroll() {
   
   if (newCount === 0) {
     const savedY = getSavedScrollY()
+    // Clear styles first
     document.body.style.overflow = ''
     document.body.style.position = ''
     document.body.style.top = ''
     document.body.style.width = ''
-    window.scrollTo(0, savedY)
+    document.body.style.left = ''
+    // Use requestAnimationFrame to ensure styles are applied before scroll restore
+    // This prevents the flash of wrong scroll position
+    requestAnimationFrame(() => {
+      window.scrollTo({ top: savedY, behavior: 'instant' })
+    })
   }
 }
 
@@ -58,4 +67,5 @@ export function forceUnlockScroll() {
   document.body.style.position = ''
   document.body.style.top = ''
   document.body.style.width = ''
+  document.body.style.left = ''
 }
