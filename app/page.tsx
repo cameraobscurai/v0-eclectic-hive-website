@@ -82,34 +82,47 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ========== NAVIGATION STRIP - Bottom 15vh ========== */}
+      {/* ========== NAVIGATION STRIP - iOS 26 Liquid Glass ========== */}
       <nav 
         className={cn(
-          'relative z-20 border-t border-cream/10 transition-all duration-700',
+          'relative z-20 px-4 pb-4 md:px-6 md:pb-6 transition-all duration-700',
           loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
         )}
         style={{ transitionDelay: '600ms' }}
       >
-        <div className="grid grid-cols-1 md:grid-cols-3 divide-y md:divide-y-0 md:divide-x divide-cream/10">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
           {DESTINATIONS.map((dest, i) => (
             <TransitionLink
               key={dest.href}
               href={dest.href}
-              className="group relative flex items-center justify-between md:justify-center py-5 md:py-6 px-6 md:px-4 transition-colors duration-300 hover:bg-cream/5"
+              className={cn(
+                'group relative flex items-center justify-between md:justify-center py-5 md:py-6 px-6 md:px-4 rounded-2xl transition-all duration-500',
+                // Liquid glass base
+                'backdrop-blur-xl bg-white/[0.08]',
+                // Luminous border - light catches edge
+                'border border-white/[0.15]',
+                // Inner highlight at top
+                'shadow-[inset_0_1px_1px_rgba(255,255,255,0.1),0_4px_24px_rgba(0,0,0,0.15)]',
+                // Hover state - glass brightens
+                'hover:bg-white/[0.12] hover:border-white/[0.25] hover:shadow-[inset_0_1px_2px_rgba(255,255,255,0.15),0_8px_32px_rgba(0,0,0,0.2)]'
+              )}
               onMouseEnter={() => setHoveredIndex(i)}
               onMouseLeave={() => setHoveredIndex(null)}
             >
+              {/* Specular highlight - top edge glow */}
+              <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent rounded-t-2xl" />
+              
               {/* Text content */}
-              <div className="flex flex-col md:items-center md:text-center gap-1">
+              <div className="relative z-10 flex flex-col md:items-center md:text-center gap-1">
                 <span className={cn(
-                  'font-display text-sm md:text-base tracking-[0.14em] font-light uppercase transition-colors duration-300',
-                  hoveredIndex === i ? 'text-cream' : 'text-cream/70'
-                )}>
+                  'font-brand text-sm md:text-base tracking-[0.14em] uppercase transition-colors duration-300',
+                  hoveredIndex === i ? 'text-white' : 'text-white/80'
+                )} style={{ fontWeight: 400 }}>
                   {dest.title}
                 </span>
                 <span className={cn(
                   'text-[9px] uppercase tracking-[0.12em] transition-colors duration-300',
-                  hoveredIndex === i ? 'text-cream/50' : 'text-cream/30'
+                  hoveredIndex === i ? 'text-white/60' : 'text-white/40'
                 )}>
                   {dest.label}
                 </span>
@@ -117,14 +130,14 @@ export default function HomePage() {
               
               {/* Arrow - visible on mobile, hover on desktop */}
               <div className={cn(
-                'flex items-center gap-2 transition-all duration-300 md:absolute md:right-4',
+                'relative z-10 flex items-center gap-2 transition-all duration-300 md:absolute md:right-5',
                 hoveredIndex === i ? 'opacity-100' : 'opacity-50 md:opacity-0'
               )}>
                 <span className={cn(
-                  'h-px bg-cream/40 transition-all duration-300',
+                  'h-px bg-white/50 transition-all duration-300',
                   hoveredIndex === i ? 'w-6' : 'w-3'
                 )} />
-                <svg className="w-3 h-3 text-cream/60" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <svg className="w-3 h-3 text-white/70" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
                 </svg>
               </div>
