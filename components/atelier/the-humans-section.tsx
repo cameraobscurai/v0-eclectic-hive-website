@@ -95,8 +95,7 @@ export function TheHumansSection() {
                 isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
               )}
             >
-              Professional but approachable. Design intelligence meets fabrication expertise 
-              meets production experience. We love what we do—and it shows.
+              Professional but approachable. We love what we do—and it shows.
             </p>
           </div>
         </div>

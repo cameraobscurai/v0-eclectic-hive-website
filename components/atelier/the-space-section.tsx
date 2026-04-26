@@ -101,8 +101,7 @@ export function TheSpaceSection() {
                   isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
                 )}
               >
-                Denver-based, but we go wherever the vision takes us. Our studio and warehouse 
-                are where ideas become tangible and inventory becomes experience.
+                Creative work hub. Where ideas become tangible and inventory becomes experience.
               </p>
             </div>
             
@@ -134,30 +133,7 @@ export function TheSpaceSection() {
             />
           </div>
           
-          {/* Stats row */}
-          <div 
-            className={cn(
-              'mt-12 grid grid-cols-2 md:grid-cols-4 gap-8 border-t border-charcoal/10 pt-12 transition-all duration-700 delay-400',
-              isInView ? 'opacity-100' : 'opacity-0'
-            )}
-          >
-            <div>
-              <p className="font-mono text-3xl lg:text-4xl text-charcoal">45K</p>
-              <p className="text-xs uppercase tracking-[0.15em] text-charcoal/40 mt-2">Square Feet</p>
-            </div>
-            <div>
-              <p className="font-mono text-3xl lg:text-4xl text-charcoal">Denver</p>
-              <p className="text-xs uppercase tracking-[0.15em] text-charcoal/40 mt-2">Home Base</p>
-            </div>
-            <div>
-              <p className="font-mono text-3xl lg:text-4xl text-charcoal">National</p>
-              <p className="text-xs uppercase tracking-[0.15em] text-charcoal/40 mt-2">Service Area</p>
-            </div>
-            <div>
-              <p className="font-mono text-3xl lg:text-4xl text-charcoal">2015</p>
-              <p className="text-xs uppercase tracking-[0.15em] text-charcoal/40 mt-2">Founded</p>
-            </div>
-          </div>
+          
         </div>
       </div>
     </section>

@@ -146,8 +146,7 @@ export function TheFabricationSection() {
                   isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
                 )}
               >
-                Design. Customize. Fabricate. Each piece can be tailored—different rugs, 
-                pillows, fabrics. This isn&apos;t rental inventory. It&apos;s a starting point for your vision.
+                Each piece can be tailored. This isn&apos;t rental inventory—it&apos;s a starting point.
               </p>
             </div>
             
@@ -181,10 +180,7 @@ export function TheFabricationSection() {
       <div className="bg-charcoal text-cream py-24 lg:py-32">
         <div className="section-padding max-w-7xl mx-auto">
           <div className="mb-12">
-            <p className="text-xs uppercase tracking-[0.2em] text-cream/40 mb-2">Signature Seating</p>
-            <p className="text-cream/60 max-w-lg">
-              Each piece shown with rug and pillow variations. Fabrics can change. Dimensions can adapt.
-            </p>
+            <p className="text-xs uppercase tracking-[0.2em] text-cream/40">Signature Seating</p>
           </div>
           
           {/* Horizontal scroll filmstrip */}
@@ -206,10 +202,7 @@ export function TheFabricationSection() {
       <div className="bg-cream section-padding py-24 lg:py-32">
         <div className="max-w-7xl mx-auto">
           <div className="mb-12">
-            <p className="text-xs uppercase tracking-[0.2em] text-charcoal/40 mb-2">Tableware Collections</p>
-            <p className="text-charcoal/60 max-w-lg">
-              Curated dinnerware sets designed to complement any tablescape aesthetic.
-            </p>
+            <p className="text-xs uppercase tracking-[0.2em] text-charcoal/40">Tableware Collections</p>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -220,16 +213,7 @@ export function TheFabricationSection() {
         </div>
       </div>
 
-      {/* Process Quote - Dark section */}
-      <div className="bg-charcoal text-cream py-24 lg:py-32 section-padding">
-        <div className="max-w-3xl mx-auto text-center">
-          <p className="text-cream/40 text-xs uppercase tracking-[0.2em] mb-8">Our Process</p>
-          <blockquote className="font-brand text-2xl md:text-3xl lg:text-4xl tracking-[0.06em] leading-relaxed" style={{ fontWeight: 400 }}>
-            &ldquo;This isn&apos;t mass production—it&apos;s craft at scale. Every piece carries the 
-            signature of our process and the mark of deliberate making.&rdquo;
-          </blockquote>
-        </div>
-      </div>
+      
     </section>
   )
 }

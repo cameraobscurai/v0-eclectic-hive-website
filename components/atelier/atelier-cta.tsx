@@ -48,9 +48,7 @@ export function AtelierCTA() {
           {/* Left: CTA content */}
           <div className="col-span-12 lg:col-span-5">
             <h2 className="font-brand text-3xl md:text-4xl lg:text-5xl leading-[1.1] tracking-[0.08em] text-cream" style={{ fontWeight: 400 }}>
-              Let&apos;s create
-              <br />
-              <span className="text-cream/60">something together.</span>
+              Start a conversation.
             </h2>
             
             <Link 
