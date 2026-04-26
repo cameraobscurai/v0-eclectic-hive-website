@@ -1,54 +1,90 @@
 'use client'
 
-import { useState, useRef, useEffect, useCallback } from 'react'
-import Image from 'next/image'
+import { useState, useRef, useEffect } from 'react'
 import { cn } from '@/lib/utils'
 
-// Product cards with styling variations
-const stylingVariations = [
-  { 
-    src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Apr%2023%2C%202026%2C%2007_33_25%20AM%20%281%29-nSfwPSIy0JjTuxEeXqqKmBeVK5W0e2.png", 
-    name: "Sylvanus Green & Ash Sofa",
-    description: "Channel tufting with walnut frame"
-  },
-  { 
-    src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Apr%2023%2C%202026%2C%2007_33_25%20AM%20%282%29-1p8c5ii3LgfQWQxmATwpzo3ElFTAap.png", 
-    name: "Lindt Toffee Velvet Sofa",
-    description: "Channel tufted velvet"
-  },
-  { 
-    src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Apr%2023%2C%202026%2C%2007_33_25%20AM%20%283%29-xSRvEAB09wEKncke2QV6KBxrin22oF.png", 
-    name: "Sidony Wood + White Loveseat",
-    description: "Teak frame with linen cushions"
-  },
-  { 
-    src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Apr%2023%2C%202026%2C%2007_33_26%20AM%20%284%29-K8Hfw7Dh32EW9v4TuBPC6dq9jQmBUQ.png", 
-    name: "Reshma Botanical Sofa",
-    description: "Sculptural botanical print"
-  },
-  { 
-    src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Apr%2023%2C%202026%2C%2007_33_26%20AM%20%285%29-d7Z9qslCN4o22G8oq8xcBpSwIYr5lh.png", 
-    name: "Ava Sage Velvet Chair",
-    description: "Mid-century sculptural arms"
-  },
-  { 
-    src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Apr%2023%2C%202026%2C%2007_33_27%20AM%20%286%29-rBSgl4ESRhpXEk7GlhbWLDBDp2EnYf.png", 
-    name: "Benecio Leather Knit Chair",
-    description: "Woven leather with iron frame"
-  },
-  { 
-    src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Apr%2023%2C%202026%2C%2007_33_27%20AM%20%287%29-JlktV9arzGZUW84YXqm0s5MrccZaip.png", 
-    name: "Alora Botanical Chair",
-    description: "Sculptural botanical upholstery"
-  },
+// Product placeholder data
+const products = [
+  { name: 'Sylvanus Green & Ash Sofa', description: 'Channel tufting with walnut frame' },
+  { name: 'Lindt Toffee Velvet Sofa', description: 'Channel tufted velvet' },
+  { name: 'Sidony Wood + White Loveseat', description: 'Teak frame with linen cushions' },
+  { name: 'Reshma Botanical Sofa', description: 'Sculptural botanical print' },
+  { name: 'Ava Sage Velvet Chair', description: 'Mid-century sculptural arms' },
 ]
 
-// Dinnerware collections
-const dinnerware = [
-  { src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Apr%2023%2C%202026%2C%2006_15_29%20AM%20%283%29-ISawYAP157izouDbFgfnV2fKubjwQQ.png", alt: "Grey botanical speckle" },
-  { src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Apr%2023%2C%202026%2C%2006_15_29%20AM%20%281%29-VwfITiRdTSCrFbSP4c2A7fZG6DVZxD.png", alt: "Sage marble fluted" },
-  { src: "https://hebbkx1anhila5yf.public.blob.vercel-storage.com/ChatGPT%20Image%20Apr%2023%2C%202026%2C%2006_15_29%20AM%20%284%29-1T6kh8prKXIs1wYtSGCMq96AUqaK0Q.png", alt: "Navy botanical mixed" },
-]
+// Dark-themed placeholder frame for charcoal sections
+function DarkImageFrame({ 
+  aspectRatio = '4/3', 
+  label,
+  className 
+}: { 
+  aspectRatio?: string
+  label?: string
+  className?: string 
+}) {
+  return (
+    <div 
+      className={cn(
+        'relative bg-cream/[0.03] border border-cream/10 overflow-hidden',
+        className
+      )}
+      style={{ aspectRatio }}
+    >
+      <div className="absolute top-3 left-3 w-4 h-4 border-l border-t border-cream/15" />
+      <div className="absolute top-3 right-3 w-4 h-4 border-r border-t border-cream/15" />
+      <div className="absolute bottom-3 left-3 w-4 h-4 border-l border-b border-cream/15" />
+      <div className="absolute bottom-3 right-3 w-4 h-4 border-r border-b border-cream/15" />
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div className="relative">
+          <div className="w-6 h-px bg-cream/10" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-px h-6 bg-cream/10" />
+        </div>
+      </div>
+      {label && (
+        <div className="absolute bottom-3 left-1/2 -translate-x-1/2">
+          <span className="text-[10px] uppercase tracking-[0.15em] text-cream/30 font-mono">{label}</span>
+        </div>
+      )}
+    </div>
+  )
+}
+
+// Light-themed placeholder frame
+function LightImageFrame({ 
+  aspectRatio = '4/3', 
+  label,
+  className 
+}: { 
+  aspectRatio?: string
+  label?: string
+  className?: string 
+}) {
+  return (
+    <div 
+      className={cn(
+        'relative bg-charcoal/[0.02] border border-charcoal/10 overflow-hidden',
+        className
+      )}
+      style={{ aspectRatio }}
+    >
+      <div className="absolute top-3 left-3 w-4 h-4 border-l border-t border-charcoal/15" />
+      <div className="absolute top-3 right-3 w-4 h-4 border-r border-t border-charcoal/15" />
+      <div className="absolute bottom-3 left-3 w-4 h-4 border-l border-b border-charcoal/15" />
+      <div className="absolute bottom-3 right-3 w-4 h-4 border-r border-b border-charcoal/15" />
+      <div className="absolute inset-0 flex items-center justify-center">
+        <div className="relative">
+          <div className="w-6 h-px bg-charcoal/10" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-px h-6 bg-charcoal/10" />
+        </div>
+      </div>
+      {label && (
+        <div className="absolute bottom-3 left-1/2 -translate-x-1/2">
+          <span className="text-[10px] uppercase tracking-[0.15em] text-charcoal/30 font-mono">{label}</span>
+        </div>
+      )}
+    </div>
+  )
+}
 
 function usePrefersReducedMotion() {
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false)
@@ -60,115 +96,6 @@ function usePrefersReducedMotion() {
     return () => mq.removeEventListener('change', handler)
   }, [])
   return prefersReducedMotion
-}
-
-// Filmstrip carousel for product cards
-function ProductFilmstrip({ items }: { items: typeof stylingVariations }) {
-  const scrollRef = useRef<HTMLDivElement>(null)
-  const [activeIndex, setActiveIndex] = useState(0)
-
-  const updateActiveIndex = useCallback(() => {
-    if (!scrollRef.current) return
-    const { scrollLeft, clientWidth } = scrollRef.current
-    const itemWidth = clientWidth * 0.75
-    const newIndex = Math.round(scrollLeft / itemWidth)
-    setActiveIndex(Math.min(newIndex, items.length - 1))
-  }, [items.length])
-
-  useEffect(() => {
-    const el = scrollRef.current
-    if (!el) return
-    el.addEventListener('scroll', updateActiveIndex, { passive: true })
-    updateActiveIndex()
-    return () => el.removeEventListener('scroll', updateActiveIndex)
-  }, [updateActiveIndex])
-
-  const scrollTo = (index: number) => {
-    if (!scrollRef.current) return
-    const itemWidth = scrollRef.current.clientWidth * 0.75
-    scrollRef.current.scrollTo({ left: itemWidth * index, behavior: 'smooth' })
-  }
-
-  return (
-    <div className="relative">
-      {/* Navigation */}
-      <div className="flex items-center justify-between section-padding mb-6">
-        <div className="flex items-center gap-4 text-cream/40 text-xs tracking-wider font-mono">
-          <span>{(activeIndex + 1).toString().padStart(2, '0')}</span>
-          <span className="w-8 h-px bg-cream/20" />
-          <span>{items.length.toString().padStart(2, '0')}</span>
-        </div>
-        <div className="flex items-center gap-3">
-          <button 
-            onClick={() => scrollTo(Math.max(0, activeIndex - 1))}
-            disabled={activeIndex === 0}
-            className="w-10 h-10 flex items-center justify-center border border-cream/20 text-cream/60 hover:text-cream hover:border-cream/40 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-            aria-label="Previous"
-          >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
-            </svg>
-          </button>
-          <button 
-            onClick={() => scrollTo(Math.min(items.length - 1, activeIndex + 1))}
-            disabled={activeIndex === items.length - 1}
-            className="w-10 h-10 flex items-center justify-center border border-cream/20 text-cream/60 hover:text-cream hover:border-cream/40 disabled:opacity-30 disabled:cursor-not-allowed transition-all"
-            aria-label="Next"
-          >
-            <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
-            </svg>
-          </button>
-        </div>
-      </div>
-
-      {/* Filmstrip */}
-      <div 
-        ref={scrollRef}
-        className="flex gap-4 lg:gap-6 overflow-x-auto scrollbar-hide snap-x snap-mandatory px-5 md:px-8 lg:px-12"
-      >
-        {items.map((item, i) => (
-          <button
-            key={i}
-            onClick={() => scrollTo(i)}
-            className={cn(
-              'relative flex-shrink-0 w-[85vw] md:w-[70vw] lg:w-[55vw] snap-center transition-all duration-500 text-left',
-              i === activeIndex 
-                ? 'opacity-100 scale-100' 
-                : 'opacity-40 scale-[0.97] hover:opacity-60'
-            )}
-          >
-            <div className="relative aspect-[4/3] bg-[#f8f7f5] overflow-hidden shadow-2xl shadow-black/30">
-              <Image
-                src={item.src}
-                alt={`${item.name} - Styling Variations`}
-                fill
-                className="object-contain"
-                sizes="(max-width: 768px) 85vw, 55vw"
-              />
-            </div>
-            <div className={cn(
-              'mt-4 transition-opacity duration-300',
-              i === activeIndex ? 'opacity-100' : 'opacity-0'
-            )}>
-              <p className="text-cream text-lg font-light">{item.name}</p>
-              <p className="text-cream/50 text-sm mt-1">{item.description}</p>
-            </div>
-          </button>
-        ))}
-      </div>
-
-      {/* Progress bar */}
-      <div className="px-6 lg:px-12 mt-8">
-        <div className="h-px bg-cream/10 relative">
-          <div 
-            className="absolute top-0 left-0 h-full bg-sand transition-all duration-300"
-            style={{ width: `${((activeIndex + 1) / items.length) * 100}%` }}
-          />
-        </div>
-      </div>
-    </div>
-  )
 }
 
 export function TheFabricationSection() {
@@ -194,76 +121,110 @@ export function TheFabricationSection() {
   }, [reducedMotion])
 
   return (
-    <section ref={ref} id="the-fabrication" className="bg-charcoal text-cream">
-      {/* Section Header - Light background intro */}
-      <div className="bg-cream text-charcoal px-6 lg:px-12 py-24 lg:py-32">
+    <section ref={ref} id="the-fabrication">
+      {/* Section Header - Light background */}
+      <div className="bg-cream section-padding py-24 lg:py-32">
         <div className="max-w-7xl mx-auto">
-          <div className="flex items-baseline gap-4 mb-4">
-            <span className="font-mono text-xs text-charcoal/40">03</span>
-            <div className="w-12 h-px bg-charcoal/20" />
-          </div>
-          <h2 
-            className={cn(
-              'font-display text-4xl md:text-5xl lg:text-6xl tracking-[0.15em] font-light uppercase transition-all duration-700',
-              isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
-            )}
-          >
-            The Fabrication
-          </h2>
-          <p 
-            className={cn(
-              'mt-6 text-charcoal/60 text-lg max-w-2xl transition-all duration-700 delay-100',
-              isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
-            )}
-          >
-            Design. Customize. Fabricate. Each piece can be tailored—different rugs, 
-            pillows, fabrics. This isn&apos;t rental inventory. It&apos;s a starting point for your vision.
-          </p>
-        </div>
-      </div>
-
-      {/* Signature Seating - Dark filmstrip */}
-      <div className="py-16 lg:py-24">
-        <div className="px-6 lg:px-12 mb-8">
-          <p className="text-xs uppercase tracking-[0.3em] text-cream/40">Signature Seating</p>
-          <p className="text-cream/60 mt-2 max-w-lg">
-            Each piece shown with rug and pillow variations. Fabrics can change. Dimensions can adapt.
-          </p>
-        </div>
-        <ProductFilmstrip items={stylingVariations} />
-      </div>
-
-      {/* Dinnerware - Light section */}
-      <div className="bg-cream text-charcoal py-16 lg:py-24">
-        <div className="px-6 lg:px-12 max-w-7xl mx-auto">
-          <p className="text-xs uppercase tracking-[0.3em] text-charcoal/40 mb-2">Tableware Collections</p>
-          <p className="text-charcoal/60 mb-8 max-w-lg">
-            Curated dinnerware sets designed to complement any tablescape aesthetic.
-          </p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {dinnerware.map((item, i) => (
-              <div 
-                key={i}
-                className="relative aspect-[16/10] bg-white border border-charcoal/5 overflow-hidden"
+          <div className="grid grid-cols-12 gap-8 lg:gap-12">
+            <div className="col-span-12 lg:col-span-5">
+              <div className="flex items-baseline gap-4 mb-4">
+                <span className="font-mono text-xs text-charcoal/40">03</span>
+                <div className="w-12 h-px bg-charcoal/20" />
+              </div>
+              <h2 
+                className={cn(
+                  'font-brand text-4xl md:text-5xl lg:text-6xl tracking-[0.12em] uppercase text-charcoal transition-all duration-700',
+                  isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
+                )}
+                style={{ fontWeight: 400 }}
               >
-                <Image
-                  src={item.src}
-                  alt={item.alt}
-                  fill
-                  className="object-contain p-4"
-                  sizes="(max-width: 768px) 100vw, 33vw"
-                />
+                The Fabrication
+              </h2>
+              <p 
+                className={cn(
+                  'mt-6 text-charcoal/60 text-base lg:text-lg leading-relaxed max-w-md transition-all duration-700 delay-100',
+                  isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-4'
+                )}
+              >
+                Design. Customize. Fabricate. Each piece can be tailored—different rugs, 
+                pillows, fabrics. This isn&apos;t rental inventory. It&apos;s a starting point for your vision.
+              </p>
+            </div>
+            
+            {/* Process visualization */}
+            <div className="col-span-12 lg:col-span-7">
+              <div 
+                className={cn(
+                  'grid grid-cols-3 gap-4 transition-all duration-700 delay-200',
+                  isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+                )}
+              >
+                <div className="text-center">
+                  <LightImageFrame aspectRatio="1/1" label="Design" />
+                  <p className="text-xs uppercase tracking-[0.12em] text-charcoal/40 mt-3">01 Design</p>
+                </div>
+                <div className="text-center">
+                  <LightImageFrame aspectRatio="1/1" label="Customize" />
+                  <p className="text-xs uppercase tracking-[0.12em] text-charcoal/40 mt-3">02 Customize</p>
+                </div>
+                <div className="text-center">
+                  <LightImageFrame aspectRatio="1/1" label="Fabricate" />
+                  <p className="text-xs uppercase tracking-[0.12em] text-charcoal/40 mt-3">03 Fabricate</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Signature Seating - Dark section */}
+      <div className="bg-charcoal text-cream py-24 lg:py-32">
+        <div className="section-padding max-w-7xl mx-auto">
+          <div className="mb-12">
+            <p className="text-xs uppercase tracking-[0.2em] text-cream/40 mb-2">Signature Seating</p>
+            <p className="text-cream/60 max-w-lg">
+              Each piece shown with rug and pillow variations. Fabrics can change. Dimensions can adapt.
+            </p>
+          </div>
+          
+          {/* Horizontal scroll filmstrip */}
+          <div className="flex gap-6 overflow-x-auto scrollbar-hide pb-4 -mx-5 px-5 md:-mx-8 md:px-8 lg:-mx-12 lg:px-12">
+            {products.map((product, i) => (
+              <div key={i} className="flex-shrink-0 w-[75vw] md:w-[50vw] lg:w-[35vw]">
+                <DarkImageFrame aspectRatio="4/3" label={`Product ${i + 1}`} />
+                <div className="mt-4">
+                  <p className="text-cream text-base lg:text-lg">{product.name}</p>
+                  <p className="text-cream/50 text-sm mt-1">{product.description}</p>
+                </div>
               </div>
             ))}
           </div>
         </div>
       </div>
 
-      {/* Process Statement */}
-      <div className="py-24 lg:py-32 px-6 lg:px-12">
-        <div className="max-w-4xl mx-auto text-center">
-          <p className="text-cream/40 text-xs uppercase tracking-[0.3em] mb-6">Our Process</p>
-          <blockquote className="font-display text-2xl md:text-3xl lg:text-4xl tracking-wide font-light leading-relaxed">
+      {/* Tableware - Light section */}
+      <div className="bg-cream section-padding py-24 lg:py-32">
+        <div className="max-w-7xl mx-auto">
+          <div className="mb-12">
+            <p className="text-xs uppercase tracking-[0.2em] text-charcoal/40 mb-2">Tableware Collections</p>
+            <p className="text-charcoal/60 max-w-lg">
+              Curated dinnerware sets designed to complement any tablescape aesthetic.
+            </p>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <LightImageFrame aspectRatio="16/10" label="Collection 01" />
+            <LightImageFrame aspectRatio="16/10" label="Collection 02" />
+            <LightImageFrame aspectRatio="16/10" label="Collection 03" />
+          </div>
+        </div>
+      </div>
+
+      {/* Process Quote - Dark section */}
+      <div className="bg-charcoal text-cream py-24 lg:py-32 section-padding">
+        <div className="max-w-3xl mx-auto text-center">
+          <p className="text-cream/40 text-xs uppercase tracking-[0.2em] mb-8">Our Process</p>
+          <blockquote className="font-brand text-2xl md:text-3xl lg:text-4xl tracking-[0.06em] leading-relaxed" style={{ fontWeight: 400 }}>
             &ldquo;This isn&apos;t mass production—it&apos;s craft at scale. Every piece carries the 
             signature of our process and the mark of deliberate making.&rdquo;
           </blockquote>
