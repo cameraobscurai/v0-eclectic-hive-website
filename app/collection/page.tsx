@@ -1,105 +1,21 @@
 'use client'
 
-import { useState, useEffect, useMemo, useCallback } from 'react'
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import useSWR, { useSWRConfig } from 'swr'
 import dynamic from 'next/dynamic'
 import { useQueryState, parseAsString } from 'nuqs'
+import { motion, AnimatePresence, LayoutGroup } from 'framer-motion'
 import { Navigation } from '@/components/navigation'
 import { Footer } from '@/components/footer'
 import { cn } from '@/lib/utils'
-import { useRef } from 'react'
 
-// B4: Lazy-load QuickViewModal - defers large JS until actually needed
 const QuickViewModal = dynamic(
   () => import('@/components/quick-view-modal').then(m => ({ default: m.QuickViewModal })),
   { ssr: false }
 )
 
-// Optimized ProductCard with clip-path reveal hover (not scale-105)
-function ProductCard({ 
-  product, 
-  imageUrl, 
-  onImageError,
-  onClick,
-  index = 0,
-  brokenImagesRef
-}: { 
-  product: Product
-  imageUrl: string
-  onImageError: (id: string, url: string) => void
-  onClick: () => void
-  index?: number
-  brokenImagesRef: React.RefObject<Set<string>>
-}) {
-  const [loaded, setLoaded] = useState(false)
-  const [error, setError] = useState(false)
-  const [isHovered, setIsHovered] = useState(false)
-  
-  // Don't render if already known to be broken
-  if (brokenImagesRef.current?.has(imageUrl)) return null
-  
-  const handleError = () => {
-    setError(true)
-    onImageError(product.id, imageUrl)
-  }
-  
-  if (error) return null
+// ─── Types ────────────────────────────────────────────────────────────────────
 
-  // Above-fold images get eager loading for LCP
-  const isAboveFold = index < 6
-  
-  return (
-    <button 
-      onClick={onClick}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      className="group relative cursor-pointer border-r border-b border-charcoal/5 text-left w-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-charcoal/20 product-card content-auto"
-    >
-      {/* Image container - no scale on hover, image stays still */}
-      <div className="aspect-square bg-white p-4 lg:p-6 relative overflow-hidden">
-        {/* Soft gradient placeholder */}
-        {!loaded && (
-          <div className="absolute inset-4 lg:inset-6 bg-gradient-to-br from-neutral-50 to-neutral-100">
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full animate-[shimmer_1.5s_infinite]" />
-          </div>
-        )}
-        <img
-          src={imageUrl}
-          alt={product.name}
-          className={cn(
-            "w-full h-full object-contain transition-opacity duration-400",
-            loaded ? "opacity-100" : "opacity-0"
-          )}
-          loading={isAboveFold ? 'eager' : 'lazy'}
-          decoding={isAboveFold ? 'sync' : 'async'}
-          fetchPriority={index < 3 ? 'high' : 'auto'}
-          onLoad={() => setLoaded(true)}
-          onError={handleError}
-        />
-      </div>
-      
-      {/* Clip-path reveal hover - door opening, not ghost appearing */}
-      <div
-        className="absolute inset-x-0 bottom-0 pointer-events-none overflow-hidden"
-        style={{
-          clipPath: isHovered ? 'inset(0% 0% 0% 0%)' : 'inset(100% 0% 0% 0%)',
-          transition: 'clip-path 0.35s cubic-bezier(0.22, 1, 0.36, 1)',
-        }}
-      >
-        <div className="bg-white/96 backdrop-blur-sm px-4 py-4 border-t border-charcoal/6">
-          <p className="text-xs sm:text-[11px] tracking-[0.08em] text-charcoal uppercase font-medium truncate">
-            {product.name}
-          </p>
-          <p className="text-[10px] sm:text-[9px] tracking-[0.1em] text-charcoal/40 uppercase mt-1">
-            Quick View
-          </p>
-        </div>
-      </div>
-    </button>
-  )
-}
-
-// Product type from Supabase (with flattened variant data)
 type Product = {
   id: string
   slug: string
@@ -111,7 +27,6 @@ type Product = {
   is_featured?: boolean
   updated_at?: string
   description?: string
-  // Flattened variant data from API
   stock_count?: number
   dims_display?: string
   width_inches?: number
@@ -119,15 +34,8 @@ type Product = {
   height_inches?: number
 }
 
-// SWR fetcher with caching headers
-const fetcher = async (url: string) => {
-  const res = await fetch(url, {
-    next: { revalidate: 300 }, // 5 min cache
-  })
-  return res.json()
-}
+// ─── Constants ────────────────────────────────────────────────────────────────
 
-// Category display names mapping (friendly names for nav)
 const CATEGORY_DISPLAY: Record<string, string> = {
   'Seating': 'Lounge Seating',
   'Tables': 'Tables',
@@ -146,48 +54,25 @@ const CATEGORY_DISPLAY: Record<string, string> = {
   'Subrentals': 'Subrentals',
 }
 
-// Get display name for a category (falls back to raw name if not mapped)
 const getCategoryDisplay = (cat: string): string => CATEGORY_DISPLAY[cat] || cat
 
-// Category priority order (most important first, matching reference site hierarchy)
 const CATEGORY_PRIORITY = [
-  'Seating',           // Lounge Seating - primary focus
-  'Tables',            // Lounge Tables
-  'Bars',              // Cocktail & Bar
-  'Tableware',         // Tableware (Dining)
-  'Serveware',         // Serveware
-  'Lighting',          // Lighting
-  'Chandeliers',       // Chandeliers (part of lighting)
-  'Pillows',           // Textiles
-  'Rugs',              // Rugs
-  'Styling',           // Styling
-  'Storage',           // Storage
-  'Candlelight',       // Candlelight
-  'Large Decor & Dividers', // Large Decor - lowest priority
-  'Furs & Pelts',
-  'Subrentals',
+  'Seating', 'Tables', 'Bars', 'Tableware', 'Serveware',
+  'Lighting', 'Chandeliers', 'Pillows', 'Rugs', 'Styling',
+  'Storage', 'Candlelight', 'Large Decor & Dividers', 'Furs & Pelts', 'Subrentals',
 ]
 
-// Sub-categories by main category (detected from product names)
 const SUB_CATEGORIES: Record<string, string[]> = {
   'Seating': ['All', 'Sofas', 'Chairs', 'Benches', 'Ottomans', 'Stools'],
   'Tables': ['All', 'Coffee Tables', 'Side Tables', 'Dining Tables', 'Consoles'],
   'Bars': ['All', 'Bars', 'Back Bars', 'Carts'],
   'Large Decor & Dividers': ['All', 'Screens', 'Mirrors', 'Planters', 'Arches'],
   'Lighting': ['All', 'Floor Lamps', 'Table Lamps', 'Sconces'],
-  'Chandeliers': ['All'],
-  'Styling': ['All'],
-  'Serveware': ['All'],
-  'Storage': ['All'],
-  'Candlelight': ['All'],
-  'Pillows': ['All'],
-  'Rugs': ['All'],
-  'Tableware': ['All'],
-  'Furs & Pelts': ['All'],
-  'Subrentals': ['All'],
+  'Chandeliers': ['All'], 'Styling': ['All'], 'Serveware': ['All'],
+  'Storage': ['All'], 'Candlelight': ['All'], 'Pillows': ['All'],
+  'Rugs': ['All'], 'Tableware': ['All'], 'Furs & Pelts': ['All'], 'Subrentals': ['All'],
 }
 
-// Keywords for sub-category detection
 const SUB_CATEGORY_KEYWORDS: Record<string, string[]> = {
   'Sofas': ['sofa', 'loveseat', 'settee', 'couch'],
   'Chairs': ['chair', 'armchair', 'accent chair', 'lounge chair'],
@@ -210,7 +95,6 @@ const SUB_CATEGORY_KEYWORDS: Record<string, string[]> = {
   'Sconces': ['sconce', 'wall lamp'],
 }
 
-// Sub-category sort order for better visual flow (larger items first, then smaller)
 const SUB_CATEGORY_SORT_ORDER: Record<string, string[]> = {
   'Seating': ['Sofas', 'Benches', 'Chairs', 'Ottomans', 'Stools'],
   'Tables': ['Dining Tables', 'Coffee Tables', 'Consoles', 'Side Tables'],
@@ -219,7 +103,6 @@ const SUB_CATEGORY_SORT_ORDER: Record<string, string[]> = {
   'Lighting': ['Floor Lamps', 'Table Lamps', 'Sconces'],
 }
 
-// B2: Move detectSubCategory outside component (called ~700× per sort otherwise)
 function detectSubCategory(name: string): string {
   const lower = name.toLowerCase()
   for (const [subCat, keywords] of Object.entries(SUB_CATEGORY_KEYWORDS)) {
@@ -228,26 +111,171 @@ function detectSubCategory(name: string): string {
   return 'Other'
 }
 
+// ─── Animation variants ───────────────────────────────────────────────────────
+//
+// The key insight: cards never flash because we never unmount-remount them
+// abruptly. Instead:
+//
+// 1. `AnimatePresence mode="popLayout"` — exiting cards are immediately
+//    removed from layout flow so remaining cards reflow without waiting.
+//
+// 2. `layout` prop on each card — Framer FLIP-animates position changes
+//    when the grid reshuffles after a filter change.
+//
+// 3. Stagger is kept very short (0.02s) — a hint of cascade without feeling slow.
+//    At 100 items that's only 2 seconds total which is too much, so we cap
+//    the stagger delay at 20 items using `Math.min(index, 20)`.
+//
+// 4. We removed the `opacity-60` dimming on `isSwitchingCategories` entirely.
+//    `keepPreviousData: true` handles the data layer — the grid never goes blank.
+//    The only visual feedback is the subtle underline pulse on the active tab.
+
+const cardVariants = {
+  hidden: {
+    opacity: 0,
+    scale: 0.96,
+  },
+  visible: (index: number) => ({
+    opacity: 1,
+    scale: 1,
+    transition: {
+      duration: 0.22,
+      ease: [0.22, 1, 0.36, 1],
+      // Cap stagger at 20 items to avoid long waits on large grids
+      delay: Math.min(index, 20) * 0.018,
+    },
+  }),
+  exit: {
+    opacity: 0,
+    scale: 0.97,
+    transition: {
+      duration: 0.14,
+      ease: 'easeIn',
+    },
+  },
+}
+
+// ─── ProductCard ──────────────────────────────────────────────────────────────
+
+const ProductCard = ({
+  product,
+  imageUrl,
+  onImageError,
+  onClick,
+  index = 0,
+  brokenImagesRef,
+}: {
+  product: Product
+  imageUrl: string
+  onImageError: (id: string, url: string) => void
+  onClick: () => void
+  index?: number
+  brokenImagesRef: React.RefObject<Set<string>>
+}) => {
+  const [loaded, setLoaded] = useState(false)
+  const [error, setError] = useState(false)
+  const [isHovered, setIsHovered] = useState(false)
+
+  if (brokenImagesRef.current?.has(imageUrl)) return null
+
+  const handleError = () => {
+    setError(true)
+    onImageError(product.id, imageUrl)
+  }
+
+  if (error) return null
+
+  const isAboveFold = index < 6
+
+  return (
+    // `layout` tells Framer to animate this card's position when the grid
+    // reshuffles — uses FLIP internally so it's GPU-composited and cheap.
+    <motion.button
+      layout
+      variants={cardVariants}
+      initial="hidden"
+      animate="visible"
+      exit="exit"
+      custom={index}
+      onClick={onClick}
+      onMouseEnter={() => setIsHovered(true)}
+      onMouseLeave={() => setIsHovered(false)}
+      className="group relative cursor-pointer border-r border-b border-charcoal/5 text-left w-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-charcoal/20 product-card"
+      // layoutId ties this specific card across re-renders so Framer
+      // knows it's the same item and smoothly moves it rather than
+      // exit/enter when sort order changes.
+      layoutId={`card-${product.id}`}
+    >
+      <div className="aspect-square bg-white p-4 lg:p-6 relative overflow-hidden">
+        {!loaded && (
+          <div className="absolute inset-4 lg:inset-6 bg-gradient-to-br from-neutral-50 to-neutral-100">
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full animate-[shimmer_1.5s_infinite]" />
+          </div>
+        )}
+        <img
+          src={imageUrl}
+          alt={product.name}
+          className={cn(
+            'w-full h-full object-contain transition-opacity duration-300',
+            loaded ? 'opacity-100' : 'opacity-0'
+          )}
+          loading={isAboveFold ? 'eager' : 'lazy'}
+          decoding={isAboveFold ? 'sync' : 'async'}
+          fetchPriority={index < 3 ? 'high' : 'auto'}
+          onLoad={() => setLoaded(true)}
+          onError={handleError}
+        />
+      </div>
+
+      {/* Clip-path reveal on hover */}
+      <div
+        className="absolute inset-x-0 bottom-0 pointer-events-none overflow-hidden"
+        style={{
+          clipPath: isHovered ? 'inset(0% 0% 0% 0%)' : 'inset(100% 0% 0% 0%)',
+          transition: 'clip-path 0.35s cubic-bezier(0.22, 1, 0.36, 1)',
+        }}
+      >
+        <div className="bg-white/96 backdrop-blur-sm px-4 py-4 border-t border-charcoal/6">
+          <p className="text-xs sm:text-[11px] tracking-[0.08em] text-charcoal uppercase font-medium truncate">
+            {product.name}
+          </p>
+          <p className="text-[10px] sm:text-[9px] tracking-[0.1em] text-charcoal/40 uppercase mt-1">
+            Quick View
+          </p>
+        </div>
+      </div>
+    </motion.button>
+  )
+}
+
+// Memoize so Framer's layout tracking isn't invalidated on parent re-renders
+const MemoProductCard = React.memo(ProductCard)
+
+// ─── Page ─────────────────────────────────────────────────────────────────────
+
+// Need React import for React.memo above
+import React from 'react'
+
+const fetcher = async (url: string) => {
+  const res = await fetch(url, { next: { revalidate: 300 } })
+  return res.json()
+}
+
 export default function CollectionPage() {
   const { cache } = useSWRConfig()
-  // Track broken images in ref (not module-level singleton) - garbage collects on unmount
   const brokenImagesRef = useRef<Set<string>>(new Set())
-  
-  // URL state - shareable links for planners
-  // Default to 'Seating' (highest priority) so products load immediately without flash
+
   const [activeCategory, setActiveCategory] = useQueryState('category', parseAsString.withDefault('Seating'))
-  
-  // B1: Fetch categories first (long cache - rarely changes)
+
   const { data: categoriesData } = useSWR('/api/categories', fetcher, {
     revalidateOnFocus: false,
     revalidateOnReconnect: false,
-    dedupingInterval: 5 * 60 * 1000, // 5 minute cache
+    dedupingInterval: 5 * 60 * 1000,
   })
-  
+
   const categories: string[] = categoriesData?.categories || []
-  
-  // B1: Fetch by category, not all 500 products - biggest perf win
-  const { data: productsData, mutate: mutateProducts, isValidating } = useSWR(
+
+  const { data: productsData, isValidating } = useSWR(
     activeCategory
       ? `/api/products?imagesOnly=true&category=${encodeURIComponent(activeCategory)}&limit=100`
       : null,
@@ -255,123 +283,96 @@ export default function CollectionPage() {
     {
       revalidateOnFocus: false,
       revalidateOnReconnect: false,
-      dedupingInterval: 60_000, // 60 second cache
-      keepPreviousData: true,  // shows old category while new one loads
+      dedupingInterval: 60_000,
+      // The most important line — keeps previous category's products visible
+      // while the new category loads. Zero blank state, zero flash.
+      keepPreviousData: true,
     }
   )
-  
-  // B1: Prefetch category on hover for instant tab switching
+
   const prefetchCategory = useCallback((cat: string) => {
     const url = `/api/products?imagesOnly=true&category=${encodeURIComponent(cat)}&limit=100`
-    if (!cache.get(url)) {
-      fetcher(url) // warm the cache
-    }
+    if (!cache.get(url)) fetcher(url)
   }, [cache])
-  
+
   const products: Product[] = productsData?.products || []
-  // Show loading ONLY on initial load (no data yet), not when switching categories
-  // keepPreviousData handles showing old items while new ones load
   const isInitializing = !categoriesData
-  const isFirstLoad = !productsData && activeCategory !== '' && !isValidating
-  const isLoading = isInitializing || isFirstLoad
-  // Track if we're fetching new category data (for opacity transition)
-  const isSwitchingCategories = isValidating && productsData
-  
-  // B2: Pre-compute subcategories once per product load (not on every render)
+  const isLoading = isInitializing || (!productsData && isValidating)
+  // isSwitchingCategories is now ONLY used for the nav underline pulse
+  // — it no longer dims or flashes the grid
+  const isSwitchingCategories = isValidating && !!productsData
+
   const productsWithSubCategory = useMemo(() =>
     products.map(p => ({ ...p, _subCategory: detectSubCategory(p.name) })),
     [products]
   )
-  
-  // Fetch category counts separately (light endpoint)
+
   const { data: countsData } = useSWR('/api/categories?withCounts=true', fetcher, {
     revalidateOnFocus: false,
     dedupingInterval: 60_000,
   })
   const categoryCounts: Record<string, number> = countsData?.counts || {}
-  
-  // URL state for sub-category and sort
+
   const [activeSubCategory, setActiveSubCategory] = useQueryState('sub', parseAsString.withDefault('All'))
   const [searchQuery, setSearchQuery] = useQueryState('q', parseAsString.withDefault(''))
   const [sortBy, setSortBy] = useQueryState('sort', parseAsString.withDefault('type'))
-  
-  // Local state (not worth persisting to URL)
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [hiddenProducts, setHiddenProducts] = useState<Set<string>>(new Set())
-  
-  // Quick View Modal state
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null)
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false)
-  
-  // Initial category is now defaulted to 'Seating' in useQueryState above
-  // This eliminates the flash of empty content on first load
-  
-  // Check if any filters are active
+
   const hasActiveFilters = activeSubCategory !== 'All' || searchQuery.trim() !== ''
-  
-  // Reset all filters
+
   const resetFilters = useCallback(() => {
     setActiveSubCategory('All')
     setSearchQuery('')
     setSortBy('type')
   }, [])
-  
-  // Quick View handlers
+
   const openQuickView = useCallback((product: Product) => {
     setQuickViewProduct(product)
     setIsQuickViewOpen(true)
   }, [])
-  
+
   const closeQuickView = useCallback(() => {
     setIsQuickViewOpen(false)
-    // Delay clearing product to allow exit animation
     setTimeout(() => setQuickViewProduct(null), 400)
   }, [])
-  
-  // Handle broken images - hide them from the grid
+
   const handleImageError = useCallback((productId: string, imageUrl: string) => {
     brokenImagesRef.current?.add(imageUrl)
     setHiddenProducts(prev => new Set(prev).add(productId))
   }, [])
-  
-  // Debounce search input
+
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearch(searchQuery), 300)
     return () => clearTimeout(timer)
   }, [searchQuery])
-  
-  // Get image URL - use Blob URL if available
+
   const getImageUrl = useCallback((product: Product): string => {
     if (product.primary_image_url) {
-      // If it's a Blob pathname, use the API route with cache buster
       if (product.primary_image_url.startsWith('inventory/')) {
-        // Use updated_at as cache buster if available
         const cacheBuster = product.updated_at ? `&v=${new Date(product.updated_at).getTime()}` : ''
         return `/api/inventory-image?pathname=${encodeURIComponent(product.primary_image_url)}${cacheBuster}`
       }
       return product.primary_image_url
     }
-    // Placeholder for items without images
     return '/placeholder-product.jpg'
   }, [])
-  
-  // Filter and search products (uses pre-computed _subCategory from B2)
+
   const filteredProducts = useMemo(() => {
-    // Only show products with images, exclude hidden/broken ones
     if (!activeCategory) return []
-    
-    let results = productsWithSubCategory.filter(p => 
-      p.primary_image_url && 
+
+    let results = productsWithSubCategory.filter(p =>
+      p.primary_image_url &&
       !hiddenProducts.has(p.id) &&
       !brokenImagesRef.current?.has(getImageUrl(p))
     )
-    
-    // Sub-category filter (uses pre-computed _subCategory)
+
     if (activeSubCategory !== 'All') {
       results = results.filter(p => p._subCategory === activeSubCategory)
     }
-    
-    // Search filter with scoring
+
     if (debouncedSearch.trim()) {
       const q = debouncedSearch.toLowerCase().trim()
       results = results
@@ -386,20 +387,19 @@ export default function CollectionPage() {
         .filter(p => p._score > 0)
         .sort((a, b) => b._score - a._score)
     } else {
-      // Apply sort when not searching
       switch (sortBy) {
-        case 'type':
-          // Sort by sub-category (uses pre-computed _subCategory)
+        case 'type': {
           const sortOrder = SUB_CATEGORY_SORT_ORDER[activeCategory] || []
           results.sort((a, b) => {
-            const aIndex = sortOrder.indexOf(a._subCategory)
-            const bIndex = sortOrder.indexOf(b._subCategory)
-            const aOrder = aIndex === -1 ? 999 : aIndex
-            const bOrder = bIndex === -1 ? 999 : bIndex
-            if (aOrder !== bOrder) return aOrder - bOrder
+            const aOrder = sortOrder.indexOf(a._subCategory)
+            const bOrder = sortOrder.indexOf(b._subCategory)
+            const aIdx = aOrder === -1 ? 999 : aOrder
+            const bIdx = bOrder === -1 ? 999 : bOrder
+            if (aIdx !== bIdx) return aIdx - bIdx
             return a.name.localeCompare(b.name)
           })
           break
+        }
         case 'name':
           results.sort((a, b) => a.name.localeCompare(b.name))
           break
@@ -411,131 +411,117 @@ export default function CollectionPage() {
           break
       }
     }
-    
+
     return results
   }, [productsWithSubCategory, activeCategory, activeSubCategory, debouncedSearch, hiddenProducts, getImageUrl, sortBy])
-  
-  // Get available sub-categories for current category (uses pre-computed _subCategory)
+
   const availableSubCategories = useMemo(() => {
     const subs = SUB_CATEGORIES[activeCategory] || ['All']
-    
     return subs.filter(sub => {
       if (sub === 'All') return true
       return productsWithSubCategory.some(p => p._subCategory === sub)
     })
   }, [productsWithSubCategory, activeCategory])
-  
-  // Quick View navigation (must be after filteredProducts is defined)
+
   const goToNextProduct = useCallback(() => {
     if (!quickViewProduct) return
-    const currentIndex = filteredProducts.findIndex(p => p.id === quickViewProduct.id)
-    if (currentIndex < filteredProducts.length - 1) {
-      setQuickViewProduct(filteredProducts[currentIndex + 1])
-    }
+    const idx = filteredProducts.findIndex(p => p.id === quickViewProduct.id)
+    if (idx < filteredProducts.length - 1) setQuickViewProduct(filteredProducts[idx + 1])
   }, [quickViewProduct, filteredProducts])
-  
+
   const goToPreviousProduct = useCallback(() => {
     if (!quickViewProduct) return
-    const currentIndex = filteredProducts.findIndex(p => p.id === quickViewProduct.id)
-    if (currentIndex > 0) {
-      setQuickViewProduct(filteredProducts[currentIndex - 1])
-    }
+    const idx = filteredProducts.findIndex(p => p.id === quickViewProduct.id)
+    if (idx > 0) setQuickViewProduct(filteredProducts[idx - 1])
   }, [quickViewProduct, filteredProducts])
-  
-  // Reset sub-category when main category changes
+
   useEffect(() => {
     setActiveSubCategory('All')
   }, [activeCategory])
-  
 
+  // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
     <main className="min-h-screen bg-white pt-[72px] lg:pt-[88px]">
       <Navigation />
-      
-      {/* ─────��───────────���───────────────────────────────────────────
-          Filter Header - Horizontal Two-Tier Navigation
-      ───────────────────���──────────��────────────────────────────── */}
+
+      {/* ── Filter Header ─────────────────────────────────────────────────── */}
       <section className="sticky top-0 z-40 bg-white">
-        {/* Row 1: Main Categories - dynamically shows categories with images */}
+
+        {/* Row 1 — Main categories */}
         <div className="border-b border-charcoal/10">
-          <div className="flex items-center lg:justify-center gap-1 py-3 px-4 overflow-x-auto scrollbar-hide -mx-4 px-4 snap-x snap-mandatory">
+          <div className="flex items-center lg:justify-center gap-1 py-3 px-4 overflow-x-auto scrollbar-hide snap-x snap-mandatory">
             {Object.entries(categoryCounts)
               .filter(([_, count]) => count > 0)
               .sort((a, b) => {
-                // Sort by priority order (Seating first, Large Decor last)
-                const aIndex = CATEGORY_PRIORITY.indexOf(a[0])
-                const bIndex = CATEGORY_PRIORITY.indexOf(b[0])
-                const aPriority = aIndex === -1 ? 999 : aIndex
-                const bPriority = bIndex === -1 ? 999 : bIndex
-                return aPriority - bPriority
+                const aIdx = CATEGORY_PRIORITY.indexOf(a[0])
+                const bIdx = CATEGORY_PRIORITY.indexOf(b[0])
+                return (aIdx === -1 ? 999 : aIdx) - (bIdx === -1 ? 999 : bIdx)
               })
               .map(([cat]) => (
-              <button
-                key={cat}
-                onClick={() => setActiveCategory(cat)}
-                onMouseEnter={() => prefetchCategory(cat)}
-                className={cn(
-                  "relative flex-shrink-0 px-3 py-2 min-h-[44px] text-[11px] tracking-[0.12em] uppercase whitespace-nowrap transition-all duration-200 snap-start touch-manipulation",
-                  activeCategory === cat 
-                    ? "text-charcoal font-medium" 
-                    : "text-charcoal/40 hover:text-charcoal/60"
-                )}
-              >
-                {getCategoryDisplay(cat)}
-                {/* Active underline - animates when loading */}
-                {activeCategory === cat && (
-                  <span className={`absolute bottom-1 left-3 right-3 h-px bg-charcoal ${
-                    isSwitchingCategories ? 'animate-pulse' : ''
-                  }`} />
-                )}
-              </button>
-            ))}
-            {/* End spacer for scroll */}
+                <button
+                  key={cat}
+                  onClick={() => setActiveCategory(cat)}
+                  onMouseEnter={() => prefetchCategory(cat)}
+                  className={cn(
+                    'relative flex-shrink-0 px-3 py-2 min-h-[44px] text-[11px] tracking-[0.12em] uppercase whitespace-nowrap transition-colors duration-200 snap-start touch-manipulation',
+                    activeCategory === cat
+                      ? 'text-charcoal font-medium'
+                      : 'text-charcoal/40 hover:text-charcoal/60'
+                  )}
+                >
+                  {getCategoryDisplay(cat)}
+                  {activeCategory === cat && (
+                    <motion.span
+                      // layoutId animates the underline sliding between tabs
+                      layoutId="category-underline"
+                      className={cn(
+                        'absolute bottom-1 left-3 right-3 h-px bg-charcoal',
+                        isSwitchingCategories && 'animate-pulse'
+                      )}
+                      transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
+                    />
+                  )}
+                </button>
+              ))}
             <div className="flex-shrink-0 w-4" aria-hidden="true" />
           </div>
         </div>
-        
-        {/* Row 2: Sub-Categories + Controls */}
+
+        {/* Row 2 — Sub-categories + controls */}
         <div className="border-b border-charcoal/5 bg-white">
-          {/* Mobile: Stack vertically. Desktop: Side by side */}
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between px-4 md:px-6 py-2 sm:py-3 gap-2 sm:gap-3">
-            {/* Sub-categories - scrollable row */}
             <nav className="flex items-center gap-1.5 overflow-x-auto scrollbar-hide -mx-4 px-4 sm:mx-0 sm:px-0 py-1 sm:flex-1" aria-label="Sub-categories">
               {availableSubCategories.map((sub) => {
-                // Count items in this sub-category (uses pre-computed _subCategory)
-                const count = sub === 'All' 
+                const count = sub === 'All'
                   ? productsWithSubCategory.length
                   : productsWithSubCategory.filter(p => p._subCategory === sub).length
-                
+
                 return (
                   <button
                     key={sub}
                     onClick={() => setActiveSubCategory(sub)}
                     className={cn(
-                      "flex-shrink-0 px-3 py-2.5 min-h-[44px] text-[10px] tracking-[0.1em] uppercase whitespace-nowrap transition-all duration-200 rounded-full flex items-center gap-1.5 touch-manipulation",
-                      activeSubCategory === sub 
-                        ? "bg-charcoal text-cream" 
-                        : "text-charcoal/50 hover:text-charcoal/80 hover:bg-charcoal/5"
+                      'relative flex-shrink-0 px-3 py-2.5 min-h-[44px] text-[10px] tracking-[0.1em] uppercase whitespace-nowrap transition-all duration-200 rounded-full flex items-center gap-1.5 touch-manipulation',
+                      activeSubCategory === sub
+                        ? 'bg-charcoal text-cream'
+                        : 'text-charcoal/50 hover:text-charcoal/80 hover:bg-charcoal/5'
                     )}
                   >
                     {sub}
                     <span className={cn(
-                      "text-[9px] tabular-nums",
-                      activeSubCategory === sub ? "text-cream/70" : "text-charcoal/30"
+                      'text-[9px] tabular-nums',
+                      activeSubCategory === sub ? 'text-cream/70' : 'text-charcoal/30'
                     )}>
                       {count}
                     </span>
                   </button>
                 )
               })}
-              {/* End spacer */}
               <div className="flex-shrink-0 w-4 sm:hidden" aria-hidden="true" />
             </nav>
-            
-            {/* Sort + Search + Reset */}
+
             <div className="flex items-center gap-2 flex-shrink-0 py-1">
-              {/* Sort dropdown - 44px touch target */}
               <select
                 value={sortBy ?? 'type'}
                 onChange={(e) => setSortBy(e.target.value)}
@@ -546,8 +532,7 @@ export default function CollectionPage() {
                 <option value="newest">Newest</option>
                 <option value="oldest">Oldest</option>
               </select>
-              
-              {/* Search */}
+
               <div className="relative hidden sm:block">
                 <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-charcoal/30" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
@@ -558,37 +543,30 @@ export default function CollectionPage() {
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   className={cn(
-                    "pl-8 pr-3 py-1.5 text-[10px] tracking-wide border rounded-full focus:outline-none transition-all placeholder:text-charcoal/30",
-                    searchQuery 
-                      ? "w-[140px] border-charcoal/30 bg-charcoal/5" 
-                      : "w-[100px] focus:w-[140px] border-charcoal/10 bg-white/60"
+                    'pl-8 pr-3 py-1.5 text-[10px] tracking-wide border rounded-full focus:outline-none transition-all placeholder:text-charcoal/30',
+                    searchQuery
+                      ? 'w-[140px] border-charcoal/30 bg-charcoal/5'
+                      : 'w-[100px] focus:w-[140px] border-charcoal/10 bg-white/60'
                   )}
                 />
                 {searchQuery && (
-                  <button
-                    onClick={() => setSearchQuery('')}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-charcoal/40 hover:text-charcoal"
-                  >
+                  <button onClick={() => setSearchQuery('')} className="absolute right-2 top-1/2 -translate-y-1/2 text-charcoal/40 hover:text-charcoal">
                     <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                       <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                     </svg>
                   </button>
                 )}
               </div>
-              
-              {/* Reset button - only show when filters active */}
+
               {hasActiveFilters && (
-                <button
-                  onClick={resetFilters}
-                  className="text-[10px] tracking-wide text-charcoal/50 hover:text-charcoal underline underline-offset-2 whitespace-nowrap min-h-[44px] px-2 touch-manipulation"
-                >
+                <button onClick={resetFilters} className="text-[10px] tracking-wide text-charcoal/50 hover:text-charcoal underline underline-offset-2 whitespace-nowrap min-h-[44px] px-2 touch-manipulation">
                   Reset
                 </button>
               )}
             </div>
           </div>
-          
-          {/* Mobile search - full width on small screens */}
+
+          {/* Mobile search */}
           <div className="sm:hidden px-4 pb-3">
             <div className="relative">
               <svg className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-charcoal/30 pointer-events-none" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -603,11 +581,7 @@ export default function CollectionPage() {
                 className="w-full pl-10 pr-10 py-3 min-h-[44px] text-base border border-charcoal/10 rounded-full focus:outline-none focus:border-charcoal/30 placeholder:text-charcoal/30 touch-manipulation"
               />
               {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery('')}
-                  className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-charcoal/40 hover:text-charcoal touch-manipulation"
-                  aria-label="Clear search"
-                >
+                <button onClick={() => setSearchQuery('')} className="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 flex items-center justify-center text-charcoal/40 hover:text-charcoal touch-manipulation" aria-label="Clear search">
                   <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
                   </svg>
@@ -616,8 +590,8 @@ export default function CollectionPage() {
             </div>
           </div>
         </div>
-        
-        {/* Active filters summary + result count */}
+
+        {/* Result count */}
         <div className="flex items-center justify-between px-4 md:px-6 py-2 bg-neutral-50/50 text-[10px] tracking-wide text-charcoal/50">
           <span>
             {isLoading ? (
@@ -637,60 +611,67 @@ export default function CollectionPage() {
           )}
         </div>
       </section>
-      
-      {/* ─────────────────────────────────────────────────────────────
-          Product Grid - Dense catalog layout with skeleton loading
-      ───────────────────────────────────────────────────────────── */}
+
+      {/* ── Product Grid ──────────────────────────────────────────────────── */}
       <section className="flex-1 bg-white">
         {isLoading ? (
-          // Skeleton grid - matches exact grid structure, subtle shimmer
+          // Skeleton — only shown on true first load
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
             {Array.from({ length: 24 }).map((_, i) => (
               <div key={i} className="border-r border-b border-charcoal/5 relative overflow-hidden">
                 <div className="aspect-square bg-neutral-50">
-                  {/* Shimmer overlay */}
                   <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/40 to-transparent" />
                 </div>
               </div>
             ))}
           </div>
         ) : filteredProducts.length > 0 ? (
-          <div 
-            className={`grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 transition-opacity duration-200 ${
-              isSwitchingCategories ? 'opacity-60' : 'opacity-100'
-            }`}
-          >
-            {filteredProducts.map((product, index) => (
-              <ProductCard 
-                key={product.id} 
-                product={product} 
-                imageUrl={getImageUrl(product)}
-                onImageError={handleImageError}
-                onClick={() => openQuickView(product)}
-                index={index}
-                brokenImagesRef={brokenImagesRef}
-              />
-            ))}
-          </div>
+          /*
+           * LayoutGroup scopes the layoutId animations so the underline
+           * on the category nav and the cards don't interfere with each other.
+           *
+           * AnimatePresence mode="popLayout":
+           *   - "popLayout" removes exiting elements from the layout flow
+           *     immediately so remaining cards start repositioning right away
+           *     rather than waiting for exit animations to finish.
+           *   - This is what makes the reflow feel instant.
+           *
+           * The grid itself has NO opacity or transition class — the cards
+           * themselves handle their own enter/exit/layout animations.
+           * No more opacity-60 flash.
+           */
+          <LayoutGroup>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
+              <AnimatePresence mode="popLayout">
+                {filteredProducts.map((product, index) => (
+                  <MemoProductCard
+                    key={product.id}
+                    product={product}
+                    imageUrl={getImageUrl(product)}
+                    onImageError={handleImageError}
+                    onClick={() => openQuickView(product)}
+                    index={index}
+                    brokenImagesRef={brokenImagesRef}
+                  />
+                ))}
+              </AnimatePresence>
+            </div>
+          </LayoutGroup>
         ) : (
           <div className="py-20 text-center">
             <p className="text-sm text-charcoal/40 mb-2">No pieces found.</p>
             <p className="text-xs text-charcoal/30 mb-4">
               {debouncedSearch ? `No results for "${debouncedSearch}"` : 'Try adjusting your filters'}
             </p>
-            <button
-              onClick={resetFilters}
-              className="text-xs uppercase tracking-[0.12em] text-charcoal/60 hover:text-charcoal underline underline-offset-4"
-            >
+            <button onClick={resetFilters} className="text-xs uppercase tracking-[0.12em] text-charcoal/60 hover:text-charcoal underline underline-offset-4">
               Reset all filters
             </button>
           </div>
         )}
       </section>
-      
+
       <Footer />
-      
-      {/* Quick View Modal */}
+
       <QuickViewModal
         product={quickViewProduct}
         isOpen={isQuickViewOpen}
