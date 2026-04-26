@@ -5,9 +5,10 @@ import { Footer } from '@/components/footer'
 import { InquiryFlowWrapper } from '@/components/inquiry-flow-wrapper'
 
 export const metadata: Metadata = {
-  title: 'Contact | ECLECTIC HIVE',
+  title: 'Contact | Eclectic Hive',
   description:
-    'Start a conversation with the ECLECTIC HIVE studio. Full-service event design and production house based in Denver, Colorado.',
+    'Start a conversation with the Eclectic Hive studio. Full-service event design and production house based in Denver, Colorado.',
+  robots: { index: true, follow: true },
 }
 
 export default function ContactPage() {
@@ -15,67 +16,83 @@ export default function ContactPage() {
     <main id="main-content" className="bg-cream min-h-screen">
       <Navigation />
 
-      {/* Editorial header */}
-      <section className="pt-40 section-padding">
+      {/* ── Header ─────────────────────────────────────────────────────────── */}
+      <section className="pt-36 md:pt-44 section-padding">
         <div className="max-w-2xl mx-auto">
-          <p className="text-xs uppercase tracking-wide text-charcoal/50 mb-4">
-            Let&apos;s talk
+
+          {/* Eyebrow */}
+          <p className="text-[10px] uppercase tracking-[0.22em] text-charcoal/40 mb-5">
+            Start a conversation
           </p>
-          <h1 className="font-display text-4xl md:text-5xl lg:text-6xl tracking-display font-light text-charcoal mb-6">
-            Start a Conversation
+
+          {/* Display headline */}
+          <h1 className="font-display text-5xl md:text-6xl lg:text-[4.5rem] font-light text-charcoal leading-[1.0] tracking-[-0.02em] mb-8">
+            Let&apos;s make<br />
+            something<br />
+            unforgettable.
           </h1>
-          <p className="text-charcoal/60 max-w-lg leading-relaxed mb-6">
-            We review every inquiry personally. A few questions help us
+
+          {/* Sub-copy */}
+          <p className="text-charcoal/50 max-w-md leading-relaxed text-[15px] mb-10">
+            Every inquiry is reviewed personally. A few questions help us
             understand your vision so our first conversation is as useful
             as possible.
           </p>
-          
-          {/* Two-audience pathways */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-            <div className="p-4 border border-charcoal/10 rounded-sm">
-              <p className="text-charcoal/80 mb-2">
-                <span className="font-medium">Event planners:</span> We specialize in production partnerships.
-              </p>
-              <Link 
-                href="/atelier" 
-                className="text-charcoal/50 hover:text-charcoal underline underline-offset-4 transition-colors"
-              >
-                See how that works →
-              </Link>
+
+          {/* Audience pathways — minimal, not boxy */}
+          <div className="flex flex-col sm:flex-row gap-x-10 gap-y-3 text-sm mb-14">
+            <div className="flex items-baseline gap-2.5">
+              <span className="w-px h-3 bg-charcoal/20 shrink-0 self-center" />
+              <span className="text-charcoal/45 tracking-[0.03em]">
+                Event planners —{' '}
+                <Link
+                  href="/atelier"
+                  className="text-charcoal/60 hover:text-charcoal underline underline-offset-4 transition-colors"
+                >
+                  see how we partner
+                </Link>
+              </span>
             </div>
-            <div className="p-4 border border-charcoal/10 rounded-sm">
-              <p className="text-charcoal/80 mb-2">
-                <span className="font-medium">First time hiring a design firm?</span> Here&apos;s exactly what happens next.
-              </p>
-              <Link 
-                href="/process" 
-                className="text-charcoal/50 hover:text-charcoal underline underline-offset-4 transition-colors"
-              >
-                View our process →
-              </Link>
+            <div className="flex items-baseline gap-2.5">
+              <span className="w-px h-3 bg-charcoal/20 shrink-0 self-center" />
+              <span className="text-charcoal/45 tracking-[0.03em]">
+                First time?{' '}
+                <Link
+                  href="/process"
+                  className="text-charcoal/60 hover:text-charcoal underline underline-offset-4 transition-colors"
+                >
+                  view our process
+                </Link>
+              </span>
             </div>
           </div>
-          
-          <div className="mt-12 h-px bg-charcoal/10" />
+
+          {/* Divider */}
+          <div className="h-px bg-charcoal/8" />
         </div>
       </section>
 
-      {/* Multi-step inquiry flow - connected to inquiry store */}
+      {/* ── Form ───────────────────────────────────────────────────────────── */}
       <InquiryFlowWrapper />
 
-      {/* Direct email fallback */}
-      <section className="px-6 lg:px-12 pb-24">
+      {/* ── Footer note ────────────────────────────────────────────────────── */}
+      <section className="section-padding pb-24">
         <div className="max-w-2xl mx-auto">
-          <div className="mb-8 h-px bg-charcoal/10" />
-          <p className="text-charcoal/40 text-sm">
-            Prefer email?{' '}
-            <a
-              href="mailto:hello@eclectichive.com"
-              className="text-charcoal/60 hover:text-charcoal transition-colors underline underline-offset-4"
-            >
-              hello@eclectichive.com
-            </a>
-          </p>
+          <div className="h-px bg-charcoal/8 mb-8" />
+          <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-10">
+            <p className="text-charcoal/35 text-[13px] tracking-[0.03em]">
+              Prefer email?{' '}
+              <a
+                href="mailto:info@eclectichive.com"
+                className="text-charcoal/55 hover:text-charcoal transition-colors underline underline-offset-4"
+              >
+                info@eclectichive.com
+              </a>
+            </p>
+            <p className="text-charcoal/35 text-[13px] tracking-[0.03em]">
+              Denver, CO · Salt Lake City, UT
+            </p>
+          </div>
         </div>
       </section>
 

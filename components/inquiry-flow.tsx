@@ -20,30 +20,69 @@ type BudgetRange =
 interface InquiryState {
   clientType: ClientType
   name: string
-  company: string
+  email: string
+  phone: string
   eventType: EventType
   serviceType: ServiceType
   eventDate: string
-  location: string
   budgetRange: BudgetRange
   vision: string
-  email: string
-  phone: string
 }
 
-const TOTAL_STEPS = 7
+const TOTAL_STEPS = 3
+
+// ─── Honeypot ─────────────────────────────────────────────────────────────────
+// Hidden field — bots fill it, humans don't. Silently reject on submit.
+
+function Honeypot({
+  value,
+  onChange,
+}: {
+  value: string
+  onChange: (v: string) => void
+}) {
+  return (
+    <input
+      type="text"
+      name="website"
+      tabIndex={-1}
+      autoComplete="off"
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      style={{
+        position: 'absolute',
+        left: '-9999px',
+        opacity: 0,
+        pointerEvents: 'none',
+        height: 0,
+        width: 0,
+      }}
+      aria-hidden="true"
+    />
+  )
+}
 
 // ─── Primitives ───────────────────────────────────────────────────────────────
 
+function StepLabel({ step }: { step: number }) {
+  const labels = ['About you', 'Your event', 'Vision']
+  return (
+    <p className="text-[10px] uppercase tracking-[0.22em] text-charcoal/40 mb-3">
+      {labels[step - 1]}
+    </p>
+  )
+}
+
 function Question({ children }: { children: React.ReactNode }) {
   return (
-    <h2 className="font-display text-2xl md:text-3xl lg:text-4xl font-light uppercase tracking-[0.2em] text-charcoal mb-10 leading-tight text-balance">
+    <h2 className="font-display text-3xl md:text-4xl lg:text-[2.75rem] font-light text-charcoal mb-10 leading-[1.1] tracking-[-0.01em]">
       {children}
     </h2>
   )
 }
 
-function OptionButton({
+// Pill-style option — replaces the old boxy OptionButton
+function PillOption({
   selected,
   onClick,
   children,
@@ -57,126 +96,188 @@ function OptionButton({
       type="button"
       onClick={onClick}
       className={cn(
-        'w-full text-left px-5 py-4 min-h-[56px] border transition-all duration-300 touch-manipulation',
-        'text-sm uppercase tracking-[0.12em]',
+        'w-full text-left px-6 py-4 border transition-all duration-300 touch-manipulation rounded-[3px]',
+        'text-sm tracking-[0.1em] uppercase',
         selected
           ? 'border-charcoal bg-charcoal text-cream'
-          : 'border-charcoal/20 text-charcoal hover:border-charcoal active:bg-charcoal/5'
+          : 'border-charcoal/15 text-charcoal/70 hover:border-charcoal/40 hover:text-charcoal'
       )}
     >
-      <span className="flex items-center justify-between gap-3">
-        <span className="flex-1">{children}</span>
+      <span className="flex items-center justify-between gap-4">
+        <span>{children}</span>
+        {/* Dot indicator */}
         <span
           className={cn(
-            'w-5 h-5 rounded-full border-2 transition-all duration-300 shrink-0',
+            'w-[18px] h-[18px] rounded-full border transition-all duration-300 shrink-0 flex items-center justify-center',
             selected
-              ? 'border-cream bg-cream/20'
-              : 'border-charcoal/30'
+              ? 'border-cream/60 bg-cream/20'
+              : 'border-charcoal/20'
           )}
-        />
+        >
+          {selected && (
+            <span className="w-[7px] h-[7px] rounded-full bg-cream block" />
+          )}
+        </span>
       </span>
     </button>
   )
 }
 
+// Underline text input — editorial feel
 function LineInput({
   value,
   onChange,
   placeholder,
   type = 'text',
   autoFocus = false,
+  error,
 }: {
   value: string
   onChange: (v: string) => void
   placeholder: string
   type?: string
   autoFocus?: boolean
+  error?: string
 }) {
   return (
-    <input
-      type={type}
-      value={value}
-      onChange={(e) => onChange(e.target.value)}
-      placeholder={placeholder}
-      autoFocus={autoFocus}
-      className={cn(
-        'w-full bg-transparent border-b border-charcoal/30 pb-3 pt-2 min-h-[48px]',
-        'font-display text-lg md:text-xl font-normal text-charcoal placeholder:text-charcoal/30',
-        'focus:outline-none focus:border-charcoal transition-colors duration-300 touch-manipulation'
+    <div className="relative">
+      <input
+        type={type}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        autoFocus={autoFocus}
+        autoComplete={type === 'email' ? 'email' : type === 'tel' ? 'tel' : 'off'}
+        className={cn(
+          'w-full bg-transparent pb-3 pt-1 min-h-[48px]',
+          'font-display text-xl md:text-2xl font-light text-charcoal',
+          'placeholder:text-charcoal/25 placeholder:font-light',
+          'focus:outline-none transition-colors duration-300 touch-manipulation',
+          'border-b',
+          error
+            ? 'border-red-400 focus:border-red-600'
+            : 'border-charcoal/20 focus:border-charcoal'
+        )}
+      />
+      {error && (
+        <p className="text-[11px] text-red-500 mt-1.5 tracking-wide">{error}</p>
       )}
-    />
+    </div>
   )
 }
 
-function BackButton({ onClick }: { onClick: () => void }) {
+// Progress — three segments
+function Progress({ step }: { step: number }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
-      className="text-xs tracking-[0.2em] uppercase text-charcoal/40 hover:text-charcoal transition-colors min-h-[44px] px-3 -ml-3 touch-manipulation"
-    >
-      Back
-    </button>
+    <div className="flex items-center gap-2 mb-14">
+      {[1, 2, 3].map((s) => (
+        <div
+          key={s}
+          className={cn(
+            'h-px flex-1 transition-all duration-700 ease-out',
+            s < step
+              ? 'bg-charcoal'
+              : s === step
+              ? 'bg-charcoal/50'
+              : 'bg-charcoal/10'
+          )}
+        />
+      ))}
+      <span className="text-[10px] tracking-[0.2em] text-charcoal/30 tabular-nums ml-2 shrink-0">
+        {step} / {TOTAL_STEPS}
+      </span>
+    </div>
   )
 }
 
-function NextButton({
-  onClick,
-  disabled,
-  label = 'Continue',
-}: {
-  onClick: () => void
-  disabled: boolean
-  label?: string
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      disabled={disabled}
-      className={cn(
-        'flex items-center gap-4 text-sm uppercase tracking-[0.2em] transition-all duration-300 min-h-[44px] px-3 -mr-3 touch-manipulation',
-        disabled
-          ? 'text-charcoal/20 cursor-not-allowed'
-          : 'text-charcoal hover:gap-6 active:text-charcoal/70'
-      )}
-    >
-      {label}
-      <span className="w-8 h-px bg-current" />
-    </button>
-  )
-}
-
-function StepActions({
+// Nav row at bottom of each step
+function StepNav({
   onBack,
   onNext,
   disabled,
+  isFirst = false,
   isLast = false,
   submitting = false,
 }: {
   onBack: () => void
   onNext: () => void
   disabled: boolean
+  isFirst?: boolean
   isLast?: boolean
   submitting?: boolean
 }) {
   return (
-    <div className="flex items-center gap-6 mt-10">
-      <BackButton onClick={onBack} />
-      <NextButton
+    <div className="flex items-center justify-between mt-12 pt-8 border-t border-charcoal/8">
+      {/* Back */}
+      <button
+        type="button"
+        onClick={onBack}
+        className={cn(
+          'text-[10px] uppercase tracking-[0.22em] transition-colors duration-300 min-h-[44px] px-1 touch-manipulation',
+          isFirst ? 'opacity-0 pointer-events-none' : 'text-charcoal/35 hover:text-charcoal'
+        )}
+      >
+        Back
+      </button>
+
+      {/* Continue / Send */}
+      <button
+        type="button"
         onClick={onNext}
         disabled={disabled || submitting}
-        label={
-          isLast ? (submitting ? 'Sending…' : 'Send inquiry') : 'Continue'
-        }
-      />
+        className={cn(
+          'flex items-center gap-5 group transition-all duration-300 min-h-[44px] touch-manipulation',
+          disabled || submitting
+            ? 'opacity-25 cursor-not-allowed'
+            : 'opacity-100'
+        )}
+      >
+        <span
+          className={cn(
+            'text-[10px] uppercase tracking-[0.22em] text-charcoal transition-all duration-300',
+            !disabled && !submitting && 'group-hover:tracking-[0.28em]'
+          )}
+        >
+          {isLast
+            ? submitting
+              ? 'Sending'
+              : 'Send inquiry'
+            : 'Continue'}
+        </span>
+
+        {/* Animated line */}
+        <span className="flex items-center gap-0">
+          <span
+            className={cn(
+              'h-px bg-charcoal transition-all duration-500',
+              disabled || submitting
+                ? 'w-6'
+                : 'w-8 group-hover:w-12'
+            )}
+          />
+          {/* Arrow tip */}
+          <svg
+            className="w-3 h-3 text-charcoal -ml-0.5"
+            fill="none"
+            viewBox="0 0 12 12"
+            stroke="currentColor"
+            strokeWidth={1.5}
+          >
+            <path
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              d="M2 6h8M6 2l4 4-4 4"
+            />
+          </svg>
+        </span>
+      </button>
     </div>
   )
 }
 
 // ─── Main component ───────────────────────────────────────────────────────────
 
-type InquiryItem = {
+export type InquiryItem = {
   id: string
   name: string
   quantity: number
@@ -187,170 +288,170 @@ type InquiryItem = {
 interface InquiryFlowProps {
   onSuccess?: () => void
   preselectedItems?: InquiryItem[]
-  autoFocus?: boolean
 }
 
-export function InquiryFlow({ onSuccess, preselectedItems = [], autoFocus = false }: InquiryFlowProps) {
+export function InquiryFlow({
+  onSuccess,
+  preselectedItems = [],
+}: InquiryFlowProps) {
   const [step, setStep] = useState(1)
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [submitError, setSubmitError] = useState<string | null>(null)
   const [mounted, setMounted] = useState(false)
-  const topRef = useRef<HTMLDivElement>(null)
-  
-  // Spam protection
   const [honeypot, setHoneypot] = useState('')
+  const [errors, setErrors] = useState<Partial<Record<keyof InquiryState, string>>>({})
+  const topRef = useRef<HTMLDivElement>(null)
   const lastSubmitRef = useRef<number>(0)
-  
-  // Entry animation trigger
+
   useEffect(() => {
-    setMounted(true)
+    const t = setTimeout(() => setMounted(true), 80)
+    return () => clearTimeout(t)
   }, [])
-  
-  // Get shortlisted items from collection - merge with any preselected items
-  const { items: storeItems, clear: clearShortlist } = useInquiryStore()
-  const shortlistedItems = preselectedItems.length > 0 ? preselectedItems : storeItems
+
+  const { items: storeItems, clear: clearStore } = useInquiryStore()
+  const cartItems = preselectedItems.length > 0 ? preselectedItems : storeItems
 
   const [state, setState] = useState<InquiryState>({
     clientType: null,
     name: '',
-    company: '',
+    email: '',
+    phone: '',
     eventType: null,
     serviceType: null,
     eventDate: '',
-    location: '',
     budgetRange: null,
     vision: '',
-    email: '',
-    phone: '',
   })
 
-  const set = <K extends keyof InquiryState>(
-    key: K,
-    value: InquiryState[K]
-  ) => setState((prev) => ({ ...prev, [key]: value }))
+  const set = <K extends keyof InquiryState>(key: K, value: InquiryState[K]) =>
+    setState((prev) => ({ ...prev, [key]: value }))
 
-  // Scroll form top into view on each step change
   useEffect(() => {
     topRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }, [step])
 
-  const canAdvance = (): boolean => {
-    switch (step) {
-      case 1: return state.clientType !== null
-      case 2: return state.name.trim().length > 1
-      case 3: return state.eventType !== null
-      case 4: return state.serviceType !== null
-      case 5:
-        return (
-          state.eventDate.trim().length > 0 &&
-          state.location.trim().length > 0
-        )
-      case 6: return state.budgetRange !== null
-      case 7:
-        return (
-          state.email.trim().includes('@') &&
-          state.vision.trim().length > 10
-        )
-      default: return false
+  // ── Validation ──────────────────────────────────────────────────────────────
+
+  function validateStep(s: number): boolean {
+    const e: Partial<Record<keyof InquiryState, string>> = {}
+
+    if (s === 1) {
+      if (!state.name.trim() || state.name.trim().length < 2)
+        e.name = 'Please enter your name'
+      if (!state.email.trim().match(/^[^\s@]+@[^\s@]+\.[^\s@]+$/))
+        e.email = 'Valid email required'
+      if (!state.phone.trim())
+        e.phone = 'Phone number required'
+    }
+
+    if (s === 3) {
+      if (state.vision.trim().length < 10)
+        e.vision = 'Tell us a little more'
+    }
+
+    setErrors(e)
+    return Object.keys(e).length === 0
+  }
+
+  function advance() {
+    if (!validateStep(step)) return
+    if (step < TOTAL_STEPS) setStep((s) => s + 1)
+  }
+
+  function back() {
+    if (step > 1) {
+      setErrors({})
+      setStep((s) => s - 1)
     }
   }
 
-  const advance = () => {
-    if (canAdvance() && step < TOTAL_STEPS) setStep((s) => s + 1)
-  }
+  // ── Submit ──────────────────────────────────────────────────────────────────
 
-  const back = () => {
-    if (step > 1) setStep((s) => s - 1)
-  }
+  async function handleSubmit() {
+    if (!validateStep(step)) return
 
-  // Enter key advances from any text step
-  const handleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && canAdvance() && step < TOTAL_STEPS) advance()
-  }
+    // Honeypot check
+    if (honeypot) return
 
-  const handleSubmit = async () => {
-    if (!canAdvance()) return
-    
-    // Spam protection: honeypot check (bots fill hidden fields)
-    if (honeypot) {
-      // Silently reject - don't alert the bot
-      setSubmitted(true)
-      return
-    }
-    
-    // Spam protection: client-side rate limit (30 seconds between submissions)
+    // Client-side rate limit
     const now = Date.now()
     if (now - lastSubmitRef.current < 30_000) {
-      setError('Please wait a moment before resubmitting.')
+      setSubmitError('Please wait a moment before resubmitting.')
       return
     }
     lastSubmitRef.current = now
-    
+
     setSubmitting(true)
-    setError(null)
+    setSubmitError(null)
+
     try {
-      // Include shortlisted items in submission
-      const payload = {
-        ...state,
-        shortlistedItems: shortlistedItems.length > 0 
-          ? shortlistedItems.map(i => `${i.quantity > 1 ? `${i.quantity}× ` : ''}${i.name}`).join(', ')
-          : undefined,
-      }
       const res = await fetch('/api/inquiry', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          clientType: state.clientType,
+          name: state.name,
+          email: state.email,
+          phone: state.phone,
+          eventType: state.eventType,
+          serviceType: state.serviceType,
+          eventDate: state.eventDate,
+          budgetRange: state.budgetRange,
+          vision: state.vision,
+          company: '',
+          location: '',
+          items: cartItems.map((i) => ({
+            id: i.id,
+            name: i.name,
+            category: i.category ?? '',
+            quantity: i.quantity,
+          })),
+        }),
       })
+
       if (!res.ok) throw new Error('Failed')
+
       setSubmitted(true)
-      clearShortlist() // Clear the shortlist after successful submission
+      clearStore()
       onSuccess?.()
     } catch {
-      setError(
-        'Something went wrong — please email hello@eclectichive.com directly.'
+      setSubmitError(
+        'There was a problem sending your inquiry. Please email us directly at info@eclectichive.com'
       )
     } finally {
       setSubmitting(false)
     }
   }
 
-  // ── Progress bar ──────────────────────────────────────────────────────────
-
-  const ProgressBar = () => (
-    <div className="flex items-center gap-3 mb-16">
-      <div className="flex-1 h-px bg-charcoal/10 relative overflow-hidden">
-        <div
-          className="absolute inset-y-0 left-0 bg-charcoal transition-all duration-700 ease-out"
-          style={{ width: `${(step / TOTAL_STEPS) * 100}%` }}
-        />
-      </div>
-      <span className="text-xs tracking-[0.2em] text-charcoal/40 tabular-nums">
-        {step}/{TOTAL_STEPS}
-      </span>
-    </div>
-  )
-
-  // ── Success ───────────────────────────────────────────────────────────────
+  // ── Success state ───────────────────────────────────────────────────────────
 
   if (submitted) {
     return (
-      <div className="min-h-[60vh] flex flex-col items-center justify-center text-center px-6">
-        <div className="w-px h-16 bg-charcoal/20 mb-12" />
-        <h2 className="font-display text-3xl md:text-4xl font-light uppercase tracking-[0.2em] text-charcoal mb-6">
-          We&apos;ll Be In Touch
-        </h2>
-        <p className="text-charcoal/60 max-w-md mb-4">
-          Thank you, {state.name.split(' ')[0]}. We review every inquiry
-          personally and typically respond within one business day.
+      <div className="min-h-[55vh] flex flex-col items-start justify-center max-w-2xl mx-auto px-6 py-20">
+        {/* Vertical rule */}
+        <div className="w-px h-20 bg-charcoal/15 mb-14" />
+
+        <p className="text-[10px] uppercase tracking-[0.22em] text-charcoal/40 mb-5">
+          Received
         </p>
-        <p className="text-charcoal/40 text-sm">
-          In the meantime, explore{' '}
+
+        <h2 className="font-display text-4xl md:text-5xl font-light text-charcoal mb-6 leading-[1.05]">
+          We&apos;ll be<br />in touch.
+        </h2>
+
+        <p className="text-charcoal/55 leading-relaxed mb-2 max-w-sm">
+          Thank you, {state.name.split(' ')[0]}. Every inquiry is reviewed personally —
+          expect to hear from us within one business day.
+        </p>
+
+        <p className="text-charcoal/35 text-sm mt-6">
+          In the meantime —{' '}
           <a
             href="/gallery"
-            className="underline underline-offset-4 hover:text-charcoal transition-colors"
+            className="underline underline-offset-4 hover:text-charcoal/70 transition-colors"
           >
-            The Gallery
+            explore the gallery
           </a>
           .
         </p>
@@ -358,270 +459,252 @@ export function InquiryFlow({ onSuccess, preselectedItems = [], autoFocus = fals
     )
   }
 
-  // ── Steps ─────────────────────────────────────────────────────────────────
+  // ── Steps ───────────────────────────────────────────────────────────────────
 
   return (
     <div
       ref={topRef}
       className={cn(
-        "w-full max-w-2xl mx-auto px-6 py-16 transition-all duration-700 ease-out",
-        mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-8"
+        'w-full max-w-2xl mx-auto px-6 py-16 transition-all duration-700 ease-[cubic-bezier(0.22,1,0.36,1)]',
+        mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'
       )}
-      onKeyDown={handleKeyDown}
     >
-      <ProgressBar />
+      <Honeypot value={honeypot} onChange={setHoneypot} />
+      <Progress step={step} />
 
-      {/* Step 1 — Who's reaching out */}
+      {/* ── Step 1 — About you ─────────────────────────────────────────────── */}
       {step === 1 && (
-        <div className={cn(
-          "transition-all duration-500 delay-200",
-          mounted ? "opacity-100 translate-y-0" : "opacity-0 translate-y-4"
-        )}>
+        <div
+          className={cn(
+            'transition-all duration-500',
+            mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3'
+          )}
+        >
+          <StepLabel step={1} />
           <Question>Who&apos;s reaching out?</Question>
-          <div className="flex flex-col gap-3">
-            <OptionButton
-              selected={state.clientType === 'planner'}
-              onClick={() => set('clientType', 'planner')}
-            >
-              I&apos;m an event planner or creative partner
-            </OptionButton>
-            <OptionButton
-              selected={state.clientType === 'direct'}
-              onClick={() => set('clientType', 'direct')}
-            >
-              I&apos;m planning my own event
-            </OptionButton>
-          </div>
-          <div className="mt-10">
-            <NextButton onClick={advance} disabled={!canAdvance()} />
-          </div>
-        </div>
-      )}
 
-      {/* Step 2 — Name (+ company for planners) */}
-      {step === 2 && (
-        <div>
-          <Question>
-            {state.clientType === 'planner'
-              ? 'Your name and studio.'
-              : 'Your name.'}
-          </Question>
-          <div className="flex flex-col gap-8">
+          {/* Name + contact */}
+          <div className="flex flex-col gap-8 mb-10">
             <LineInput
               value={state.name}
               onChange={(v) => set('name', v)}
               placeholder="Full name"
               autoFocus
-            />
-            {state.clientType === 'planner' && (
-              <LineInput
-                value={state.company}
-                onChange={(v) => set('company', v)}
-                placeholder="Studio or company name"
-              />
-            )}
-          </div>
-          <StepActions
-            onBack={back}
-            onNext={advance}
-            disabled={!canAdvance()}
-          />
-        </div>
-      )}
-
-      {/* Step 3 — Event type */}
-      {step === 3 && (
-        <div>
-          <Question>What kind of event?</Question>
-          <div className="flex flex-col gap-3">
-            {(
-              [
-                ['wedding', 'Wedding'],
-                ['corporate', 'Corporate / Incentive Travel'],
-                ['social', 'Social Celebration'],
-                ['nonprofit', 'Non-Profit / Fundraiser'],
-              ] as [EventType, string][]
-            ).map(([value, label]) => (
-              <OptionButton
-                key={value}
-                selected={state.eventType === value}
-                onClick={() => set('eventType', value)}
-              >
-                {label}
-              </OptionButton>
-            ))}
-          </div>
-          <StepActions
-            onBack={back}
-            onNext={advance}
-            disabled={!canAdvance()}
-          />
-        </div>
-      )}
-
-      {/* Step 4 — Service type */}
-      {step === 4 && (
-        <div>
-          <Question>What are you looking for?</Question>
-          <div className="flex flex-col gap-3">
-            <OptionButton
-              selected={state.serviceType === 'full-design'}
-              onClick={() => set('serviceType', 'full-design')}
-            >
-              Full design + production
-            </OptionButton>
-            <OptionButton
-              selected={state.serviceType === 'production'}
-              onClick={() => set('serviceType', 'production')}
-            >
-              Production management only
-            </OptionButton>
-            <OptionButton
-              selected={state.serviceType === 'rental'}
-              onClick={() => set('serviceType', 'rental')}
-            >
-              Rental collection access
-            </OptionButton>
-          </div>
-          <StepActions
-            onBack={back}
-            onNext={advance}
-            disabled={!canAdvance()}
-          />
-        </div>
-      )}
-
-      {/* Step 5 — Date + location */}
-      {step === 5 && (
-        <div>
-          <Question>When and where?</Question>
-          <div className="flex flex-col gap-10">
-            <LineInput
-              value={state.eventDate}
-              onChange={(v) => set('eventDate', v)}
-              placeholder="Event date or general timeframe"
-              autoFocus
-            />
-            <LineInput
-              value={state.location}
-              onChange={(v) => set('location', v)}
-              placeholder="City, venue, or destination"
-            />
-          </div>
-          <StepActions
-            onBack={back}
-            onNext={advance}
-            disabled={!canAdvance()}
-          />
-        </div>
-      )}
-
-      {/* Step 6 — Budget */}
-      {step === 6 && (
-        <div>
-          <Question>Investment range?</Question>
-          <p className="text-charcoal/50 text-sm -mt-6 mb-8">
-            This helps us understand scope. All ranges are welcome.
-          </p>
-          <div className="flex flex-col gap-3">
-            {(
-              [
-                ['under-10k', 'Under $10,000'],
-                ['10-25k', '$10,000 – $25,000'],
-                ['25-50k', '$25,000 – $50,000'],
-                ['50-100k', '$50,000 – $100,000'],
-                ['over-100k', '$100,000+'],
-              ] as [BudgetRange, string][]
-            ).map(([value, label]) => (
-              <OptionButton
-                key={value}
-                selected={state.budgetRange === value}
-                onClick={() => set('budgetRange', value)}
-              >
-                {label}
-              </OptionButton>
-            ))}
-          </div>
-          <StepActions
-            onBack={back}
-            onNext={advance}
-            disabled={!canAdvance()}
-          />
-        </div>
-      )}
-
-      {/* Step 7 — Vision + contact details */}
-      {step === 7 && (
-        <div>
-          <Question>Tell us about your vision.</Question>
-          
-          {/* Shortlisted pieces summary */}
-          {shortlistedItems.length > 0 && (
-            <div className="mb-8 p-4 border border-charcoal/10 rounded-sm">
-              <p className="text-xs uppercase tracking-[0.15em] text-charcoal/50 mb-3">
-                Selected pieces from collection
-              </p>
-              <div className="flex flex-wrap gap-2">
-                {shortlistedItems.map((item) => (
-                  <span 
-                    key={item.id}
-                    className="inline-flex items-center gap-2 px-3 py-1.5 bg-charcoal/5 text-xs text-charcoal/70"
-                  >
-                    {item.quantity > 1 && <span className="font-medium">{item.quantity}×</span>}
-                    {item.name}
-                  </span>
-                ))}
-              </div>
-            </div>
-          )}
-          
-          <div className="flex flex-col gap-10">
-            <textarea
-              value={state.vision}
-              onChange={(e) => set('vision', e.target.value)}
-              placeholder="The feeling you're after, references, anything that helps us understand your world…"
-              rows={4}
-              autoFocus
-              className={cn(
-                'w-full bg-transparent border-b border-charcoal/30 pb-3 resize-none',
-                'text-charcoal placeholder:text-charcoal/30',
-                'focus:outline-none focus:border-charcoal transition-colors duration-300'
-              )}
+              error={errors.name}
             />
             <LineInput
               value={state.email}
               onChange={(v) => set('email', v)}
               placeholder="Email address"
               type="email"
+              error={errors.email}
             />
             <LineInput
               value={state.phone}
               onChange={(v) => set('phone', v)}
-              placeholder="Phone (optional)"
+              placeholder="Phone"
               type="tel"
-            />
-            
-            {/* Honeypot field - hidden from humans, bots fill it */}
-            <input
-              type="text"
-              name="website"
-              tabIndex={-1}
-              autoComplete="off"
-              aria-hidden="true"
-              value={honeypot}
-              onChange={(e) => setHoneypot(e.target.value)}
-              style={{ position: 'absolute', left: '-9999px', opacity: 0, pointerEvents: 'none' }}
+              error={errors.phone}
             />
           </div>
 
-          {error && (
-            <p className="mt-6 text-sm text-red-700">{error}</p>
+          {/* Planner / direct — optional context */}
+          <div className="mb-2">
+            <p className="text-[10px] uppercase tracking-[0.18em] text-charcoal/35 mb-4">
+              Are you an event planner?
+            </p>
+            <div className="flex gap-3">
+              <PillOption
+                selected={state.clientType === 'planner'}
+                onClick={() => set('clientType', 'planner')}
+              >
+                Yes, I&apos;m a planner
+              </PillOption>
+              <PillOption
+                selected={state.clientType === 'direct'}
+                onClick={() => set('clientType', 'direct')}
+              >
+                No, direct client
+              </PillOption>
+            </div>
+          </div>
+
+          <StepNav
+            onBack={back}
+            onNext={advance}
+            disabled={false}
+            isFirst
+          />
+        </div>
+      )}
+
+      {/* ── Step 2 — Your event ────────────────────────────────────────────── */}
+      {step === 2 && (
+        <div>
+          <StepLabel step={2} />
+          <Question>Tell us about the event.</Question>
+
+          {/* Event type */}
+          <div className="mb-8">
+            <p className="text-[10px] uppercase tracking-[0.18em] text-charcoal/35 mb-4">
+              Type of event
+            </p>
+            <div className="grid grid-cols-2 gap-2.5">
+              {(
+                [
+                  ['wedding', 'Wedding'],
+                  ['corporate', 'Corporate'],
+                  ['social', 'Social celebration'],
+                  ['nonprofit', 'Non-profit'],
+                ] as [EventType, string][]
+              ).map(([value, label]) => (
+                <PillOption
+                  key={value!}
+                  selected={state.eventType === value}
+                  onClick={() => set('eventType', value)}
+                >
+                  {label}
+                </PillOption>
+              ))}
+            </div>
+          </div>
+
+          {/* Service */}
+          <div className="mb-8">
+            <p className="text-[10px] uppercase tracking-[0.18em] text-charcoal/35 mb-4">
+              What are you looking for?
+            </p>
+            <div className="flex flex-col gap-2.5">
+              {(
+                [
+                  ['full-design', 'Full design + production'],
+                  ['production', 'Production management only'],
+                  ['rental', 'Rental collection access'],
+                ] as [ServiceType, string][]
+              ).map(([value, label]) => (
+                <PillOption
+                  key={value!}
+                  selected={state.serviceType === value}
+                  onClick={() => set('serviceType', value)}
+                >
+                  {label}
+                </PillOption>
+              ))}
+            </div>
+          </div>
+
+          {/* Date + budget — inline, lighter weight */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8 mb-2">
+            <LineInput
+              value={state.eventDate}
+              onChange={(v) => set('eventDate', v)}
+              placeholder="Event date or timeframe"
+            />
+            <div>
+              <p className="text-[10px] uppercase tracking-[0.18em] text-charcoal/35 mb-3">
+                Anticipated budget
+              </p>
+              <div className="flex flex-col gap-2">
+                {(
+                  [
+                    ['under-10k', 'Under $10k'],
+                    ['10-25k', '$10k – $25k'],
+                    ['25-50k', '$25k – $50k'],
+                    ['50-100k', '$50k – $100k'],
+                    ['over-100k', '$100k+'],
+                  ] as [BudgetRange, string][]
+                ).map(([value, label]) => (
+                  <button
+                    key={value!}
+                    type="button"
+                    onClick={() => set('budgetRange', value)}
+                    className={cn(
+                      'text-left text-sm py-1.5 transition-all duration-200 tracking-[0.06em]',
+                      state.budgetRange === value
+                        ? 'text-charcoal font-medium'
+                        : 'text-charcoal/35 hover:text-charcoal/70'
+                    )}
+                  >
+                    {state.budgetRange === value ? '→ ' : ''}
+                    {label}
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <StepNav onBack={back} onNext={advance} disabled={false} />
+        </div>
+      )}
+
+      {/* ── Step 3 — Vision ────────────────────────────────────────────────── */}
+      {step === 3 && (
+        <div>
+          <StepLabel step={3} />
+          <Question>Describe your vision.</Question>
+
+          {/* Cart summary if present */}
+          {cartItems.length > 0 && (
+            <div className="mb-10 border-l-2 border-charcoal/15 pl-5">
+              <p className="text-[10px] uppercase tracking-[0.18em] text-charcoal/40 mb-3">
+                Selected from collection
+              </p>
+              <div className="flex flex-col gap-1.5">
+                {cartItems.map((item) => (
+                  <div key={item.id} className="flex items-baseline gap-3">
+                    {item.quantity > 1 && (
+                      <span className="text-[10px] tracking-wide text-charcoal/40 tabular-nums w-6 shrink-0">
+                        {item.quantity}×
+                      </span>
+                    )}
+                    <span className="text-sm text-charcoal/65 tracking-[0.04em]">
+                      {item.name}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
           )}
 
-          <StepActions
+          {/* Vision textarea */}
+          <div className="mb-2 relative">
+            <textarea
+              value={state.vision}
+              onChange={(e) => set('vision', e.target.value)}
+              placeholder="The feeling you're after, references, aesthetic direction — anything that helps us understand your world…"
+              rows={5}
+              autoFocus
+              className={cn(
+                'w-full bg-transparent border-b pb-3 resize-none',
+                'font-display text-xl md:text-2xl font-light text-charcoal leading-relaxed',
+                'placeholder:text-charcoal/20 placeholder:font-light placeholder:text-lg',
+                'focus:outline-none transition-colors duration-300',
+                errors.vision
+                  ? 'border-red-400 focus:border-red-600'
+                  : 'border-charcoal/20 focus:border-charcoal'
+              )}
+            />
+            {errors.vision && (
+              <p className="text-[11px] text-red-500 mt-1.5">{errors.vision}</p>
+            )}
+          </div>
+
+          {/* Character count — light guidance */}
+          <p className="text-[10px] text-charcoal/25 tracking-wide mt-2 text-right">
+            {state.vision.length} / 2000
+          </p>
+
+          {/* Submit error */}
+          {submitError && (
+            <div className="mt-6 p-4 border border-red-200 rounded-sm bg-red-50">
+              <p className="text-sm text-red-700 leading-relaxed">{submitError}</p>
+            </div>
+          )}
+
+          <StepNav
             onBack={back}
             onNext={handleSubmit}
-            disabled={!canAdvance()}
+            disabled={state.vision.trim().length < 10}
             isLast
             submitting={submitting}
           />
