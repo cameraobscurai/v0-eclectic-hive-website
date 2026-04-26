@@ -38,10 +38,21 @@ export async function GET(request: NextRequest) {
   
   // Build query with count for pagination
   // Include first variant data for quick view (stock_count, dimensions)
+  // SECURITY: Explicit column list - do NOT use SELECT * to avoid exposing staff_notes
   let query = supabase
     .from('products')
     .select(`
-      *,
+      id,
+      name,
+      slug,
+      category,
+      subcategory,
+      description,
+      primary_image_url,
+      is_active,
+      is_featured,
+      created_at,
+      updated_at,
       product_variants (
         stock_count,
         dims_display,

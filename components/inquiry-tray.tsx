@@ -4,10 +4,19 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { useInquiryStore } from '@/lib/inquiry-store'
 import { TransitionLink } from '@/components/page-transition'
 import { X } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 
 export function InquiryTray() {
   const { items, remove, totalCount, clear } = useInquiryStore()
   const count = totalCount()
+  const router = useRouter()
+  
+  // Build URL with only item IDs (not full JSON) to avoid URL length limits
+  // Full item data stays in Zustand store and is read on the contact page
+  const handleSubmitInquiry = () => {
+    const ids = items.map(i => i.id).join(',')
+    router.push(`/contact?items=${encodeURIComponent(ids)}#inquiry`)
+  }
 
   return (
     <AnimatePresence>
@@ -79,15 +88,15 @@ export function InquiryTray() {
             )}
           </div>
 
-          {/* View selections link */}
-          <TransitionLink
-            href="/contact#inquiry"
+          {/* Submit inquiry button */}
+          <button
+            onClick={handleSubmitInquiry}
             className="text-cream/70 hover:text-cream
                        px-3 py-2 text-[10px] uppercase tracking-[0.12em]
                        transition-colors"
           >
-            View
-          </TransitionLink>
+            Submit Inquiry
+          </button>
 
           {/* Clear all button */}
           <button

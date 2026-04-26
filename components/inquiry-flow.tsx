@@ -198,6 +198,10 @@ export function InquiryFlow({ onSuccess, preselectedItems = [], autoFocus = fals
   const [mounted, setMounted] = useState(false)
   const topRef = useRef<HTMLDivElement>(null)
   
+  // Spam protection
+  const [honeypot, setHoneypot] = useState('')
+  const lastSubmitRef = useRef<number>(0)
+  
   // Entry animation trigger
   useEffect(() => {
     setMounted(true)
@@ -267,6 +271,22 @@ export function InquiryFlow({ onSuccess, preselectedItems = [], autoFocus = fals
 
   const handleSubmit = async () => {
     if (!canAdvance()) return
+    
+    // Spam protection: honeypot check (bots fill hidden fields)
+    if (honeypot) {
+      // Silently reject - don't alert the bot
+      setSubmitted(true)
+      return
+    }
+    
+    // Spam protection: client-side rate limit (30 seconds between submissions)
+    const now = Date.now()
+    if (now - lastSubmitRef.current < 30_000) {
+      setError('Please wait a moment before resubmitting.')
+      return
+    }
+    lastSubmitRef.current = now
+    
     setSubmitting(true)
     setError(null)
     try {
@@ -579,6 +599,18 @@ export function InquiryFlow({ onSuccess, preselectedItems = [], autoFocus = fals
               onChange={(v) => set('phone', v)}
               placeholder="Phone (optional)"
               type="tel"
+            />
+            
+            {/* Honeypot field - hidden from humans, bots fill it */}
+            <input
+              type="text"
+              name="website"
+              tabIndex={-1}
+              autoComplete="off"
+              aria-hidden="true"
+              value={honeypot}
+              onChange={(e) => setHoneypot(e.target.value)}
+              style={{ position: 'absolute', left: '-9999px', opacity: 0, pointerEvents: 'none' }}
             />
           </div>
 
