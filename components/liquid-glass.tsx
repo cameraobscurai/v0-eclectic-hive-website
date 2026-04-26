@@ -165,17 +165,17 @@ export function LiquidGlass({
         className={cn('absolute inset-0', rounded)}
         style={{
           backdropFilter: hovered
-            ? 'blur(28px) saturate(1.4) brightness(1.08)'
-            : 'blur(20px) saturate(1.2) brightness(1.04)',
+            ? 'blur(24px) saturate(1.3) brightness(1.1)'
+            : 'blur(16px) saturate(1.15) brightness(1.05)',
           WebkitBackdropFilter: hovered
-            ? 'blur(28px) saturate(1.4) brightness(1.08)'
-            : 'blur(20px) saturate(1.2) brightness(1.04)',
+            ? 'blur(24px) saturate(1.3) brightness(1.1)'
+            : 'blur(16px) saturate(1.15) brightness(1.05)',
           filter: hovered
             ? 'url(#liquid-glass-refract-hover)'
             : 'url(#liquid-glass-refract)',
           background: hovered
-            ? 'rgba(255, 255, 255, 0.07)'
-            : 'rgba(255, 255, 255, 0.04)',
+            ? 'rgba(255, 255, 255, 0.06)'
+            : 'rgba(255, 255, 255, 0.03)',
           transition: 'backdrop-filter 0.4s ease, background 0.4s ease',
           zIndex: 0,
         }}
@@ -191,14 +191,14 @@ export function LiquidGlass({
         className={cn('absolute inset-0 pointer-events-none', rounded)}
         style={{
           background: `radial-gradient(
-            ellipse 60% 40% at ${specX}% ${specY}%,
-            rgba(255, 255, 255, ${hovered ? '0.18' : '0.10'}) 0%,
-            rgba(255, 255, 255, 0.04) 40%,
-            transparent 70%
+            ellipse 70% 50% at ${specX}% ${specY}%,
+            rgba(255, 255, 255, ${hovered ? '0.14' : '0.06'}) 0%,
+            rgba(255, 255, 255, 0.02) 50%,
+            transparent 80%
           )`,
           transition: hovered
-            ? 'background 0.08s ease'  // fast follow on hover
-            : 'background 0.6s ease',  // slow drift on leave
+            ? 'background 0.1s ease'
+            : 'background 0.5s ease',
           zIndex: 1,
         }}
       />
@@ -214,20 +214,18 @@ export function LiquidGlass({
         style={{
           boxShadow: hovered
             ? `
-              inset 0 1px 0 0 rgba(255,255,255,0.35),
-              inset 1px 0 0 0 rgba(255,255,255,0.15),
-              inset 0 -1px 0 0 rgba(255,255,255,0.06),
-              inset -1px 0 0 0 rgba(255,255,255,0.06),
-              0 0 0 0.5px rgba(255,255,255,0.12)
+              inset 0 1px 0 0 rgba(255,255,255,0.25),
+              inset 1px 0 0 0 rgba(255,255,255,0.10),
+              inset 0 -1px 0 0 rgba(255,255,255,0.04),
+              inset -1px 0 0 0 rgba(255,255,255,0.04)
             `
             : `
-              inset 0 1px 0 0 rgba(255,255,255,0.20),
-              inset 1px 0 0 0 rgba(255,255,255,0.08),
-              inset 0 -1px 0 0 rgba(255,255,255,0.04),
-              inset -1px 0 0 0 rgba(255,255,255,0.04),
-              0 0 0 0.5px rgba(255,255,255,0.08)
+              inset 0 1px 0 0 rgba(255,255,255,0.12),
+              inset 1px 0 0 0 rgba(255,255,255,0.05),
+              inset 0 -1px 0 0 rgba(255,255,255,0.02),
+              inset -1px 0 0 0 rgba(255,255,255,0.02)
             `,
-          transition: 'box-shadow 0.35s ease',
+          transition: 'box-shadow 0.3s ease',
           zIndex: 2,
         }}
       />
