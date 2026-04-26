@@ -108,9 +108,10 @@ export function Navigation() {
           <Link href="/" className="relative group nav-logo" aria-label="ECLECTIC HIVE — home">
             <span
               className={cn(
-                "font-display text-xl lg:text-2xl tracking-[0.15em] font-light uppercase transition-colors duration-300",
+                "font-brand text-[0.8rem] lg:text-[0.9rem] tracking-[0.18em] uppercase transition-colors duration-300",
                 scrolled ? "text-cream" : isLightPage ? "text-charcoal" : "text-cream"
               )}
+              style={{ fontWeight: 400 }}
             >
               ECLECTIC HIVE
             </span>
