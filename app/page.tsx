@@ -29,7 +29,7 @@ export default function HomePage() {
       {/* Single viewport hero */}
       <section className="relative h-[100svh] flex flex-col overflow-hidden">
 
-        {/* Background image - shifted up to show florals behind glass cards */}
+        {/* Background image - balanced to show chairs AND terrain */}
         <div className="absolute inset-0">
           <Image
             src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/D9D9D665-C36F-4654-9687-7303B1A05765-9rOvJvBIwpsvY9Af2AsIgMz4b3gf75.jpeg"
@@ -37,22 +37,22 @@ export default function HomePage() {
             fill
             priority
             quality={90}
-            className="object-cover object-[center_30%]"
+            className="object-cover object-[center_38%]"
             sizes="100vw"
           />
         </div>
 
-        {/* Soft warm overlay */}
-        <div className="absolute inset-0 bg-charcoal/[0.03]" />
+        {/* Very subtle warm tint */}
+        <div className="absolute inset-0 bg-charcoal/[0.02]" />
 
-        {/* Elegant vignette - softer, larger clear zone */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_70%_at_center,transparent_30%,rgba(20,20,20,0.35)_100%)]" />
+        {/* Soft vignette for focus */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_90%_80%_at_center,transparent_40%,rgba(20,20,20,0.3)_100%)]" />
 
-        {/* Bottom gradient - softer, starts later for more image visibility */}
+        {/* Light gradient at bottom - just enough for text legibility, not dark */}
         <div 
           className="absolute inset-0 pointer-events-none"
           style={{
-            background: 'linear-gradient(to bottom, transparent 0%, transparent 72%, rgba(28,26,24,0.5) 85%, rgba(28,26,24,0.85) 100%)'
+            background: 'linear-gradient(to bottom, transparent 0%, transparent 75%, rgba(28,26,24,0.35) 88%, rgba(28,26,24,0.6) 100%)'
           }}
         />
 

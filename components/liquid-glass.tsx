@@ -165,17 +165,17 @@ export function LiquidGlass({
         className={cn('absolute inset-0', rounded)}
         style={{
           backdropFilter: hovered
-            ? 'blur(24px) saturate(1.3) brightness(1.1)'
-            : 'blur(16px) saturate(1.15) brightness(1.05)',
+            ? 'blur(20px) saturate(1.2) brightness(1.15)'
+            : 'blur(12px) saturate(1.1) brightness(1.1)',
           WebkitBackdropFilter: hovered
-            ? 'blur(24px) saturate(1.3) brightness(1.1)'
-            : 'blur(16px) saturate(1.15) brightness(1.05)',
+            ? 'blur(20px) saturate(1.2) brightness(1.15)'
+            : 'blur(12px) saturate(1.1) brightness(1.1)',
           filter: hovered
             ? 'url(#liquid-glass-refract-hover)'
             : 'url(#liquid-glass-refract)',
           background: hovered
-            ? 'rgba(255, 255, 255, 0.06)'
-            : 'rgba(255, 255, 255, 0.03)',
+            ? 'rgba(255, 255, 255, 0.04)'
+            : 'rgba(255, 255, 255, 0.015)',
           transition: 'backdrop-filter 0.4s ease, background 0.4s ease',
           zIndex: 0,
         }}
