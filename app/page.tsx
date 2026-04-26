@@ -39,7 +39,8 @@ export default function HomePage() {
       <Navigation />
       
       {/* ========== HERO - 85vh on desktop, flexible on mobile ========== */}
-      <section className="relative flex-1 min-h-0 flex flex-col items-center justify-center">
+      {/* pb-[60px] offsets center to account for bottom nav bar height */}
+      <section className="relative flex-1 min-h-0 flex flex-col items-center justify-center pb-[60px] md:pb-[80px]">
         {/* Background image - desert tablescape */}
         <div className="absolute inset-0">
           <Image
