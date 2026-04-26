@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useRef, useMemo } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useQueryState, parseAsArrayOf, parseAsString } from 'nuqs'
 import { useInquiryStore } from '@/lib/inquiry-store'
 import { InquiryFlow } from '@/components/inquiry-flow'
 
@@ -12,25 +12,24 @@ import { InquiryFlow } from '@/components/inquiry-flow'
  * Cart handoff: When arriving from /collection with items:
  * - URL contains only item IDs (e.g., ?items=abc,def,ghi) to avoid URL length limits
  * - Full item data is hydrated from Zustand store (persisted in sessionStorage)
- * - This keeps URLs clean while maintaining full cart data
+ * - Uses nuqs for URL state - shareable, persists on refresh
  */
 export function InquiryFlowWrapper({ onSuccess }: { onSuccess?: () => void }) {
   const { items: storeItems, clear } = useInquiryStore()
-  const searchParams = useSearchParams()
   const formRef = useRef<HTMLDivElement>(null)
   
+  // nuqs handles URL parsing cleanly - parseAsArrayOf splits comma-separated IDs
+  const [urlItemIds] = useQueryState('items', parseAsArrayOf(parseAsString, ','))
+  
   // Hydrate items from URL param IDs using Zustand store data
-  // URL contains comma-separated IDs; full data stays in sessionStorage
   const items = useMemo(() => {
-    const urlItemIds = searchParams.get('items')
-    if (urlItemIds) {
-      const ids = decodeURIComponent(urlItemIds).split(',').filter(Boolean)
+    if (urlItemIds && urlItemIds.length > 0) {
       // Filter store items to only those in URL (handles stale IDs gracefully)
-      return storeItems.filter(item => ids.includes(item.id))
+      return storeItems.filter(item => urlItemIds.includes(item.id))
     }
     // No URL param = use all store items (direct navigation to /contact)
     return storeItems
-  }, [searchParams, storeItems])
+  }, [urlItemIds, storeItems])
   
   // Auto-scroll to form when arriving from "Submit Inquiry" CTA or with items
   useEffect(() => {

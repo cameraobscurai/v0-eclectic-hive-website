@@ -53,7 +53,7 @@ function ProductCard({
       onClick={onClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className="group relative cursor-pointer border-r border-b border-charcoal/5 text-left w-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-charcoal/20 product-card"
+      className="group relative cursor-pointer border-r border-b border-charcoal/5 text-left w-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-charcoal/20 product-card content-auto"
     >
       {/* Image container - no scale on hover, image stays still */}
       <div className="aspect-square bg-white p-4 lg:p-6 relative overflow-hidden">
