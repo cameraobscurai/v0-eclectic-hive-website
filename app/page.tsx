@@ -1,9 +1,8 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { Navigation } from '@/components/navigation'
-import { Footer } from '@/components/footer'
 import { TransitionLink } from '@/components/page-transition'
 import { LiquidGlass } from '@/components/liquid-glass'
 import { cn } from '@/lib/utils'
@@ -29,29 +28,10 @@ const DESTINATIONS = [
 export default function HomePage() {
   const [loaded, setLoaded] = useState(false)
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
-  const ctaSectionRef = useRef<HTMLDivElement>(null)
-  const [ctaVisible, setCtaVisible] = useState(false)
 
   useEffect(() => {
     const timer = setTimeout(() => setLoaded(true), 100)
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.target === ctaSectionRef.current && entry.isIntersecting) {
-            setCtaVisible(true)
-          }
-        })
-      },
-      { threshold: 0.2, rootMargin: '-50px 0px' }
-    )
-
-    if (ctaSectionRef.current) observer.observe(ctaSectionRef.current)
-
-    return () => {
-      clearTimeout(timer)
-      observer.disconnect()
-    }
+    return () => clearTimeout(timer)
   }, [])
 
   return (
@@ -145,7 +125,7 @@ export default function HomePage() {
           <div className="max-w-4xl mx-auto">
             <div
               className={cn(
-                'grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4',
+                'grid grid-cols-1 md:grid-cols-3 gap-2 md:gap-3',
               )}
             >
               {DESTINATIONS.map((dest, i) => (
@@ -163,14 +143,14 @@ export default function HomePage() {
                 >
                   <LiquidGlass
                     hovered={hoveredIndex === i}
-                    rounded="rounded-[10px]"
-                    className="py-6 px-6 md:py-8 md:px-7"
+                    rounded="rounded-xl"
+                    className="py-4 px-6 md:py-5 md:px-8"
                   >
-                    <div className="flex items-center justify-between md:flex-col md:items-center md:justify-center md:text-center md:gap-3">
-                      <div className="md:flex md:flex-col md:items-center">
+                    <div className="flex items-center justify-between">
+                      <div>
                         <h2
                           className={cn(
-                            'font-brand text-xl sm:text-2xl md:text-[1.45rem] lg:text-[1.6rem] tracking-[0.12em] md:tracking-[0.14em] uppercase transition-colors duration-300',
+                            'font-brand text-base md:text-lg tracking-[0.12em] uppercase transition-colors duration-300',
                             hoveredIndex === i ? 'text-cream' : 'text-cream/85'
                           )}
                           style={{ fontWeight: 400 }}
@@ -179,8 +159,8 @@ export default function HomePage() {
                         </h2>
                         <p
                           className={cn(
-                            'text-[9px] sm:text-[10px] uppercase tracking-[0.15em] md:tracking-[0.18em] transition-colors duration-300 mt-1.5 md:mt-2',
-                            hoveredIndex === i ? 'text-cream/60' : 'text-cream/40'
+                            'text-[9px] uppercase tracking-[0.12em] transition-colors duration-300 mt-0.5',
+                            hoveredIndex === i ? 'text-cream/55' : 'text-cream/35'
                           )}
                         >
                           {dest.label}
@@ -189,18 +169,18 @@ export default function HomePage() {
 
                       <div
                         className={cn(
-                          'flex items-center gap-2 transition-all duration-300 md:mt-4',
-                          hoveredIndex === i ? 'opacity-100' : 'opacity-50'
+                          'flex items-center gap-2 transition-all duration-300',
+                          hoveredIndex === i ? 'opacity-100' : 'opacity-40'
                         )}
                       >
                         <span
                           className={cn(
-                            'h-px bg-cream/60 transition-all duration-300',
-                            hoveredIndex === i ? 'w-8 md:w-10' : 'w-4 md:w-5'
+                            'h-px bg-cream/50 transition-all duration-300',
+                            hoveredIndex === i ? 'w-6' : 'w-3'
                           )}
                         />
                         <svg
-                          className="w-3.5 h-3.5 text-cream/80"
+                          className="w-3 h-3 text-cream/70"
                           fill="none"
                           viewBox="0 0 24 24"
                           stroke="currentColor"
@@ -222,54 +202,6 @@ export default function HomePage() {
         </div>
 
       </section>
-
-      {/* ========== VALUE PROPOSITION ========== */}
-      <section className="bg-charcoal py-12 md:py-16">
-        <div className="container-padding mx-auto text-center">
-          <p className="font-brand text-lg sm:text-xl md:text-2xl lg:text-[1.7rem] text-cream/80 italic tracking-wide text-balance md:whitespace-nowrap" style={{ fontWeight: 400 }}>
-            We design, build, and produce the environments you can&apos;t hire elsewhere.
-          </p>
-        </div>
-      </section>
-
-      {/* ========== CTA ========== */}
-      <div
-        ref={ctaSectionRef}
-        className="glass-subtle mx-5 md:mx-8 lg:mx-auto lg:max-w-4xl rounded-sm"
-      >
-        <div
-          className={cn(
-            'py-12 md:py-16 text-center transition-all duration-1000 ease-[cubic-bezier(0.22,1,0.36,1)]',
-            ctaVisible ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
-          )}
-        >
-          <p
-            className={cn(
-              'text-cream/50 text-xs sm:text-sm mb-8 tracking-wide transition-all duration-700',
-              ctaVisible ? 'opacity-100' : 'opacity-0'
-            )}
-            style={{ transitionDelay: ctaVisible ? '150ms' : '0ms' }}
-          >
-            Two parts luxe, one part regal, and a dash of edge.
-          </p>
-
-          <TransitionLink
-            href="/contact#inquiry"
-            className={cn(
-              'inline-flex items-center gap-4 group transition-all duration-700',
-              ctaVisible ? 'opacity-100' : 'opacity-0'
-            )}
-            style={{ transitionDelay: ctaVisible ? '300ms' : '0ms' }}
-          >
-            <span className="font-brand text-xl sm:text-2xl md:text-[1.65rem] tracking-[0.1em] uppercase text-cream group-hover:text-cream/80 transition-colors duration-300" style={{ fontWeight: 400 }}>
-              Start a conversation
-            </span>
-            <span className="w-8 h-px bg-cream/50 group-hover:w-12 transition-all duration-300" />
-          </TransitionLink>
-        </div>
-      </div>
-
-      <Footer />
     </main>
   )
 }
