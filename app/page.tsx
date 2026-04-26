@@ -59,22 +59,17 @@ export default function HomePage() {
         {/* Vignette for depth */}
         <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_40%,rgba(20,20,20,0.5)_100%)]" />
 
-        {/* Wordmark - centered */}
-        <div className="relative z-10 text-center px-5">
-          <h1 className="font-display text-[clamp(2.5rem,9vw,8rem)] tracking-[0.2em] font-light text-cream uppercase overflow-hidden">
-            {'ECLECTIC HIVE'.split('').map((char, i) => (
-              <span
-                key={i}
-                className={cn(
-                  'inline-block transition-all duration-700',
-                  loaded ? 'translate-y-0 opacity-100' : 'translate-y-full opacity-0'
-                )}
-                style={{ transitionDelay: `${200 + i * 30}ms` }}
-              >
-                {char === ' ' ? '\u00A0' : char}
-              </span>
-            ))}
-          </h1>
+        {/* Wordmark - top left, smaller */}
+        <div className="absolute top-6 left-6 md:top-8 md:left-8 z-10">
+          <span 
+            className={cn(
+              "font-brand text-[1rem] md:text-[1.1rem] tracking-[0.18em] text-cream uppercase transition-all duration-700",
+              loaded ? 'translate-y-0 opacity-100' : '-translate-y-2 opacity-0'
+            )}
+            style={{ transitionDelay: '200ms', fontWeight: 400 }}
+          >
+            ECLECTIC HIVE
+          </span>
         </div>
       </section>
 

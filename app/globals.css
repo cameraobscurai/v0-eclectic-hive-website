@@ -2,24 +2,14 @@
 @import 'tw-animate-css';
 
 /* Saol Display - Brand Font (served from private Blob via API) */
-/* Using font-display: optional for display font at hero scale (7rem) */
-/* Better to show nothing than a jarring Georgia→Saol swap at that size */
-/* Fallback font with adjusted metrics for body text contexts */
-@font-face {
-  font-family: 'Saol Display Fallback';
-  src: local('Georgia'), local('Times New Roman'), local('serif');
-  size-adjust: 105%;
-  ascent-override: 90%;
-  descent-override: 22%;
-  line-gap-override: 0%;
-}
-
+/* Using font-display: swap to ensure text is visible immediately with fallback */
+/* Fallback uses system-ui for cleaner look when Saol hasn't loaded */
 @font-face {
   font-family: 'Saol Display';
   src: url('/api/fonts/SaolDisplay-LightItalic.otf') format('opentype');
   font-weight: 300;
   font-style: italic;
-  font-display: optional;
+  font-display: swap;
 }
 
 @font-face {
@@ -27,7 +17,7 @@
   src: url('/api/fonts/SaolDisplay-Regular.otf') format('opentype');
   font-weight: 400;
   font-style: normal;
-  font-display: optional;
+  font-display: swap;
 }
 
 @font-face {
@@ -35,7 +25,7 @@
   src: url('/api/fonts/SaolDisplay-Semibold.otf') format('opentype');
   font-weight: 600;
   font-style: normal;
-  font-display: optional;
+  font-display: swap;
 }
 
 @custom-variant dark (&:is(.dark *));
@@ -118,7 +108,7 @@
 
 @theme inline {
   --font-sans: 'Inter', 'Inter Fallback', system-ui, sans-serif;
-  --font-display: 'Saol Display', 'Saol Display Fallback', 'Georgia', serif;
+  --font-display: 'Saol Display', ui-serif, Georgia, 'Times New Roman', serif;
   --font-mono: 'Geist Mono', 'Geist Mono Fallback', monospace;
   --color-background: var(--background);
   --color-foreground: var(--foreground);
@@ -158,23 +148,25 @@
     @apply bg-background text-foreground;
   }
   
-  /* Brand typography - Saol Display with context-aware tracking */
+/* Brand typography - Saol Display with context-aware tracking */
   /* Per brand deck: display text uses TIGHT tracking for architectural feel */
   /* Labels/navigation use WIDE tracking for rhythm and balance */
+  /* IMPORTANT: Explicit font-weight:400 prevents bold fallback rendering */
   h1 {
-    font-family: var(--font-display);
-    letter-spacing: var(--tracking-display);
-    @apply font-light;
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: var(--tracking-display);
   }
   h2, h3 {
-    font-family: var(--font-display);
-    letter-spacing: var(--tracking-title);
-    @apply font-light;
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: var(--tracking-title);
   }
   h4, h5, h6 {
-    font-family: var(--font-display);
-    letter-spacing: var(--tracking-label);
-    @apply font-light uppercase;
+  font-family: var(--font-display);
+  font-weight: 400;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
   }
   
   /* Smooth scrolling + prevent layout shift from scrollbar */
@@ -235,6 +227,12 @@
 .content-auto {
   content-visibility: auto;
   contain-intrinsic-size: auto 400px; /* Estimated card height */
+}
+
+/* Brand font utility - prevents bold fallback rendering */
+.font-brand {
+  font-family: var(--font-display);
+  font-weight: 400;
 }
 
 /* Premium link underline */
