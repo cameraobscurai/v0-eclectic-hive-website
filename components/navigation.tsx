@@ -118,7 +118,7 @@ export function Navigation() {
           </Link>
 
           {/* Desktop links */}
-          <div className="hidden lg:flex items-center gap-10">
+          <div className="hidden lg:flex items-center gap-12">
             {NAV_LINKS.map((link) => {
               const active = pathname === link.href
               const textColor = scrolled || !isLightPage

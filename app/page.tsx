@@ -29,7 +29,7 @@ export default function HomePage() {
       {/* Single viewport hero */}
       <section className="relative h-[100svh] flex flex-col overflow-hidden">
 
-        {/* Background image */}
+        {/* Background image - shifted up to show florals behind glass cards */}
         <div className="absolute inset-0">
           <Image
             src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/D9D9D665-C36F-4654-9687-7303B1A05765-9rOvJvBIwpsvY9Af2AsIgMz4b3gf75.jpeg"
@@ -37,29 +37,29 @@ export default function HomePage() {
             fill
             priority
             quality={90}
-            className="object-cover object-[center_40%]"
+            className="object-cover object-[center_30%]"
             sizes="100vw"
           />
         </div>
 
-        {/* Subtle warm overlay */}
-        <div className="absolute inset-0 bg-charcoal/5" />
+        {/* Soft warm overlay */}
+        <div className="absolute inset-0 bg-charcoal/[0.03]" />
 
-        {/* Vignette - softer */}
-        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_40%,rgba(20,20,20,0.4)_100%)]" />
+        {/* Elegant vignette - softer, larger clear zone */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_80%_70%_at_center,transparent_30%,rgba(20,20,20,0.35)_100%)]" />
 
-        {/* Bottom gradient for card zone - starts at 70%, dark enough for legibility */}
+        {/* Bottom gradient - softer, starts later for more image visibility */}
         <div 
           className="absolute inset-0 pointer-events-none"
           style={{
-            background: 'linear-gradient(to bottom, transparent 0%, transparent 65%, rgba(28,26,24,0.7) 80%, rgba(28,26,24,0.92) 100%)'
+            background: 'linear-gradient(to bottom, transparent 0%, transparent 72%, rgba(28,26,24,0.5) 85%, rgba(28,26,24,0.85) 100%)'
           }}
         />
 
         {/* Wordmark - centered with offset for visual balance */}
-        <div className="relative z-10 flex-1 flex items-center justify-center pb-[20vh] md:pb-[18vh]">
+        <div className="relative z-10 flex-1 flex items-center justify-center pb-[22vh] md:pb-[20vh]">
           <h1 
-            className="font-brand text-[clamp(2.2rem,8vw,6.5rem)] tracking-[0.18em] text-cream uppercase drop-shadow-[0_2px_30px_rgba(0,0,0,0.4)]"
+            className="font-brand text-[clamp(2.4rem,8.5vw,7rem)] tracking-[0.12em] text-cream uppercase drop-shadow-[0_4px_40px_rgba(0,0,0,0.25)]"
             style={{ fontWeight: 400 }}
           >
             {'ECLECTIC HIVE'.split('').map((char, i) => (
@@ -95,8 +95,11 @@ export default function HomePage() {
                 >
                   <LiquidGlass
                     hovered={hoveredIndex === i}
-                    rounded="rounded-lg"
-                    className="py-3.5 px-5 md:py-4 md:px-6"
+                    rounded="rounded-xl"
+                    className={cn(
+                      "py-3 px-5 md:py-3.5 md:px-7 transition-transform duration-300",
+                      hoveredIndex === i && "scale-[1.015]"
+                    )}
                   >
                     <div className="flex items-center justify-between gap-4">
                       {/* Text */}

@@ -191,14 +191,14 @@ export function LiquidGlass({
         className={cn('absolute inset-0 pointer-events-none', rounded)}
         style={{
           background: `radial-gradient(
-            ellipse 70% 50% at ${specX}% ${specY}%,
-            rgba(255, 255, 255, ${hovered ? '0.14' : '0.06'}) 0%,
-            rgba(255, 255, 255, 0.02) 50%,
-            transparent 80%
+            ellipse 80% 60% at ${specX}% ${specY}%,
+            rgba(255, 255, 255, ${hovered ? '0.10' : '0.04'}) 0%,
+            rgba(255, 255, 255, 0.015) 60%,
+            transparent 90%
           )`,
           transition: hovered
-            ? 'background 0.1s ease'
-            : 'background 0.5s ease',
+            ? 'background 0.15s ease'
+            : 'background 0.6s ease',
           zIndex: 1,
         }}
       />
@@ -214,18 +214,18 @@ export function LiquidGlass({
         style={{
           boxShadow: hovered
             ? `
-              inset 0 1px 0 0 rgba(255,255,255,0.25),
-              inset 1px 0 0 0 rgba(255,255,255,0.10),
-              inset 0 -1px 0 0 rgba(255,255,255,0.04),
-              inset -1px 0 0 0 rgba(255,255,255,0.04)
+              inset 0 1px 0 0 rgba(255,255,255,0.18),
+              inset 1px 0 0 0 rgba(255,255,255,0.08),
+              inset 0 -1px 0 0 rgba(255,255,255,0.03),
+              inset -1px 0 0 0 rgba(255,255,255,0.03)
             `
             : `
-              inset 0 1px 0 0 rgba(255,255,255,0.12),
-              inset 1px 0 0 0 rgba(255,255,255,0.05),
-              inset 0 -1px 0 0 rgba(255,255,255,0.02),
-              inset -1px 0 0 0 rgba(255,255,255,0.02)
+              inset 0 1px 0 0 rgba(255,255,255,0.08),
+              inset 1px 0 0 0 rgba(255,255,255,0.03),
+              inset 0 -1px 0 0 rgba(255,255,255,0.015),
+              inset -1px 0 0 0 rgba(255,255,255,0.015)
             `,
-          transition: 'box-shadow 0.3s ease',
+          transition: 'box-shadow 0.35s ease',
           zIndex: 2,
         }}
       />
