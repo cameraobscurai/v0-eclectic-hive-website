@@ -6,7 +6,12 @@ Allow: /
 # Block admin and API routes from indexing
 Disallow: /admin/
 Disallow: /api/
+Disallow: /api/products
+Disallow: /api/categories
 Disallow: /upload-fonts/
+
+# Block collection page from indexing (inventory exposure)
+Disallow: /collection
 
 # Allow important API content for AI chat
 Allow: /api/fonts/

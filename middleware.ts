@@ -3,6 +3,31 @@ import { type NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@supabase/ssr'
 
 // ============================================================================
+// SCRAPER USER-AGENT BLOCKING
+// Block known scraping tools from accessing public API routes
+// ============================================================================
+const SCRAPER_USER_AGENTS = [
+  'firecrawl',
+  'python-requests',
+  'curl',
+  'wget',
+  'scrapy',
+  'httpclient',
+  'java/',
+  'libwww',
+  'lwp-trivial',
+  'go-http-client',
+]
+
+const PUBLIC_API_ROUTES = ['/api/products', '/api/categories']
+
+function isScraperUserAgent(userAgent: string | null): boolean {
+  if (!userAgent) return false
+  const ua = userAgent.toLowerCase()
+  return SCRAPER_USER_AGENTS.some(scraper => ua.includes(scraper))
+}
+
+// ============================================================================
 // ADMIN ALLOWLIST
 // Set ADMIN_EMAILS in Vercel env vars as a comma-separated list of addresses.
 // If ADMIN_EMAILS is empty or missing, ALL admin access is denied (fail-closed).
@@ -35,10 +60,23 @@ const protectedApiRoutes = [
 ]
 
 export async function middleware(request: NextRequest) {
-  // Always update the session first so Supabase auth cookies stay fresh
+  const { pathname } = request.nextUrl
+
+  // ── Block scrapers from public API routes ────────────────────────────────
+  const isPublicApiRoute = PUBLIC_API_ROUTES.some(route => pathname.startsWith(route))
+  if (isPublicApiRoute) {
+    const userAgent = request.headers.get('user-agent')
+    if (isScraperUserAgent(userAgent)) {
+      return NextResponse.json(
+        { error: 'Forbidden' },
+        { status: 403 }
+      )
+    }
+  }
+
+  // Always update the session so Supabase auth cookies stay fresh
   const response = await updateSession(request)
 
-  const { pathname } = request.nextUrl
 
   const isProtectedRoute = protectedRoutes.some(route => pathname.startsWith(route))
   const isProtectedApi   = protectedApiRoutes.some(route => pathname.startsWith(route))

@@ -1,10 +1,31 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@/lib/supabase/server'
 import { escapeIlike } from '@/lib/utils'
+import { rateLimiter, API_SECURITY_HEADERS, getClientIP } from '@/lib/rate-limit'
 
 const DEFAULT_PAGE_SIZE = 48
 
 export async function GET(request: NextRequest) {
+  // Rate limiting: 30 requests per minute per IP
+  const ip = getClientIP(request)
+  const { success, limit, remaining, reset } = await rateLimiter.limit(ip)
+  
+  if (!success) {
+    return NextResponse.json(
+      { error: 'Too many requests. Please try again later.' },
+      { 
+        status: 429,
+        headers: {
+          ...API_SECURITY_HEADERS,
+          'Retry-After': Math.ceil((reset - Date.now()) / 1000).toString(),
+          'X-RateLimit-Limit': limit.toString(),
+          'X-RateLimit-Remaining': '0',
+          'X-RateLimit-Reset': reset.toString(),
+        }
+      }
+    )
+  }
+
   const supabase = await createClient()
   
   // Parse query params
@@ -106,7 +127,11 @@ export async function GET(request: NextRequest) {
     },
     {
       headers: {
+        ...API_SECURITY_HEADERS,
         'Cache-Control': 'private, max-age=10, stale-while-revalidate=30',
+        'X-RateLimit-Limit': limit.toString(),
+        'X-RateLimit-Remaining': remaining.toString(),
+        'X-RateLimit-Reset': reset.toString(),
       },
     }
   )
