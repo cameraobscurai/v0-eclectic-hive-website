@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { Navigation } from '@/components/navigation'
 import { TransitionLink } from '@/components/page-transition'
+import { LiquidGlass } from '@/components/liquid-glass'
 import { cn } from '@/lib/utils'
 
 // Navigation destinations for bottom strip
@@ -95,52 +96,47 @@ export default function HomePage() {
             <TransitionLink
               key={dest.href}
               href={dest.href}
-              className={cn(
-                'group relative flex items-center justify-between md:justify-center py-5 md:py-6 px-6 md:px-4 rounded-2xl transition-all duration-500',
-                // Liquid glass base
-                'backdrop-blur-xl bg-white/[0.08]',
-                // Luminous border - light catches edge
-                'border border-white/[0.15]',
-                // Inner highlight at top
-                'shadow-[inset_0_1px_1px_rgba(255,255,255,0.1),0_4px_24px_rgba(0,0,0,0.15)]',
-                // Hover state - glass brightens
-                'hover:bg-white/[0.12] hover:border-white/[0.25] hover:shadow-[inset_0_1px_2px_rgba(255,255,255,0.15),0_8px_32px_rgba(0,0,0,0.2)]'
-              )}
+              className="group relative"
               onMouseEnter={() => setHoveredIndex(i)}
               onMouseLeave={() => setHoveredIndex(null)}
             >
-              {/* Specular highlight - top edge glow */}
-              <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent rounded-t-2xl" />
-              
-              {/* Text content */}
-              <div className="relative z-10 flex flex-col md:items-center md:text-center gap-1">
-                <span className={cn(
-                  'font-brand text-sm md:text-base tracking-[0.14em] uppercase transition-colors duration-300',
-                  hoveredIndex === i ? 'text-white' : 'text-white/80'
-                )} style={{ fontWeight: 400 }}>
-                  {dest.title}
-                </span>
-                <span className={cn(
-                  'text-[9px] uppercase tracking-[0.12em] transition-colors duration-300',
-                  hoveredIndex === i ? 'text-white/60' : 'text-white/40'
-                )}>
-                  {dest.label}
-                </span>
-              </div>
-              
-              {/* Arrow - visible on mobile, hover on desktop */}
-              <div className={cn(
-                'relative z-10 flex items-center gap-2 transition-all duration-300 md:absolute md:right-5',
-                hoveredIndex === i ? 'opacity-100' : 'opacity-50 md:opacity-0'
-              )}>
-                <span className={cn(
-                  'h-px bg-white/50 transition-all duration-300',
-                  hoveredIndex === i ? 'w-6' : 'w-3'
-                )} />
-                <svg className="w-3 h-3 text-white/70" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
-                </svg>
-              </div>
+              <LiquidGlass
+                hovered={hoveredIndex === i}
+                className="py-5 md:py-6 px-6 md:px-5"
+                rounded="rounded-2xl"
+              >
+                {/* Mobile: horizontal | Desktop: vertical centered */}
+                <div className="flex items-center justify-between md:flex-col md:items-center md:justify-center md:text-center md:gap-2">
+                  <div className="md:flex md:flex-col md:items-center">
+                    <span className={cn(
+                      'font-brand text-sm md:text-base tracking-[0.14em] uppercase transition-colors duration-300',
+                      hoveredIndex === i ? 'text-white' : 'text-white/80'
+                    )} style={{ fontWeight: 400 }}>
+                      {dest.title}
+                    </span>
+                    <span className={cn(
+                      'text-[9px] uppercase tracking-[0.12em] transition-colors duration-300 mt-1',
+                      hoveredIndex === i ? 'text-white/60' : 'text-white/40'
+                    )}>
+                      {dest.label}
+                    </span>
+                  </div>
+                  
+                  {/* Arrow - visible on mobile, hover on desktop */}
+                  <div className={cn(
+                    'flex items-center gap-2 transition-all duration-300 md:mt-3',
+                    hoveredIndex === i ? 'opacity-100' : 'opacity-50 md:opacity-0'
+                  )}>
+                    <span className={cn(
+                      'h-px bg-white/50 transition-all duration-300',
+                      hoveredIndex === i ? 'w-6' : 'w-3'
+                    )} />
+                    <svg className="w-3 h-3 text-white/70" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                    </svg>
+                  </div>
+                </div>
+              </LiquidGlass>
             </TransitionLink>
           ))}
         </div>
