@@ -4,7 +4,7 @@ import { useState, useEffect, useMemo, useCallback, useRef } from 'react'
 import useSWR, { useSWRConfig } from 'swr'
 import dynamic from 'next/dynamic'
 import { useQueryState, parseAsString } from 'nuqs'
-import { motion, AnimatePresence, LayoutGroup } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Navigation } from '@/components/navigation'
 import { Footer } from '@/components/footer'
 import { cn } from '@/lib/utils'
@@ -111,47 +111,26 @@ function detectSubCategory(name: string): string {
   return 'Other'
 }
 
-// ─── Animation variants ───────────────────────────────────────────────────────
+// ─── Animation Philosophy ─────────────────────────────────────────────────────
 //
-// The key insight: cards never flash because we never unmount-remount them
-// abruptly. Instead:
+// CALM over CLEVER: Instead of animating 50+ cards individually (chaos),
+// we crossfade the entire grid as a single unit.
 //
-// 1. `AnimatePresence mode="popLayout"` — exiting cards are immediately
-//    removed from layout flow so remaining cards reflow without waiting.
+// - Grid fades out (150ms) → new content fades in (200ms)
+// - No stagger, no FLIP, no individual card animations
+// - Result: peaceful, editorial feel regardless of item count
 //
-// 2. `layout` prop on each card — Framer FLIP-animates position changes
-//    when the grid reshuffles after a filter change.
-//
-// 3. Stagger is kept very short (0.02s) — a hint of cascade without feeling slow.
-//    At 100 items that's only 2 seconds total which is too much, so we cap
-//    the stagger delay at 20 items using `Math.min(index, 20)`.
-//
-// 4. We removed the `opacity-60` dimming on `isSwitchingCategories` entirely.
-//    `keepPreviousData: true` handles the data layer — the grid never goes blank.
-//    The only visual feedback is the subtle underline pulse on the active tab.
+// The only per-card animation is the initial page load stagger (first visit only).
 
-const cardVariants = {
-  hidden: {
-    opacity: 0,
-    scale: 0.96,
-  },
-  visible: (index: number) => ({
+const gridVariants = {
+  hidden: { opacity: 0 },
+  visible: { 
     opacity: 1,
-    scale: 1,
-    transition: {
-      duration: 0.22,
-      ease: [0.22, 1, 0.36, 1],
-      // Cap stagger at 20 items to avoid long waits on large grids
-      delay: Math.min(index, 20) * 0.018,
-    },
-  }),
-  exit: {
+    transition: { duration: 0.2, ease: 'easeOut' }
+  },
+  exit: { 
     opacity: 0,
-    scale: 0.97,
-    transition: {
-      duration: 0.14,
-      ease: 'easeIn',
-    },
+    transition: { duration: 0.15, ease: 'easeIn' }
   },
 }
 
@@ -188,23 +167,11 @@ const ProductCard = ({
   const isAboveFold = index < 6
 
   return (
-    // `layout` tells Framer to animate this card's position when the grid
-    // reshuffles — uses FLIP internally so it's GPU-composited and cheap.
-    <motion.button
-      layout
-      variants={cardVariants}
-      initial="hidden"
-      animate="visible"
-      exit="exit"
-      custom={index}
+    <button
       onClick={onClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
-      className="group relative cursor-pointer border-r border-b border-charcoal/5 text-left w-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-charcoal/20 product-card"
-      // layoutId ties this specific card across re-renders so Framer
-      // knows it's the same item and smoothly moves it rather than
-      // exit/enter when sort order changes.
-      layoutId={`card-${product.id}`}
+      className="group relative cursor-pointer border-r border-b border-charcoal/5 text-left w-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-charcoal/20"
     >
       <div className="aspect-square bg-white p-4 lg:p-6 relative overflow-hidden">
         {!loaded && (
@@ -244,11 +211,11 @@ const ProductCard = ({
           </p>
         </div>
       </div>
-    </motion.button>
+    </button>
   )
 }
 
-// Memoize so Framer's layout tracking isn't invalidated on parent re-renders
+// Memoize to prevent unnecessary re-renders
 const MemoProductCard = React.memo(ProductCard)
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
@@ -298,9 +265,6 @@ export default function CollectionPage() {
   const products: Product[] = productsData?.products || []
   const isInitializing = !categoriesData
   const isLoading = isInitializing || (!productsData && isValidating)
-  // isSwitchingCategories is now ONLY used for the nav underline pulse
-  // — it no longer dims or flashes the grid
-  const isSwitchingCategories = isValidating && !!productsData
 
   const productsWithSubCategory = useMemo(() =>
     products.map(p => ({ ...p, _subCategory: detectSubCategory(p.name) })),
@@ -471,17 +435,14 @@ export default function CollectionPage() {
                   )}
                 >
                   {getCategoryDisplay(cat)}
-                  {activeCategory === cat && (
-                    <motion.span
-                      // layoutId animates the underline sliding between tabs
-                      layoutId="category-underline"
-                      className={cn(
-                        'absolute bottom-1 left-3 right-3 h-px bg-charcoal',
-                        isSwitchingCategories && 'animate-pulse'
-                      )}
-                      transition={{ duration: 0.25, ease: [0.22, 1, 0.36, 1] }}
-                    />
-                  )}
+                  <span
+                    className={cn(
+                      'absolute bottom-1 left-3 right-3 h-px bg-charcoal transition-all duration-200',
+                      activeCategory === cat 
+                        ? 'opacity-100 scale-x-100' 
+                        : 'opacity-0 scale-x-0'
+                    )}
+                  />
                 </button>
               ))}
             <div className="flex-shrink-0 w-4" aria-hidden="true" />
@@ -627,36 +588,33 @@ export default function CollectionPage() {
           </div>
         ) : filteredProducts.length > 0 ? (
           /*
-           * LayoutGroup scopes the layoutId animations so the underline
-           * on the category nav and the cards don't interfere with each other.
-           *
-           * AnimatePresence mode="popLayout":
-           *   - "popLayout" removes exiting elements from the layout flow
-           *     immediately so remaining cards start repositioning right away
-           *     rather than waiting for exit animations to finish.
-           *   - This is what makes the reflow feel instant.
-           *
-           * The grid itself has NO opacity or transition class — the cards
-           * themselves handle their own enter/exit/layout animations.
-           * No more opacity-60 flash.
+           * CALM CROSSFADE: The entire grid fades as one unit.
+           * - key={category+subcategory} triggers a fresh mount on filter change
+           * - AnimatePresence crossfades old grid out, new grid in
+           * - No per-card animations = peaceful, editorial feel
            */
-          <LayoutGroup>
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
-              <AnimatePresence mode="popLayout">
-                {filteredProducts.map((product, index) => (
-                  <MemoProductCard
-                    key={product.id}
-                    product={product}
-                    imageUrl={getImageUrl(product)}
-                    onImageError={handleImageError}
-                    onClick={() => openQuickView(product)}
-                    index={index}
-                    brokenImagesRef={brokenImagesRef}
-                  />
-                ))}
-              </AnimatePresence>
-            </div>
-          </LayoutGroup>
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={`${activeCategory}-${activeSubCategory}-${sortBy}`}
+              variants={gridVariants}
+              initial="hidden"
+              animate="visible"
+              exit="exit"
+              className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
+            >
+              {filteredProducts.map((product, index) => (
+                <MemoProductCard
+                  key={product.id}
+                  product={product}
+                  imageUrl={getImageUrl(product)}
+                  onImageError={handleImageError}
+                  onClick={() => openQuickView(product)}
+                  index={index}
+                  brokenImagesRef={brokenImagesRef}
+                />
+              ))}
+            </motion.div>
+          </AnimatePresence>
         ) : (
           <div className="py-20 text-center">
             <p className="text-sm text-charcoal/40 mb-2">No pieces found.</p>
