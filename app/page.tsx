@@ -23,7 +23,7 @@ export default function HomePage() {
   }, [])
 
   return (
-    <main className="bg-charcoal">
+    <main id="main-content" className="bg-charcoal">
       <Navigation />
 
       {/* Single viewport hero */}
@@ -85,6 +85,7 @@ export default function HomePage() {
                 <TransitionLink
                   key={dest.href}
                   href={dest.href}
+                  aria-label={`${dest.title} - ${dest.label}`}
                   className={cn(
                     'group transition-all duration-700',
                     loaded ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-6'

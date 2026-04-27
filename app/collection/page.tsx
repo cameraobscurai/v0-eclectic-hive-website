@@ -392,7 +392,7 @@ export default function CollectionPage() {
   // ── Render ─────────────────────────────────────────────────────────────────
 
   return (
-    <main className="min-h-screen bg-white pt-[72px] lg:pt-[88px]">
+    <main id="main-content" className="min-h-screen bg-white pt-[72px] lg:pt-[88px]">
       <Navigation />
 
       {/* ── Filter Header ─────────────────────────────────────────────────── */}

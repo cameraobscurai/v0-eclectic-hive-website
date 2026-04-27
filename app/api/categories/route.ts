@@ -34,7 +34,6 @@ export async function GET(request: NextRequest) {
       .eq('is_active', true)
     
     if (prodError) {
-      console.log('[v0] Products query error:', prodError.message)
       return NextResponse.json({ error: prodError.message }, { status: 500 })
     }
     
@@ -72,8 +71,7 @@ export async function GET(request: NextRequest) {
         },
       }
     )
-  } catch (error) {
-    console.log('[v0] Categories API error:', error)
+  } catch {
     return NextResponse.json(
       { error: 'Failed to fetch categories' },
       { status: 500 }

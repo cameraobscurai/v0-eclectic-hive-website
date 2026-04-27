@@ -369,29 +369,19 @@ export function InquiryFlow({
   // ── Submit ──────────────────────────────────────────────────────────────────
 
   async function handleSubmit() {
-    console.log('[v0] handleSubmit called, step:', step, 'state:', state)
-    
-    if (!validateStep(step)) {
-      console.log('[v0] validateStep failed, errors:', errors)
-      return
-    }
+    if (!validateStep(step)) return
 
-    // Honeypot check
-    if (honeypot) {
-      console.log('[v0] honeypot triggered')
-      return
-    }
+    // Honeypot check - silently reject bots
+    if (honeypot) return
 
     // Client-side rate limit
     const now = Date.now()
     if (now - lastSubmitRef.current < 30_000) {
-      console.log('[v0] rate limit hit')
       setSubmitError('Please wait a moment before resubmitting.')
       return
     }
     lastSubmitRef.current = now
 
-    console.log('[v0] submitting inquiry...')
     setSubmitting(true)
     setSubmitError(null)
 
@@ -420,19 +410,12 @@ export function InquiryFlow({
         }),
       })
 
-      console.log('[v0] API response status:', res.status)
-      if (!res.ok) {
-        const text = await res.text()
-        console.log('[v0] API error response:', text)
-        throw new Error('Failed')
-      }
+      if (!res.ok) throw new Error('Failed')
 
-      console.log('[v0] submission successful')
       setSubmitted(true)
       clearStore()
       onSuccess?.()
-    } catch (err) {
-      console.log('[v0] submission error:', err)
+    } catch {
       setSubmitError(
         'There was a problem sending your inquiry. Please email us directly at info@eclectichive.com'
       )
