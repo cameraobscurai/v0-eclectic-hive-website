@@ -119,20 +119,6 @@ function detectSubCategory(name: string): string {
 // - Grid fades out (150ms) → new content fades in (200ms)
 // - No stagger, no FLIP, no individual card animations
 // - Result: peaceful, editorial feel regardless of item count
-//
-// The only per-card animation is the initial page load stagger (first visit only).
-
-const gridVariants = {
-  hidden: { opacity: 0 },
-  visible: { 
-    opacity: 1,
-    transition: { duration: 0.2, ease: 'easeOut' }
-  },
-  exit: { 
-    opacity: 0,
-    transition: { duration: 0.15, ease: 'easeIn' }
-  },
-}
 
 // ─── ProductCard ──────────────────────────────────────────────────────────────
 
@@ -596,10 +582,10 @@ export default function CollectionPage() {
           <AnimatePresence mode="wait">
             <motion.div
               key={`${activeCategory}-${activeSubCategory}-${sortBy}`}
-              variants={gridVariants}
-              initial="hidden"
-              animate="visible"
-              exit="exit"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
               className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
             >
               {filteredProducts.map((product, index) => (
