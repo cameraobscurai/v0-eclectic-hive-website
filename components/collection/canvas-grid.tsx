@@ -373,7 +373,7 @@ export const CanvasGrid = forwardRef<CanvasGridHandle, CanvasGridProps>(function
 
   return (
     <div className="relative w-full h-full bg-cream/30" style={{ overflow: 'hidden' }}>
-      {/* Scroll container — omnidirectional drag with inertia */}
+      {/* Scroll container — native trackpad scroll + pointer drag with inertia */}
       <div
         ref={containerRef}
         className={cn('absolute inset-0 scrollbar-hide', cursorClass.current)}
@@ -383,9 +383,10 @@ export const CanvasGrid = forwardRef<CanvasGridHandle, CanvasGridProps>(function
         onPointerCancel={onPointerUp}
         style={{
           overflow: 'scroll',
-          WebkitOverflowScrolling: 'touch',
+          WebkitOverflowScrolling: 'touch', // iOS-style momentum scrolling
           userSelect: 'none',
-          touchAction: 'none', // prevents browser from handling touch scroll, which would fight our drag
+          // No touchAction restriction — allows native trackpad/wheel scrolling
+          // Pointer drag still works via setPointerCapture
         }}
       >
         {/* Content canvas — explicit dimensions enable scrolling */}
