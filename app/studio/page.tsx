@@ -14,7 +14,8 @@ import {
   Eye, 
   ChevronRight,
   Check,
-  ImageIcon
+  ImageIcon,
+  Plus
 } from 'lucide-react'
 
 // UX System images showing the design process
