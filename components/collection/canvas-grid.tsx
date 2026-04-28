@@ -61,53 +61,19 @@ interface CanvasCardProps {
   product: ClusteredProduct
   imageUrl: string
   onClick: () => void
-  velocityRef: React.MutableRefObject<number>
   index: number
   onImageError: (id: string, url: string) => void
 }
 
-function CanvasCard({ product, imageUrl, onClick, velocityRef, index, onImageError }: CanvasCardProps) {
+function CanvasCard({ product, imageUrl, onClick, index, onImageError }: CanvasCardProps) {
   const [loaded, setLoaded]   = useState(false)
   const [error, setError]     = useState(false)
   const [isHovered, setIsHovered] = useState(false)
-  const wrapperRef            = useRef<HTMLDivElement>(null)
-  const currentScale          = useRef(0)
-  const rafId                 = useRef<number>(0)
-
-  // Per-card distortion — same pattern as DistortedCard in gallery
-  useEffect(() => {
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    if (prefersReducedMotion) return
-
-    function animate() {
-      const el = wrapperRef.current
-      if (!el) { rafId.current = requestAnimationFrame(animate); return }
-
-      const targetScale = Math.abs(velocityRef.current) * 18
-      const lerpSpeed   = targetScale > currentScale.current ? 0.22 : 0.06
-      currentScale.current += (targetScale - currentScale.current) * lerpSpeed
-
-      if (currentScale.current > 0.1) {
-        el.style.filter = 'url(#canvas-distort)'
-        const disp = document.getElementById('canvas-displacement')
-        if (disp) disp.setAttribute('scale', currentScale.current.toFixed(2))
-      } else {
-        el.style.filter = 'none'
-        currentScale.current = 0
-      }
-
-      rafId.current = requestAnimationFrame(animate)
-    }
-
-    rafId.current = requestAnimationFrame(animate)
-    return () => cancelAnimationFrame(rafId.current)
-  }, [velocityRef])
 
   if (error) return null
 
   return (
     <div
-      ref={wrapperRef}
       style={{ width: CARD_SIZE, height: CARD_SIZE, flexShrink: 0 }}
     >
       <button
@@ -168,14 +134,13 @@ interface ClusterBlockProps {
   rows: number
   getImageUrl: (p: ClusteredProduct) => string
   onCardClick: (p: ClusteredProduct) => void
-  velocityRef: React.MutableRefObject<number>
   onImageError: (id: string, url: string) => void
   isHighlighted: boolean  // true when this sub-category is "active"
 }
 
 function ClusterBlock({
   cluster, rows, getImageUrl, onCardClick,
-  velocityRef, onImageError, isHighlighted,
+  onImageError, isHighlighted,
 }: ClusterBlockProps) {
   const cols = Math.ceil(cluster.products.length / rows)
 
@@ -239,7 +204,6 @@ function ClusterBlock({
             product={product}
             imageUrl={getImageUrl(product)}
             onClick={() => onCardClick(product)}
-            velocityRef={velocityRef}
             index={i}
             onImageError={onImageError}
           />
@@ -276,6 +240,41 @@ export const CanvasGrid = forwardRef<CanvasGridHandle, CanvasGridProps>(function
 
   // Horizontal Lenis — scoped to outerRef, content is innerRef
   const { lenisRef, velocityRef } = useHorizontalLenis(outerRef, innerRef, true)
+
+  // Single distortion controller — one RAF loop owns the SVG filter scale
+  useEffect(() => {
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (prefersReducedMotion) return
+
+    let currentScale = 0
+    let rafId: number
+
+    function animate() {
+      const targetScale = Math.abs(velocityRef.current) * 14
+      const lerpSpeed = targetScale > currentScale ? 0.2 : 0.05
+      currentScale += (targetScale - currentScale) * lerpSpeed
+
+      const disp = document.getElementById('canvas-displacement')
+      if (disp) {
+        if (currentScale > 0.15) {
+          disp.setAttribute('scale', currentScale.toFixed(2))
+        } else {
+          disp.setAttribute('scale', '0')
+          currentScale = 0
+        }
+      }
+
+      rafId = requestAnimationFrame(animate)
+    }
+
+    rafId = requestAnimationFrame(animate)
+    return () => {
+      cancelAnimationFrame(rafId)
+      // Reset filter on unmount
+      const disp = document.getElementById('canvas-displacement')
+      if (disp) disp.setAttribute('scale', '0')
+    }
+  }, [velocityRef])
 
   // Measure available height on mount and resize
   useEffect(() => {
@@ -388,7 +387,12 @@ export const CanvasGrid = forwardRef<CanvasGridHandle, CanvasGridProps>(function
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
               transition={{ duration: 0.25 }}
-              style={{ display: 'flex', flexDirection: 'row', gap: CANVAS_CONSTANTS.CLUSTER_GAP }}
+              style={{
+                display: 'flex',
+                flexDirection: 'row',
+                gap: CANVAS_CONSTANTS.CLUSTER_GAP,
+                filter: 'url(#canvas-distort)',
+              }}
             >
               {clusters.map(cluster => (
                 <ClusterBlock
@@ -397,7 +401,6 @@ export const CanvasGrid = forwardRef<CanvasGridHandle, CanvasGridProps>(function
                   rows={rows}
                   getImageUrl={getImageUrl}
                   onCardClick={onCardClick}
-                  velocityRef={velocityRef}
                   onImageError={onImageError}
                   isHighlighted={
                     activeSubCategory === 'All' ||
