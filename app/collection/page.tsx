@@ -623,6 +623,8 @@ export default function CollectionPage() {
         onNext={quickViewProduct && filteredProducts.findIndex(p => p.id === quickViewProduct.id) < filteredProducts.length - 1 ? goToNextProduct : undefined}
         onPrevious={quickViewProduct && filteredProducts.findIndex(p => p.id === quickViewProduct.id) > 0 ? goToPreviousProduct : undefined}
         imageUrl={quickViewProduct ? getImageUrl(quickViewProduct) : undefined}
+        allProducts={products}
+        onSelectSuggestion={(p) => setQuickViewProduct(p)}
       />
     </main>
   )

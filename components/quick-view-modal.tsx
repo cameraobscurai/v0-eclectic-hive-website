@@ -1,10 +1,12 @@
 'use client'
 
-import { useEffect, useCallback, useState, useRef } from 'react'
+import { useEffect, useCallback, useState, useRef, useMemo } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { useInquiryStore } from '@/lib/inquiry-store'
 import { lockScroll, unlockScroll } from '@/lib/scroll-lock'
+import { getSuggestions, type AffinityProduct } from '@/lib/affinity'
+import { ShortlistGrid } from '@/components/shortlist/shortlist-grid'
 
 // =============================================================================
 // LIQUID GLASS QUICK VIEW MODAL
@@ -38,6 +40,8 @@ interface QuickViewModalProps {
   onNext?: () => void
   onPrevious?: () => void
   imageUrl?: string
+  allProducts?: AffinityProduct[]
+  onSelectSuggestion?: (product: AffinityProduct) => void
 }
 
 // Springy, gel-like easing for liquid feel
@@ -89,7 +93,9 @@ export function QuickViewModal({
   onClose, 
   onNext, 
   onPrevious,
-  imageUrl 
+  imageUrl,
+  allProducts,
+  onSelectSuggestion,
 }: QuickViewModalProps) {
   const [imageLoaded, setImageLoaded] = useState(false)
   const modalRef = useRef<HTMLDivElement>(null)
@@ -144,6 +150,11 @@ export function QuickViewModal({
       return () => unlockScroll()
     }
   }, [isOpen])
+
+  const suggestions = useMemo(() => {
+    if (!product || !allProducts?.length) return []
+    return getSuggestions(product as AffinityProduct, allProducts, 8)
+  }, [product?.id, allProducts]) // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!product) return null
 
@@ -422,9 +433,36 @@ export function QuickViewModal({
               </div>
             </div>
 
-            {/* Bottom padding */}
-            <div className="h-4" />
-          </motion.div>
+{/* Pairs well with */}
+                {suggestions.length > 0 && (
+                  <div className="px-4 pb-2 relative z-10">
+                    <div className="border-t border-charcoal/6 pt-5">
+                      <ShortlistGrid
+                        items={suggestions}
+                        label="Pairs well with"
+                        onAdd={(item) => {
+                          add({
+                            id: item.id,
+                            name: item.name,
+                            category: item.category,
+                            imageUrl: item.imageUrl,
+                            dims_display: item.dims_display,
+                          })
+                        }}
+                        isAdded={(id) => has(id)}
+                        onSelect={(item) => {
+                          const full = allProducts?.find(p => p.id === item.id)
+                          if (full) onSelectSuggestion?.(full)
+                        }}
+                        compact
+                      />
+                    </div>
+                  </div>
+                )}
+
+                {/* Bottom padding */}
+                <div className="h-4" />
+              </motion.div>
         </div>
       )}
     </AnimatePresence>

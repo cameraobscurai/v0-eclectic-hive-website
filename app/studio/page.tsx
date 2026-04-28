@@ -8,6 +8,7 @@ import { cn } from '@/lib/utils'
 import { useInquiryStore } from '@/lib/inquiry-store'
 import { MoodboardCanvas } from '@/components/studio/moodboard-canvas'
 import { PaletteExtractor, type PaletteColor } from '@/components/studio/palette-extractor'
+import { ShortlistGrid } from '@/components/shortlist/shortlist-grid'
 import { 
   Palette, 
   Grid3X3, 
@@ -71,7 +72,7 @@ export default function StudioPage() {
   const [selectedPalette, setSelectedPalette] = useState<PaletteColor[]>(DEFAULT_PALETTE)
   const [projectName, setProjectName] = useState('')
   
-const { items } = useInquiryStore()
+const { items, remove } = useInquiryStore()
 
   useEffect(() => { 
     setLoaded(true) 
@@ -475,28 +476,16 @@ const { items } = useInquiryStore()
                 
                 {/* Selections */}
                 <div className="border border-charcoal/10 p-6">
-                  <h3 className="text-xs uppercase tracking-[0.15em] text-charcoal/40 mb-4">Selections</h3>
-                  {items.length > 0 ? (
-                    <>
-                      <div className="grid grid-cols-3 gap-2">
-                        {items.slice(0, 6).map((item) => (
-                          <div key={item.id} className="relative aspect-square bg-white">
-                            {item.imageUrl && (
-                              <Image src={item.imageUrl} alt={item.name} fill className="object-contain p-1" />
-                            )}
-                          </div>
-                        ))}
-                      </div>
-                      {items.length > 6 && (
-                        <p className="text-xs text-charcoal/40 mt-2">+{items.length - 6} more pieces</p>
-                      )}
-                    </>
-                  ) : (
-                    <p className="text-charcoal/30 text-sm">
-                      No pieces selected yet. 
-                      <a href="/collection" className="underline hover:text-charcoal ml-1">Browse collection</a>
-                    </p>
-                  )}
+                  <ShortlistGrid
+                    items={items}
+                    onRemove={remove}
+                    maxVisible={9}
+                    moreHref="/collection"
+                    compact
+                    label="Your Edit"
+                    emptyMessage="No pieces selected yet."
+                    emptyAction={{ label: 'Browse collection', href: '/collection' }}
+                  />
                 </div>
               </div>
               
