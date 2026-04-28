@@ -9,15 +9,16 @@ import { cn } from '@/lib/utils'
 import { buildClusters, CANVAS_CONSTANTS } from '@/lib/cluster-layout'
 import type { ClusteredProduct, Cluster } from '@/lib/cluster-layout'
 
-// Premium infinite canvas constants - aggressive spacing for museum feel
-const CARD_SIZE = 200   // Smaller cards = more floating sensation
-const CARD_GAP = 32     // Generous gap within clusters
+// Canvas constants - balanced spacing for usability
+const CARD_SIZE = 180
+const CARD_GAP = 24
 
 const CANVAS_2D = {
-  CLUSTER_H_GAP: 140,   // Massive horizontal gaps between clusters
-  CLUSTER_V_GAP: 160,   // Massive vertical gaps for breathing room
-  CANVAS_PAD: 120,      // Large padding around canvas edge
-  COLS_PER_ROW: 3,      // More clusters per row for horizontal spread
+  CLUSTER_H_GAP: 80,    // Comfortable horizontal gaps
+  CLUSTER_V_GAP: 100,   // Comfortable vertical gaps
+  CANVAS_PAD: 60,       // Moderate padding
+  COLS_PER_ROW: 3,
+  BOUNDS_MARGIN: 200,   // How far past content edge user can pan
 }
 
 // ─── Canvas Card ──────────────────────────────────────────────────────────────
@@ -225,34 +226,88 @@ export const CanvasGrid = forwardRef<CanvasGridHandle, CanvasGridProps>(function
     return rows
   }, [clusters])
 
-  // Inertia animation
+  // Calculate content dimensions for bounds
+  const contentSize = useMemo(() => {
+    if (clusters.length === 0) return { width: 0, height: 0 }
+    
+    // Calculate max width of any row
+    let maxRowWidth = 0
+    clusterRows.forEach(row => {
+      let rowWidth = 0
+      row.forEach((cluster, idx) => {
+        const cols = Math.ceil(cluster.products.length / 2)
+        const clusterWidth = (cols * CARD_SIZE) + ((cols - 1) * CARD_GAP)
+        rowWidth += clusterWidth
+        if (idx < row.length - 1) rowWidth += CANVAS_2D.CLUSTER_H_GAP
+      })
+      maxRowWidth = Math.max(maxRowWidth, rowWidth)
+    })
+    
+    // Calculate total height
+    const rowHeight = (2 * CARD_SIZE) + CARD_GAP
+    const totalHeight = (clusterRows.length * rowHeight) + ((clusterRows.length - 1) * CANVAS_2D.CLUSTER_V_GAP)
+    
+    return {
+      width: maxRowWidth + (CANVAS_2D.CANVAS_PAD * 2),
+      height: totalHeight + (CANVAS_2D.CANVAS_PAD * 2),
+    }
+  }, [clusters, clusterRows])
+
+  // Constrain position within bounds
+  const constrainPosition = useCallback((x: number, y: number) => {
+    const container = containerRef.current
+    if (!container) return { x, y }
+    
+    const containerW = container.clientWidth
+    const containerH = container.clientHeight
+    const margin = CANVAS_2D.BOUNDS_MARGIN
+    
+    // Calculate bounds - content should stay mostly visible
+    const minX = -(contentSize.width - containerW + margin)
+    const maxX = margin
+    const minY = -(contentSize.height - containerH + margin)
+    const maxY = margin
+    
+    return {
+      x: Math.max(minX, Math.min(maxX, x)),
+      y: Math.max(minY, Math.min(maxY, y)),
+    }
+  }, [contentSize])
+
+  // Inertia animation with bounds
   const startInertia = useCallback(() => {
     cancelAnimationFrame(inertiaRaf.current)
 
     // Cap velocity
-    const maxV = 50
+    const maxV = 40
     velocity.current.x = Math.max(-maxV, Math.min(maxV, velocity.current.x))
     velocity.current.y = Math.max(-maxV, Math.min(maxV, velocity.current.y))
 
     function tick() {
-      velocity.current.x *= 0.95
-      velocity.current.y *= 0.95
+      velocity.current.x *= 0.94
+      velocity.current.y *= 0.94
 
-      if (Math.abs(velocity.current.x) < 0.1 && Math.abs(velocity.current.y) < 0.1) {
+      if (Math.abs(velocity.current.x) < 0.2 && Math.abs(velocity.current.y) < 0.2) {
         velocity.current = { x: 0, y: 0 }
         return
       }
 
-      setPosition(prev => ({
-        x: prev.x + velocity.current.x,
-        y: prev.y + velocity.current.y,
-      }))
+      setPosition(prev => {
+        const newPos = constrainPosition(
+          prev.x + velocity.current.x,
+          prev.y + velocity.current.y,
+        )
+        // If we hit a bound, kill velocity in that direction
+        if (newPos.x !== prev.x + velocity.current.x) velocity.current.x = 0
+        if (newPos.y !== prev.y + velocity.current.y) velocity.current.y = 0
+        return newPos
+      })
 
       inertiaRaf.current = requestAnimationFrame(tick)
     }
 
     inertiaRaf.current = requestAnimationFrame(tick)
-  }, [])
+  }, [constrainPosition])
 
   // Pointer handlers for drag
   const onPointerDown = useCallback((e: React.PointerEvent) => {
@@ -280,10 +335,11 @@ export const CanvasGrid = forwardRef<CanvasGridHandle, CanvasGridProps>(function
     const dx = e.clientX - dragStart.current.x
     const dy = e.clientY - dragStart.current.y
 
-    setPosition({
-      x: dragStart.current.posX + dx,
-      y: dragStart.current.posY + dy,
-    })
+    const newPos = constrainPosition(
+      dragStart.current.posX + dx,
+      dragStart.current.posY + dy,
+    )
+    setPosition(newPos)
 
     // Calculate velocity for inertia
     const now = performance.now()
@@ -309,14 +365,13 @@ export const CanvasGrid = forwardRef<CanvasGridHandle, CanvasGridProps>(function
     cancelAnimationFrame(inertiaRaf.current)
 
     // Trackpad gestures have smaller deltas, mouse wheel has larger
-    // Multiply for faster movement
-    const multiplier = e.ctrlKey ? 0.5 : 1.5
+    const multiplier = e.ctrlKey ? 0.5 : 1.2
 
-    setPosition(prev => ({
-      x: prev.x - e.deltaX * multiplier,
-      y: prev.y - e.deltaY * multiplier,
-    }))
-  }, [])
+    setPosition(prev => constrainPosition(
+      prev.x - e.deltaX * multiplier,
+      prev.y - e.deltaY * multiplier,
+    ))
+  }, [constrainPosition])
 
   // Pause global Lenis
   useEffect(() => {
@@ -335,30 +390,30 @@ export const CanvasGrid = forwardRef<CanvasGridHandle, CanvasGridProps>(function
       if ((e.target as HTMLElement).tagName === 'INPUT') return
       if (document.querySelector('[role="dialog"]')) return
 
-      const amount = 150
+      const amount = 120
 
       switch (e.key) {
         case 'ArrowRight':
-          setPosition(prev => ({ ...prev, x: prev.x - amount }))
+          setPosition(prev => constrainPosition(prev.x - amount, prev.y))
           e.preventDefault()
           break
         case 'ArrowLeft':
-          setPosition(prev => ({ ...prev, x: prev.x + amount }))
+          setPosition(prev => constrainPosition(prev.x + amount, prev.y))
           e.preventDefault()
           break
         case 'ArrowDown':
-          setPosition(prev => ({ ...prev, y: prev.y - amount }))
+          setPosition(prev => constrainPosition(prev.x, prev.y - amount))
           e.preventDefault()
           break
         case 'ArrowUp':
-          setPosition(prev => ({ ...prev, y: prev.y + amount }))
+          setPosition(prev => constrainPosition(prev.x, prev.y + amount))
           e.preventDefault()
           break
       }
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [])
+  }, [constrainPosition])
 
   // Imperative handle
   useImperativeHandle(ref, () => ({
