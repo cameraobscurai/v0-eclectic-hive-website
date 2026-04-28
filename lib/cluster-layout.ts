@@ -9,7 +9,7 @@ export interface ClusteredProduct {
   primary_image_url?: string
   is_featured?: boolean
   updated_at?: string
-  display_type?: string
+  display_type?: 'single' | 'variants' | 'custom_inquiry'
   dims_display?: string
   stock_count?: number
   width_inches?: number
