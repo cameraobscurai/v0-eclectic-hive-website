@@ -2,13 +2,14 @@
 
 export interface AffinityProduct {
   id: string
+  slug: string
   name: string
   category: string
   sub_category?: string
   primary_image_url?: string
   is_featured?: boolean
   dims_display?: string
-  display_type?: string
+  display_type?: 'single' | 'variants' | 'custom_inquiry'
 }
 
 // ─── Room Logic ───────────────────────────────────────────────────────────────
