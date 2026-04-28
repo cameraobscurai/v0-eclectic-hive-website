@@ -1,13 +1,19 @@
 import type { Metadata, Viewport } from 'next'
 import { Inter } from 'next/font/google'
+import dynamic from 'next/dynamic'
 import { Analytics } from '@vercel/analytics/next'
 import { NuqsAdapter } from 'nuqs/adapters/next/app'
 import { PageTransitionProvider } from '@/components/page-transition'
 import { InquiryTray } from '@/components/inquiry-tray'
 import { ScrollReset } from '@/components/scroll-reset'
 import { SmoothScrollProvider } from '@/components/smooth-scroll'
-import { WebGLCanvas } from '@/components/webgl/canvas-provider'
 import './globals.css'
+
+// Dynamic import with SSR disabled to prevent R3F hydration mismatch
+const WebGLCanvas = dynamic(
+  () => import('@/components/webgl/canvas-provider').then(m => m.WebGLCanvas),
+  { ssr: false }
+)
 
 const inter = Inter({ 
   subsets: ['latin'],
