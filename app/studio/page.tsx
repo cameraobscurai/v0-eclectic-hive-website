@@ -1,19 +1,18 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import Image from 'next/image'
 import { Navigation } from '@/components/navigation'
 import { Footer } from '@/components/footer'
 import { cn } from '@/lib/utils'
 import { useInquiryStore } from '@/lib/inquiry-store'
+import { MoodboardCanvas } from '@/components/studio/moodboard-canvas'
+import { PaletteExtractor, type PaletteColor } from '@/components/studio/palette-extractor'
 import { 
-  Upload, 
   Palette, 
   Grid3X3, 
   Eye, 
   ChevronRight,
-  Plus,
-  X,
   Check,
   ImageIcon
 } from 'lucide-react'
@@ -68,11 +67,10 @@ export default function StudioPage() {
   const [passwordError, setPasswordError] = useState(false)
   const [activeStep, setActiveStep] = useState<Step>('intro')
   const [inspirationImages, setInspirationImages] = useState<string[]>([])
-  const [selectedPalette, setSelectedPalette] = useState<typeof DEFAULT_PALETTE>(DEFAULT_PALETTE)
+  const [selectedPalette, setSelectedPalette] = useState<PaletteColor[]>(DEFAULT_PALETTE)
   const [projectName, setProjectName] = useState('')
   
-  const { items } = useInquiryStore()
-  const fileInputRef = useRef<HTMLInputElement>(null)
+const { items } = useInquiryStore()
 
   useEffect(() => { 
     setLoaded(true) 
@@ -99,25 +97,6 @@ export default function StudioPage() {
     } catch {
       setPasswordError(true)
     }
-  }
-
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files
-    if (!files) return
-    
-    Array.from(files).forEach(file => {
-      const reader = new FileReader()
-      reader.onload = (event) => {
-        if (event.target?.result) {
-          setInspirationImages(prev => [...prev, event.target!.result as string])
-        }
-      }
-      reader.readAsDataURL(file)
-    })
-  }
-
-  const removeInspirationImage = (index: number) => {
-    setInspirationImages(prev => prev.filter((_, i) => i !== index))
   }
 
   const steps = [
@@ -346,64 +325,27 @@ export default function StudioPage() {
 
           {/* Step 2: Inspiration */}
           {activeStep === 'inspiration' && (
-            <div className="space-y-12">
+            <div className="space-y-10">
               <div className="max-w-xl">
                 <h2 className="font-display text-2xl md:text-3xl tracking-wide text-charcoal mb-4">
                   Inspiration Board
                 </h2>
                 <p className="text-charcoal/50 leading-relaxed">
-                  Upload images that capture the feeling, colors, or style you are envisioning. 
-                  These help our team understand your aesthetic direction.
+                  Upload images that capture the feeling, colors, or style you are envisioning.
+                  Drag to reposition, resize by the corners, layer freely.
                 </p>
               </div>
-              
-              {/* Upload Area */}
-              <div 
-                className="border-2 border-dashed border-charcoal/20 hover:border-charcoal/40 transition-colors p-12 text-center cursor-pointer"
-                onClick={() => fileInputRef.current?.click()}
-              >
-                <input
-                  ref={fileInputRef}
-                  type="file"
-                  accept="image/*"
-                  multiple
-                  onChange={handleImageUpload}
-                  className="hidden"
-                />
-                <Upload className="w-8 h-8 text-charcoal/30 mx-auto mb-4" />
-                <p className="text-charcoal/60 text-sm">
-                  Drop images here or click to upload
-                </p>
-                <p className="text-charcoal/30 text-xs mt-2">
-                  PNG, JPG up to 10MB
-                </p>
-              </div>
-              
-              {/* Uploaded Images Grid */}
-              {inspirationImages.length > 0 && (
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                  {inspirationImages.map((img, i) => (
-                    <div key={i} className="relative aspect-square group">
-                      <Image
-                        src={img}
-                        alt={`Inspiration ${i + 1}`}
-                        fill
-                        className="object-cover"
-                      />
-                      <button
-                        onClick={() => removeInspirationImage(i)}
-                        className="absolute top-2 right-2 w-8 h-8 bg-charcoal/80 text-cream rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <X className="w-4 h-4" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-              
-              {/* Quick Add from Vignettes */}
+
+              <MoodboardCanvas
+                onImagesChange={setInspirationImages}
+                initialImages={inspirationImages}
+              />
+
+              {/* Quick-add vignettes from library */}
               <div>
-                <p className="text-xs uppercase tracking-[0.15em] text-charcoal/40 mb-4">Or choose from our library</p>
+                <p className="text-xs uppercase tracking-[0.15em] text-charcoal/40 mb-4">
+                  Or add from our library
+                </p>
                 <div className="flex gap-3 overflow-x-auto pb-2">
                   {VIGNETTES.map((v, i) => (
                     <button
@@ -416,8 +358,7 @@ export default function StudioPage() {
                   ))}
                 </div>
               </div>
-              
-              {/* Navigation */}
+
               <div className="flex justify-between pt-8 border-t border-charcoal/10">
                 <button
                   onClick={() => setActiveStep('intro')}
@@ -444,51 +385,18 @@ export default function StudioPage() {
                   Color Palette
                 </h2>
                 <p className="text-charcoal/50 leading-relaxed">
-                  Select colors that define your vision. These guide our material and finish recommendations.
+                  {inspirationImages.length > 0
+                    ? 'We extracted these colors from your inspiration images. Click any swatch to adjust.'
+                    : 'Select colors that define your vision. These guide our material and finish recommendations.'}
                 </p>
               </div>
-              
-              {/* Palette Selection */}
-              <div className="grid grid-cols-3 md:grid-cols-6 gap-4">
-                {selectedPalette.map((color, i) => (
-                  <div key={i} className="text-center">
-                    <div 
-                      className="aspect-square mb-3 cursor-pointer ring-2 ring-transparent hover:ring-charcoal/20 transition-all"
-                      style={{ backgroundColor: color.hex }}
-                    />
-                    <p className="text-xs text-charcoal/60">{color.name}</p>
-                    <p className="text-[10px] text-charcoal/30 font-mono">{color.hex}</p>
-                  </div>
-                ))}
-              </div>
-              
-              {/* Preset Palettes */}
-              <div>
-                <p className="text-xs uppercase tracking-[0.15em] text-charcoal/40 mb-6">Preset Palettes</p>
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
-                  {[
-                    { name: 'Warm Neutrals', colors: ['#f5f2ed', '#d4cdc4', '#c9b99a', '#a08060', '#6b5344', '#3d2e24'] },
-                    { name: 'Cool & Calm', colors: ['#f0f4f4', '#d4e0e0', '#9eb3b3', '#5a7070', '#3d4d4d', '#1a2424'] },
-                    { name: 'Earth & Sage', colors: ['#f5f2ed', '#d4d4c4', '#b3c9a0', '#5a6b4a', '#4a5040', '#2a302a'] },
-                    { name: 'Moody & Rich', colors: ['#e8e4df', '#c9b99a', '#8b6b4a', '#4a3728', '#2a1f18', '#1a1410'] },
-                  ].map((preset) => (
-                    <button
-                      key={preset.name}
-                      onClick={() => setSelectedPalette(preset.colors.map((hex, i) => ({ hex, name: `Color ${i + 1}` })))}
-                      className="text-left group"
-                    >
-                      <div className="flex h-12 mb-2">
-                        {preset.colors.map((c, i) => (
-                          <div key={i} className="flex-1" style={{ backgroundColor: c }} />
-                        ))}
-                      </div>
-                      <p className="text-sm text-charcoal/60 group-hover:text-charcoal transition-colors">{preset.name}</p>
-                    </button>
-                  ))}
-                </div>
-              </div>
-              
-              {/* Navigation */}
+
+              <PaletteExtractor
+                imageUrls={inspirationImages}
+                palette={selectedPalette}
+                onChange={setSelectedPalette}
+              />
+
               <div className="flex justify-between pt-8 border-t border-charcoal/10">
                 <button
                   onClick={() => setActiveStep('inspiration')}
