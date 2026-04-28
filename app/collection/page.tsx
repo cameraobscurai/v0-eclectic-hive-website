@@ -8,6 +8,8 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Navigation } from '@/components/navigation'
 import { Footer } from '@/components/footer'
 import { cn } from '@/lib/utils'
+import { CanvasGrid, type CanvasGridHandle } from '@/components/collection/canvas-grid'
+import type { ClusteredProduct } from '@/lib/cluster-layout'
 
 const QuickViewModal = dynamic(
   () => import('@/components/quick-view-modal').then(m => ({ default: m.QuickViewModal })),
@@ -266,6 +268,8 @@ export default function CollectionPage() {
   const [activeSubCategory, setActiveSubCategory] = useQueryState('sub', parseAsString.withDefault('All'))
   const [searchQuery, setSearchQuery] = useQueryState('q', parseAsString.withDefault(''))
   const [sortBy, setSortBy] = useQueryState('sort', parseAsString.withDefault('type'))
+  const [viewMode, setViewMode] = useQueryState('view', parseAsString.withDefault('grid'))
+  const canvasGridRef = useRef<CanvasGridHandle>(null)
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [hiddenProducts, setHiddenProducts] = useState<Set<string>>(new Set())
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null)
@@ -319,7 +323,9 @@ export default function CollectionPage() {
       !brokenImagesRef.current?.has(getImageUrl(p))
     )
 
-    if (activeSubCategory !== 'All') {
+    // In canvas mode: sub-category is spatial, not a filter
+    // Only apply sub-category filtering in grid mode
+    if (viewMode !== 'canvas' && activeSubCategory !== 'All') {
       results = results.filter(p => p._subCategory === activeSubCategory)
     }
 
@@ -329,9 +335,9 @@ export default function CollectionPage() {
         .map(p => {
           let score = 0
           const name = p.name.toLowerCase()
-          if (name === q) score = 100
+          if (name === q)            score = 100
           else if (name.startsWith(q)) score = 80
-          else if (name.includes(q)) score = 60
+          else if (name.includes(q))   score = 60
           return { ...p, _score: score }
         })
         .filter(p => p._score > 0)
@@ -363,7 +369,7 @@ export default function CollectionPage() {
     }
 
     return results
-  }, [productsWithSubCategory, activeCategory, activeSubCategory, debouncedSearch, hiddenProducts, getImageUrl, sortBy])
+  }, [productsWithSubCategory, activeCategory, activeSubCategory, debouncedSearch, hiddenProducts, getImageUrl, sortBy, viewMode])
 
   const availableSubCategories = useMemo(() => {
     const subs = SUB_CATEGORIES[activeCategory] || ['All']
@@ -379,11 +385,38 @@ export default function CollectionPage() {
     if (idx < filteredProducts.length - 1) setQuickViewProduct(filteredProducts[idx + 1])
   }, [quickViewProduct, filteredProducts])
 
-  const goToPreviousProduct = useCallback(() => {
-    if (!quickViewProduct) return
-    const idx = filteredProducts.findIndex(p => p.id === quickViewProduct.id)
-    if (idx > 0) setQuickViewProduct(filteredProducts[idx - 1])
+const goToPreviousProduct = useCallback(() => {
+  if (!quickViewProduct) return
+  const idx = filteredProducts.findIndex(p => p.id === quickViewProduct.id)
+  if (idx > 0) setQuickViewProduct(filteredProducts[idx - 1])
   }, [quickViewProduct, filteredProducts])
+
+  // Track filter header height for canvas sizing
+  useEffect(() => {
+    if (viewMode !== 'canvas') return
+
+    function measureHeader() {
+      const header = document.querySelector('section.sticky.top-0.z-40') as HTMLElement
+      if (!header) return
+      const h = header.getBoundingClientRect().height
+      document.documentElement.style.setProperty(
+        '--filter-header-height',
+        `${h + 72}px`  // 72px = nav height
+      )
+    }
+
+    measureHeader()
+    const ro = new ResizeObserver(measureHeader)
+    const header = document.querySelector('section.sticky.top-0.z-40')
+    if (header) ro.observe(header)
+    return () => ro.disconnect()
+  }, [viewMode])
+
+  // Reset sub-category when switching view modes
+  useEffect(() => {
+    setActiveSubCategory('All')
+    canvasGridRef.current?.resetScroll()
+  }, [viewMode, activeCategory, setActiveSubCategory])
 
   useEffect(() => {
     setActiveSubCategory('All')
@@ -447,7 +480,23 @@ export default function CollectionPage() {
                 return (
                   <button
                     key={sub}
-                    onClick={() => setActiveSubCategory(sub)}
+                    onClick={() => {
+                    if (viewMode === 'canvas') {
+                      if (sub === 'All') {
+                        setActiveSubCategory('All')
+                        canvasGridRef.current?.resetScroll()
+                      } else if (activeSubCategory === sub) {
+                        // Toggle off — reset to All
+                        setActiveSubCategory('All')
+                        canvasGridRef.current?.resetScroll()
+                      } else {
+                        setActiveSubCategory(sub)
+                        canvasGridRef.current?.scrollToCluster(sub)
+                      }
+                    } else {
+                      setActiveSubCategory(sub)
+                    }
+                  }}
                     className={cn(
                       'relative flex-shrink-0 px-3 py-2.5 min-h-[44px] text-[10px] tracking-[0.1em] uppercase whitespace-nowrap transition-all duration-200 rounded-full flex items-center gap-1.5 touch-manipulation',
                       activeSubCategory === sub
@@ -468,8 +517,37 @@ export default function CollectionPage() {
               <div className="flex-shrink-0 w-4 sm:hidden" aria-hidden="true" />
             </nav>
 
-            <div className="flex items-center gap-2 flex-shrink-0 py-1">
-              <select
+<div className="flex items-center gap-2 flex-shrink-0 py-1">
+                  {/* View mode toggle */}
+                  <div className="flex items-center border border-charcoal/10 rounded-full overflow-hidden flex-shrink-0">
+                    <button
+                      onClick={() => {
+                        setViewMode('grid')
+                        setActiveSubCategory('All')
+                      }}
+                      className={cn(
+                        'px-3 py-2 text-[9px] uppercase tracking-[0.15em] transition-colors min-h-[36px] touch-manipulation',
+                        viewMode !== 'canvas'
+                          ? 'bg-charcoal text-cream'
+                          : 'text-charcoal/40 hover:text-charcoal/70'
+                      )}
+                    >
+                      Grid
+                    </button>
+                    <button
+                      onClick={() => setViewMode('canvas')}
+                      className={cn(
+                        'px-3 py-2 text-[9px] uppercase tracking-[0.15em] transition-colors min-h-[36px] touch-manipulation',
+                        viewMode === 'canvas'
+                          ? 'bg-charcoal text-cream'
+                          : 'text-charcoal/40 hover:text-charcoal/70'
+                      )}
+                    >
+                      Canvas
+                    </button>
+                  </div>
+
+                  <select
                 value={sortBy ?? 'type'}
                 onChange={(e) => setSortBy(e.target.value)}
                 className="text-[10px] tracking-wide bg-transparent border border-charcoal/10 rounded-full px-3 py-2.5 min-h-[44px] focus:outline-none focus:border-charcoal/30 text-charcoal/60 cursor-pointer touch-manipulation"
@@ -559,10 +637,19 @@ export default function CollectionPage() {
         </div>
       </section>
 
-      {/* ── Product Grid ──────────────────────────────────────────────────── */}
-      <section className="flex-1 bg-white">
+      {/* ── Product Grid / Canvas ─────────────────────────────────────────── */}
+      <section
+        className="flex-1 bg-white"
+        style={viewMode === 'canvas' ? {
+          // Canvas mode: fill remaining viewport height
+          // Use CSS custom property set by the sticky header
+          height: 'calc(100dvh - var(--filter-header-height, 200px))',
+          overflow: 'hidden',
+          position: 'sticky',
+          top: 'var(--filter-header-height, 200px)',
+        } : undefined}
+      >
         {isLoading ? (
-          // Skeleton — only shown on true first load
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
             {Array.from({ length: 24 }).map((_, i) => (
               <div key={i} className="border-r border-b border-charcoal/5 relative overflow-hidden">
@@ -573,34 +660,40 @@ export default function CollectionPage() {
             ))}
           </div>
         ) : filteredProducts.length > 0 ? (
-          /*
-           * CALM CROSSFADE: The entire grid fades as one unit.
-           * - key={category+subcategory} triggers a fresh mount on filter change
-           * - AnimatePresence crossfades old grid out, new grid in
-           * - No per-card animations = peaceful, editorial feel
-           */
-          <AnimatePresence mode="wait">
-            <motion.div
-              key={`${activeCategory}-${activeSubCategory}-${sortBy}`}
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
-            >
-              {filteredProducts.map((product, index) => (
-                <MemoProductCard
-                  key={product.id}
-                  product={product}
-                  imageUrl={getImageUrl(product)}
-                  onImageError={handleImageError}
-                  onClick={() => openQuickView(product)}
-                  index={index}
-                  brokenImagesRef={brokenImagesRef}
-                />
-              ))}
-            </motion.div>
-          </AnimatePresence>
+          viewMode === 'canvas' ? (
+            <CanvasGrid
+              ref={canvasGridRef}
+              products={filteredProducts as ClusteredProduct[]}
+              activeSubCategory={activeSubCategory ?? 'All'}
+              sortOrder={SUB_CATEGORY_SORT_ORDER[activeCategory ?? ''] || []}
+              getImageUrl={getImageUrl}
+              onCardClick={openQuickView}
+              onImageError={handleImageError}
+            />
+          ) : (
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={`${activeCategory}-${activeSubCategory}-${sortBy}`}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 0.2 }}
+                className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
+              >
+                {filteredProducts.map((product, index) => (
+                  <MemoProductCard
+                    key={product.id}
+                    product={product}
+                    imageUrl={getImageUrl(product)}
+                    onImageError={handleImageError}
+                    onClick={() => openQuickView(product)}
+                    index={index}
+                    brokenImagesRef={brokenImagesRef}
+                  />
+                ))}
+              </motion.div>
+            </AnimatePresence>
+          )
         ) : (
           <div className="py-20 text-center">
             <p className="text-sm text-charcoal/40 mb-2">No pieces found.</p>
