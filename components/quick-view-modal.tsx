@@ -279,19 +279,19 @@ export function QuickViewModal({
 
             {/* Content - image left, details right */}
             <div className="grid grid-cols-1 md:grid-cols-[1.2fr_1fr] relative z-10">
-              {/* Image - solid white background for product visibility */}
+              {/* Image - solid white background extending to modal edges */}
               <div 
-                className="aspect-square md:aspect-auto md:min-h-[350px] relative bg-white md:rounded-bl-2xl overflow-hidden"
+                className="aspect-square md:aspect-auto md:min-h-[350px] relative bg-white overflow-hidden -mx-[1px] -mb-[1px] md:mb-0 md:-ml-[1px] md:mr-0 rounded-b-2xl md:rounded-br-none md:rounded-bl-2xl"
               >
                 {!imageLoaded && (
-                  <div className="absolute inset-0 bg-white/50 animate-pulse" />
+                  <div className="absolute inset-0 bg-white animate-pulse" />
                 )}
                 {imageUrl && (
                   <img
                     src={imageUrl}
                     alt={product.name}
                     className={cn(
-                      'w-full h-full object-contain p-6 md:p-8 transition-opacity duration-300',
+                      'w-full h-full object-contain p-8 md:p-10 transition-opacity duration-300',
                       imageLoaded ? 'opacity-100' : 'opacity-0'
                     )}
                     onLoad={() => setImageLoaded(true)}
