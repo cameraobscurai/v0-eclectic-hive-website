@@ -313,12 +313,12 @@ export const CanvasGrid = forwardRef<CanvasGridHandle, CanvasGridProps>(function
   }, [])
 
   return (
-    <div className="relative w-full h-full overflow-hidden bg-cream/30">
+    <div className="relative w-full h-full bg-cream/30" style={{ overflow: 'hidden' }}>
       {/* Scroll container — omnidirectional */}
       <div
         ref={containerRef}
         className={cn(
-          'w-full h-full overflow-auto scrollbar-hide',
+          'absolute inset-0 scrollbar-hide',
           isDragging ? 'cursor-grabbing select-none' : 'cursor-grab'
         )}
         onMouseDown={handleMouseDown}
@@ -326,8 +326,8 @@ export const CanvasGrid = forwardRef<CanvasGridHandle, CanvasGridProps>(function
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
         style={{
-          scrollBehavior: 'auto',
-          // Smooth scroll for touch devices
+          overflowX: 'auto',
+          overflowY: 'auto',
           WebkitOverflowScrolling: 'touch',
         }}
       >
