@@ -14,9 +14,9 @@ const { CARD_SIZE, CARD_GAP, LABEL_GUTTER } = CANVAS_CONSTANTS
 // 2D Canvas layout constants
 const CANVAS_2D = {
   CLUSTER_H_GAP: 60,    // Horizontal gap between clusters
-  CLUSTER_V_GAP: 80,    // Vertical gap between cluster rows
-  CANVAS_PAD: 48,       // Padding around the entire canvas
-  COLS_PER_ROW: 3,      // Number of clusters per row in 2D layout
+  CLUSTER_V_GAP: 100,   // Vertical gap between cluster rows (larger for better separation)
+  CANVAS_PAD: 64,       // Padding around the entire canvas
+  COLS_PER_ROW: 2,      // Fewer clusters per row = more rows = vertical scrolling enabled
 }
 
 // ─── Canvas Card ──────────────────────────────────────────────────────────────
@@ -194,23 +194,27 @@ export const CanvasGrid = forwardRef<CanvasGridHandle, CanvasGridProps>(function
       rows.push(clusters.slice(i, i + CANVAS_2D.COLS_PER_ROW))
     }
 
-    // Calculate max width needed
+    // Calculate max width needed per row
     let maxRowWidth = 0
     rows.forEach(row => {
-      const rowWidth = row.reduce((sum, cluster) => {
+      let rowWidth = 0
+      row.forEach((cluster, idx) => {
         const cols = Math.ceil(cluster.products.length / 2)
-        return sum + (cols * CARD_SIZE) + ((cols - 1) * CARD_GAP) + CANVAS_2D.CLUSTER_H_GAP
-      }, 0)
+        const clusterWidth = (cols * CARD_SIZE) + ((cols - 1) * CARD_GAP)
+        rowWidth += clusterWidth
+        if (idx < row.length - 1) rowWidth += CANVAS_2D.CLUSTER_H_GAP
+      })
       maxRowWidth = Math.max(maxRowWidth, rowWidth)
     })
 
-    // Calculate total height
-    const rowHeight = (2 * CARD_SIZE) + CARD_GAP + 32 // 32 for label
-    const totalHeight = (rows.length * rowHeight) + ((rows.length - 1) * CANVAS_2D.CLUSTER_V_GAP)
+    // Calculate total height - each row has 2 card rows + label
+    const singleRowHeight = (2 * CARD_SIZE) + CARD_GAP + 40 // 40px for label area
+    const totalHeight = (rows.length * singleRowHeight) + ((rows.length - 1) * CANVAS_2D.CLUSTER_V_GAP)
 
+    // Ensure minimum dimensions for scrollability
     return {
-      width: maxRowWidth + (CANVAS_2D.CANVAS_PAD * 2),
-      height: totalHeight + (CANVAS_2D.CANVAS_PAD * 2),
+      width: Math.max(maxRowWidth + (CANVAS_2D.CANVAS_PAD * 2), 1200),
+      height: Math.max(totalHeight + (CANVAS_2D.CANVAS_PAD * 2), 1000),
     }
   }, [clusters])
 
@@ -326,18 +330,18 @@ export const CanvasGrid = forwardRef<CanvasGridHandle, CanvasGridProps>(function
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
         style={{
-          overflowX: 'auto',
-          overflowY: 'auto',
+          overflow: 'scroll', // Force both scrollbars to be available
           WebkitOverflowScrolling: 'touch',
         }}
       >
-        {/* Content canvas */}
+        {/* Content canvas — explicit dimensions enable scrolling */}
         <div
           ref={contentRef}
           style={{
             width: canvasDimensions.width,
-            minHeight: canvasDimensions.height,
+            height: canvasDimensions.height,
             padding: CANVAS_2D.CANVAS_PAD,
+            boxSizing: 'border-box',
           }}
         >
           <AnimatePresence mode="wait">
