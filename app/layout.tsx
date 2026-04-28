@@ -5,6 +5,7 @@ import { NuqsAdapter } from 'nuqs/adapters/next/app'
 import { PageTransitionProvider } from '@/components/page-transition'
 import { InquiryTray } from '@/components/inquiry-tray'
 import { ScrollReset } from '@/components/scroll-reset'
+import { SmoothScrollProvider } from '@/components/smooth-scroll'
 import './globals.css'
 
 const inter = Inter({ 
@@ -192,20 +193,22 @@ export default function RootLayout({
         />
       </head>
       <body className="font-sans antialiased overflow-y-auto">
-        <NuqsAdapter>
-          <ScrollReset />
-          <PageTransitionProvider>
-            {/* Skip to main content link for accessibility */}
-            <a 
-              href="#main-content" 
-              className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-charcoal focus:text-cream focus:outline-none"
-            >
-              Skip to main content
-            </a>
-            {children}
-          </PageTransitionProvider>
-          <InquiryTray />
-        </NuqsAdapter>
+        <SmoothScrollProvider>
+          <NuqsAdapter>
+            <ScrollReset />
+            <PageTransitionProvider>
+              {/* Skip to main content link for accessibility */}
+              <a 
+                href="#main-content" 
+                className="sr-only focus:not-sr-only focus:absolute focus:top-4 focus:left-4 focus:z-[100] focus:px-4 focus:py-2 focus:bg-charcoal focus:text-cream focus:outline-none"
+              >
+                Skip to main content
+              </a>
+              {children}
+            </PageTransitionProvider>
+            <InquiryTray />
+          </NuqsAdapter>
+        </SmoothScrollProvider>
         <Analytics />
       </body>
     </html>
