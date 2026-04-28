@@ -3,9 +3,6 @@ const nextConfig = {
   // TypeScript errors now fail the build (security best practice)
   // Run `tsc --noEmit` locally to catch errors before deploying
   
-  // Tree-shake large icon/component libraries
-  optimizePackageImports: ['lucide-react', 'framer-motion', 'recharts', 'date-fns'],
-  
   images: {
     // Prefer AVIF (40-55% smaller than JPEG), fallback to WebP
     formats: ['image/avif', 'image/webp'],

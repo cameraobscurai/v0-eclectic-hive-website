@@ -19,14 +19,17 @@ export function DistortedCard({ children, velocityRef, className }: DistortedCar
   const rafId = useRef<number>(0)
 
   useEffect(() => {
-    const wrapper = wrapperRef.current
-    if (!wrapper) return
-
     // Check reduced motion preference
     const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
     if (prefersReducedMotion) return
 
     function animate() {
+      const el = wrapperRef.current
+      if (!el) {
+        rafId.current = requestAnimationFrame(animate)
+        return
+      }
+
       // Target scale: velocity magnitude → distortion amount
       const targetScale = Math.abs(velocityRef.current) * 22
 
@@ -36,14 +39,14 @@ export function DistortedCard({ children, velocityRef, className }: DistortedCar
 
       // Apply filter only when distortion is visible
       if (currentScale.current > 0.1) {
-        wrapper.style.filter = `url(#gallery-distort)`
+        el.style.filter = `url(#gallery-distort)`
         // Update the shared SVG displacement scale
         const displacementEl = document.getElementById('gallery-displacement')
         if (displacementEl) {
           displacementEl.setAttribute('scale', currentScale.current.toFixed(2))
         }
       } else {
-        wrapper.style.filter = 'none'
+        el.style.filter = 'none'
         currentScale.current = 0
       }
 
