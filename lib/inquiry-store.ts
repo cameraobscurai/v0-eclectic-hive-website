@@ -7,6 +7,7 @@ export interface ShortlistedItem {
   name: string
   category: string
   imageUrl?: string
+  primary_image_url?: string  // For compatibility with AffinityProduct union
   dims_display?: string
   quantity: number
 }
