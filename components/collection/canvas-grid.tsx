@@ -1,25 +1,19 @@
 'use client'
 
-import {
+import React, {
   useEffect, useRef, useState,
   useImperativeHandle, forwardRef, useMemo, useCallback,
 } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
-import { buildClusters, CANVAS_CONSTANTS } from '@/lib/cluster-layout'
-import type { ClusteredProduct, Cluster } from '@/lib/cluster-layout'
+import type { ClusteredProduct } from '@/lib/cluster-layout'
 
-// Canvas constants - balanced spacing for usability
-const CARD_SIZE = 180
-const CARD_GAP = 24
-
-const CANVAS_2D = {
-  CLUSTER_H_GAP: 80,    // Comfortable horizontal gaps
-  CLUSTER_V_GAP: 100,   // Comfortable vertical gaps
-  CANVAS_PAD: 60,       // Moderate padding
-  COLS_PER_ROW: 3,
-  BOUNDS_MARGIN: 200,   // How far past content edge user can pan
-}
+// Unified grid constants - tight grid, all products visible
+const CARD_SIZE = 160
+const CARD_GAP = 16
+const GRID_COLS = 8     // Fixed columns for dense grid
+const CANVAS_PAD = 40
+const BOUNDS_MARGIN = 150
 
 // ─── Canvas Card ──────────────────────────────────────────────────────────────
 
@@ -111,69 +105,21 @@ function CanvasCard({ product, imageUrl, onClick, index, onImageError }: CanvasC
   )
 }
 
-// ─── Cluster Block ────────────────────────────────────────────────────────────
+// ─── Category Section Label ───────────────────────────────────────────────────
 
-interface ClusterBlockProps {
-  cluster: Cluster
-  getImageUrl: (p: ClusteredProduct) => string
-  onCardClick: (p: ClusteredProduct) => void
-  onImageError: (id: string, url: string) => void
-  isHighlighted: boolean
-  maxRows?: number
-}
-
-function ClusterBlock({
-  cluster, getImageUrl, onCardClick,
-  onImageError, isHighlighted, maxRows = 2,
-}: ClusterBlockProps) {
-  const cols = Math.ceil(cluster.products.length / maxRows)
-  const [isClusterHovered, setIsClusterHovered] = useState(false)
-
+function CategoryLabel({ name, count }: { name: string; count: number }) {
   return (
-    <div
-      className="relative"
-      style={{
-        opacity: isHighlighted ? 1 : 0.25,
-        transition: 'opacity 0.5s ease',
-      }}
-      data-cluster={cluster.subCategory}
-      onMouseEnter={() => setIsClusterHovered(true)}
-      onMouseLeave={() => setIsClusterHovered(false)}
+    <div 
+      className="col-span-full flex items-center gap-3 py-2"
+      data-cluster={name}
     >
-      {/* Minimal cluster label - only visible on hover for clean look */}
-      <div 
-        className="absolute -top-8 left-0"
-        style={{
-          opacity: isClusterHovered ? 1 : 0,
-          transform: isClusterHovered ? 'translateY(0)' : 'translateY(4px)',
-          transition: 'opacity 0.3s ease, transform 0.3s ease',
-        }}
-      >
-        <span className="text-[9px] uppercase tracking-[0.25em] text-charcoal/40 font-medium">
-          {cluster.subCategory === 'Other' ? cluster.products[0]?.category : cluster.subCategory}
-        </span>
-      </div>
-
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateRows: `repeat(${maxRows}, ${CARD_SIZE}px)`,
-          gridTemplateColumns: `repeat(${cols}, ${CARD_SIZE}px)`,
-          gridAutoFlow: 'column',
-          gap: CARD_GAP,
-        }}
-      >
-        {cluster.products.map((product, i) => (
-          <CanvasCard
-            key={product.id}
-            product={product}
-            imageUrl={getImageUrl(product)}
-            onClick={() => onCardClick(product)}
-            index={i}
-            onImageError={onImageError}
-          />
-        ))}
-      </div>
+      <span className="text-[10px] uppercase tracking-[0.2em] text-charcoal/50 font-medium">
+        {name}
+      </span>
+      <span className="text-[9px] text-charcoal/30">
+        {count}
+      </span>
+      <div className="flex-1 h-px bg-charcoal/[0.06]" />
     </div>
   )
 }
@@ -211,47 +157,59 @@ export const CanvasGrid = forwardRef<CanvasGridHandle, CanvasGridProps>(function
   const lastTime = useRef(0)
   const inertiaRaf = useRef<number>(0)
 
-  // Build clusters
-  const clusters = useMemo(
-    () => buildClusters(products, sortOrder, 600),
-    [products, sortOrder],
-  )
-
-  // Arrange clusters into rows
-  const clusterRows = useMemo(() => {
-    const rows: Cluster[][] = []
-    for (let i = 0; i < clusters.length; i += CANVAS_2D.COLS_PER_ROW) {
-      rows.push(clusters.slice(i, i + CANVAS_2D.COLS_PER_ROW))
-    }
-    return rows
-  }, [clusters])
+  // Group products by sub-category while maintaining sort order
+  const groupedProducts = useMemo(() => {
+    const groups: { category: string; products: ClusteredProduct[] }[] = []
+    const categoryMap = new Map<string, ClusteredProduct[]>()
+    
+    // Group products
+    products.forEach(p => {
+      const cat = p._subCategory || p.sub_category || 'Other'
+      if (!categoryMap.has(cat)) categoryMap.set(cat, [])
+      categoryMap.get(cat)!.push(p)
+    })
+    
+    // Sort categories by sortOrder
+    const orderedCategories = sortOrder.length > 0 
+      ? sortOrder.filter(c => categoryMap.has(c))
+      : Array.from(categoryMap.keys())
+    
+    // Add any categories not in sortOrder
+    categoryMap.forEach((_, cat) => {
+      if (!orderedCategories.includes(cat)) orderedCategories.push(cat)
+    })
+    
+    orderedCategories.forEach(cat => {
+      const prods = categoryMap.get(cat)
+      if (prods && prods.length > 0) {
+        groups.push({ category: cat, products: prods })
+      }
+    })
+    
+    return groups
+  }, [products, sortOrder])
 
   // Calculate content dimensions for bounds
   const contentSize = useMemo(() => {
-    if (clusters.length === 0) return { width: 0, height: 0 }
+    if (products.length === 0) return { width: 0, height: 0 }
     
-    // Calculate max width of any row
-    let maxRowWidth = 0
-    clusterRows.forEach(row => {
-      let rowWidth = 0
-      row.forEach((cluster, idx) => {
-        const cols = Math.ceil(cluster.products.length / 2)
-        const clusterWidth = (cols * CARD_SIZE) + ((cols - 1) * CARD_GAP)
-        rowWidth += clusterWidth
-        if (idx < row.length - 1) rowWidth += CANVAS_2D.CLUSTER_H_GAP
-      })
-      maxRowWidth = Math.max(maxRowWidth, rowWidth)
+    // Grid width
+    const gridWidth = (GRID_COLS * CARD_SIZE) + ((GRID_COLS - 1) * CARD_GAP)
+    
+    // Count total rows needed (products + category labels)
+    let totalItems = 0
+    groupedProducts.forEach(g => {
+      totalItems += 1 // category label takes a row
+      totalItems += Math.ceil(g.products.length / GRID_COLS) * GRID_COLS // products
     })
-    
-    // Calculate total height
-    const rowHeight = (2 * CARD_SIZE) + CARD_GAP
-    const totalHeight = (clusterRows.length * rowHeight) + ((clusterRows.length - 1) * CANVAS_2D.CLUSTER_V_GAP)
+    const totalRows = Math.ceil(totalItems / GRID_COLS) + groupedProducts.length
+    const gridHeight = (totalRows * (CARD_SIZE + CARD_GAP))
     
     return {
-      width: maxRowWidth + (CANVAS_2D.CANVAS_PAD * 2),
-      height: totalHeight + (CANVAS_2D.CANVAS_PAD * 2),
+      width: gridWidth + (CANVAS_PAD * 2),
+      height: gridHeight + (CANVAS_PAD * 2),
     }
-  }, [clusters, clusterRows])
+  }, [products, groupedProducts])
 
   // Constrain position within bounds
   const constrainPosition = useCallback((x: number, y: number) => {
@@ -260,13 +218,12 @@ export const CanvasGrid = forwardRef<CanvasGridHandle, CanvasGridProps>(function
     
     const containerW = container.clientWidth
     const containerH = container.clientHeight
-    const margin = CANVAS_2D.BOUNDS_MARGIN
     
     // Calculate bounds - content should stay mostly visible
-    const minX = -(contentSize.width - containerW + margin)
-    const maxX = margin
-    const minY = -(contentSize.height - containerH + margin)
-    const maxY = margin
+    const minX = -(contentSize.width - containerW + BOUNDS_MARGIN)
+    const maxX = BOUNDS_MARGIN
+    const minY = -(contentSize.height - containerH + BOUNDS_MARGIN)
+    const maxY = BOUNDS_MARGIN
     
     return {
       x: Math.max(minX, Math.min(maxX, x)),
@@ -427,25 +384,25 @@ export const CanvasGrid = forwardRef<CanvasGridHandle, CanvasGridProps>(function
       const containerRect = containerRef.current.getBoundingClientRect()
       const elRect = el.getBoundingClientRect()
 
-      // Calculate where the element currently is relative to container center
-      const targetX = -(elRect.left - containerRect.left - containerRect.width / 2 + elRect.width / 2 - position.x)
-      const targetY = -(elRect.top - containerRect.top - containerRect.height / 2 + elRect.height / 2 - position.y)
+      // Calculate where the element currently is relative to container top
+      const targetX = position.x // Keep horizontal position
+      const targetY = -(elRect.top - containerRect.top - 20 - position.y)
 
       // Animate to position
       const startX = position.x
       const startY = position.y
       const startTime = performance.now()
-      const duration = 600
+      const duration = 500
 
       function animate() {
         const elapsed = performance.now() - startTime
         const progress = Math.min(1, elapsed / duration)
-        const eased = 1 - Math.pow(1 - progress, 3) // easeOutCubic
+        const eased = 1 - Math.pow(1 - progress, 3)
 
-        setPosition({
-          x: startX + (targetX - startX) * eased,
-          y: startY + (targetY - startY) * eased,
-        })
+        setPosition(constrainPosition(
+          startX + (targetX - startX) * eased,
+          startY + (targetY - startY) * eased,
+        ))
 
         if (progress < 1) {
           requestAnimationFrame(animate)
@@ -480,7 +437,10 @@ export const CanvasGrid = forwardRef<CanvasGridHandle, CanvasGridProps>(function
 
       requestAnimationFrame(animate)
     },
-  }), [position])
+  }), [position, constrainPosition])
+
+  // Determine grid width
+  const gridWidth = (GRID_COLS * CARD_SIZE) + ((GRID_COLS - 1) * CARD_GAP)
 
   return (
     <div
@@ -496,17 +456,16 @@ export const CanvasGrid = forwardRef<CanvasGridHandle, CanvasGridProps>(function
       onWheel={onWheel}
       style={{ 
         touchAction: 'none',
-        // Seamless background - matches site cream/off-white
-        background: 'linear-gradient(135deg, #faf9f7 0%, #f5f4f2 100%)',
+        background: '#faf9f7',
       }}
     >
-      {/* Transformed content */}
+      {/* Transformed content - single unified grid */}
       <div
         ref={contentRef}
         style={{
           transform: `translate(${position.x}px, ${position.y}px)`,
           willChange: 'transform',
-          padding: CANVAS_2D.CANVAS_PAD,
+          padding: CANVAS_PAD,
         }}
       >
         <AnimatePresence mode="wait">
@@ -516,60 +475,59 @@ export const CanvasGrid = forwardRef<CanvasGridHandle, CanvasGridProps>(function
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             transition={{ duration: 0.2 }}
-            className="flex flex-col"
-            style={{ gap: CANVAS_2D.CLUSTER_V_GAP }}
+            style={{
+              display: 'grid',
+              gridTemplateColumns: `repeat(${GRID_COLS}, ${CARD_SIZE}px)`,
+              gap: CARD_GAP,
+              width: gridWidth,
+            }}
           >
-            {clusterRows.map((row, rowIndex) => (
-              <div
-                key={rowIndex}
-                className="flex flex-row items-start"
-                style={{ gap: CANVAS_2D.CLUSTER_H_GAP }}
-              >
-                {row.map(cluster => (
-                  <ClusterBlock
-                    key={cluster.subCategory}
-                    cluster={cluster}
-                    getImageUrl={getImageUrl}
-                    onCardClick={onCardClick}
-                    onImageError={onImageError}
-                    isHighlighted={
-                      activeSubCategory === 'All' ||
-                      activeSubCategory === cluster.subCategory
-                    }
-                    maxRows={2}
-                  />
-                ))}
-              </div>
-            ))}
+            {groupedProducts.map((group, groupIdx) => {
+              const isHighlighted = activeSubCategory === 'All' || activeSubCategory === group.category
+              return (
+                <React.Fragment key={group.category}>
+                  {/* Category label spans full width */}
+                  <CategoryLabel name={group.category} count={group.products.length} />
+                  
+                  {/* Products in this category */}
+                  {group.products.map((product, i) => (
+                    <div 
+                      key={product.id}
+                      style={{
+                        opacity: isHighlighted ? 1 : 0.3,
+                        transition: 'opacity 0.3s ease',
+                      }}
+                    >
+                      <CanvasCard
+                        product={product}
+                        imageUrl={getImageUrl(product)}
+                        onClick={() => onCardClick(product)}
+                        index={groupIdx * 100 + i}
+                        onImageError={onImageError}
+                      />
+                    </div>
+                  ))}
+                </React.Fragment>
+              )
+            })}
           </motion.div>
         </AnimatePresence>
       </div>
 
-      {/* Corner gradients for depth */}
-      <div
-        className="absolute top-0 left-0 w-32 h-32 pointer-events-none"
-        style={{
-          background: 'radial-gradient(ellipse at top left, rgba(255,255,255,0.9), transparent 70%)',
-        }}
-      />
-      <div
-        className="absolute bottom-0 right-0 w-40 h-40 pointer-events-none"
-        style={{
-          background: 'radial-gradient(ellipse at bottom right, rgba(255,255,255,0.95), transparent 70%)',
-        }}
-      />
+      {/* Subtle edge fade */}
+      <div className="absolute inset-x-0 top-0 h-8 pointer-events-none bg-gradient-to-b from-[#faf9f7] to-transparent" />
+      <div className="absolute inset-x-0 bottom-0 h-8 pointer-events-none bg-gradient-to-t from-[#faf9f7] to-transparent" />
 
-      {/* Subtle navigation hint - fades out after first interaction */}
+      {/* Navigation hint */}
       {mounted && !isDragging.current && position.x === 0 && position.y === 0 && (
         <motion.div
           className="absolute bottom-6 left-1/2 -translate-x-1/2 pointer-events-none"
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0 }}
           transition={{ delay: 1, duration: 0.5 }}
         >
           <p className="text-[9px] uppercase tracking-[0.2em] text-charcoal/25">
-            Drag to explore
+            Scroll or drag to explore
           </p>
         </motion.div>
       )}
