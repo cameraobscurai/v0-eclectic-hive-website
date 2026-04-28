@@ -257,6 +257,9 @@ export const CanvasGrid = forwardRef<CanvasGridHandle, CanvasGridProps>(function
 
   const onPointerDown = useCallback((e: React.PointerEvent) => {
     if (e.button !== 0) return // left button only
+    // Don't initiate drag on interactive elements
+    if ((e.target as HTMLElement).closest('button, a, [role="button"]')) return
+    
     cancelAnimationFrame(inertiaRaf.current)
     isDragging.current = true
     velocity.current = { x: 0, y: 0 }
@@ -310,6 +313,10 @@ export const CanvasGrid = forwardRef<CanvasGridHandle, CanvasGridProps>(function
   // Imperative handle
   useImperativeHandle(ref, () => ({
     scrollToCluster(subCategory: string) {
+      // Cancel any ongoing inertia
+      cancelAnimationFrame(inertiaRaf.current)
+      velocity.current = { x: 0, y: 0 }
+      
       const el = contentRef.current?.querySelector(`[data-cluster="${subCategory}"]`) as HTMLElement
       if (!el || !containerRef.current) return
       
@@ -325,6 +332,8 @@ export const CanvasGrid = forwardRef<CanvasGridHandle, CanvasGridProps>(function
       })
     },
     resetScroll() {
+      cancelAnimationFrame(inertiaRaf.current)
+      velocity.current = { x: 0, y: 0 }
       containerRef.current?.scrollTo({ left: 0, top: 0, behavior: 'smooth' })
     },
   }), [])
