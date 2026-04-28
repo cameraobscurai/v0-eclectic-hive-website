@@ -38,12 +38,7 @@ export async function GET(request: NextRequest) {
     if (!result) {
       // Redirect to public placeholder instead of 404
       // This avoids fs reads and lets the browser cache the placeholder normally
-      return NextResponse.redirect(new URL('/placeholder-product.jpg', request.url), {
-        status: 302,
-        headers: {
-          'Cache-Control': 'public, max-age=60', // Short cache — the real image may appear
-        },
-      })
+      return NextResponse.redirect(new URL('/placeholder-product.jpg', request.url), 302)
     }
 
     // Blob hasn't changed — tell the browser to use its cached copy
