@@ -9,14 +9,15 @@ import { cn } from '@/lib/utils'
 import { buildClusters, CANVAS_CONSTANTS } from '@/lib/cluster-layout'
 import type { ClusteredProduct, Cluster } from '@/lib/cluster-layout'
 
-const { CARD_SIZE, CARD_GAP } = CANVAS_CONSTANTS
+// Premium infinite canvas constants - aggressive spacing for museum feel
+const CARD_SIZE = 200   // Smaller cards = more floating sensation
+const CARD_GAP = 32     // Generous gap within clusters
 
-// 2D Canvas layout constants
 const CANVAS_2D = {
-  CLUSTER_H_GAP: 80,
-  CLUSTER_V_GAP: 100,
-  CANVAS_PAD: 80,
-  COLS_PER_ROW: 2,
+  CLUSTER_H_GAP: 140,   // Massive horizontal gaps between clusters
+  CLUSTER_V_GAP: 160,   // Massive vertical gaps for breathing room
+  CANVAS_PAD: 120,      // Large padding around canvas edge
+  COLS_PER_ROW: 3,      // More clusters per row for horizontal spread
 }
 
 // ─── Canvas Card ──────────────────────────────────────────────────────────────
@@ -37,7 +38,10 @@ function CanvasCard({ product, imageUrl, onClick, index, onImageError }: CanvasC
   if (error) return null
 
   return (
-    <div style={{ width: CARD_SIZE, height: CARD_SIZE, flexShrink: 0 }}>
+    <div 
+      style={{ width: CARD_SIZE, height: CARD_SIZE, flexShrink: 0 }}
+      className="relative"
+    >
       <button
         onClick={(e) => {
           e.stopPropagation()
@@ -45,44 +49,59 @@ function CanvasCard({ product, imageUrl, onClick, index, onImageError }: CanvasC
         }}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        className="group relative w-full h-full cursor-pointer text-left focus:outline-none focus:ring-2 focus:ring-inset focus:ring-charcoal/20 bg-white border border-charcoal/[0.04] transition-shadow duration-200 hover:shadow-lg hover:shadow-charcoal/5"
-        style={{ display: 'block' }}
+        className="group relative w-full h-full cursor-pointer text-left focus:outline-none"
+        style={{ 
+          display: 'block',
+          // No borders, no backgrounds - floating object illusion
+          background: 'transparent',
+        }}
       >
-        <div className="absolute inset-0 p-4 lg:p-6">
+        {/* Image container - no visible bounds */}
+        <div className="absolute inset-0 p-2">
           {!loaded && (
-            <div className="absolute inset-4 lg:inset-6 bg-neutral-50/50">
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/60 to-transparent -translate-x-full animate-[shimmer_1.5s_infinite]" />
+            <div className="absolute inset-2 rounded-sm overflow-hidden">
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-charcoal/[0.03] to-transparent -translate-x-full animate-[shimmer_2s_infinite]" />
             </div>
           )}
           <img
             src={imageUrl}
             alt={product.name}
             className={cn(
-              'w-full h-full object-contain transition-opacity duration-300',
+              'w-full h-full object-contain transition-all duration-500',
               loaded ? 'opacity-100' : 'opacity-0',
+              // Subtle scale on hover for tactile feel
+              isHovered ? 'scale-105' : 'scale-100',
             )}
-            loading={index < 12 ? 'eager' : 'lazy'}
-            decoding={index < 6 ? 'sync' : 'async'}
-            fetchPriority={index < 6 ? 'high' : 'auto'}
+            loading={index < 16 ? 'eager' : 'lazy'}
+            decoding={index < 8 ? 'sync' : 'async'}
+            fetchPriority={index < 8 ? 'high' : 'auto'}
             onLoad={() => setLoaded(true)}
             onError={() => { setError(true); onImageError(product.id, imageUrl) }}
             draggable={false}
+            style={{
+              // Crisp rendering
+              imageRendering: 'auto',
+              // Subtle drop shadow for floating effect
+              filter: isHovered 
+                ? 'drop-shadow(0 8px 24px rgba(0,0,0,0.12))' 
+                : 'drop-shadow(0 2px 8px rgba(0,0,0,0.04))',
+              transition: 'filter 0.4s ease, transform 0.5s cubic-bezier(0.16, 1, 0.3, 1)',
+            }}
           />
         </div>
 
+        {/* Progressive disclosure - label only on hover */}
         <div
-          className="absolute inset-x-0 bottom-0 pointer-events-none overflow-hidden"
+          className="absolute inset-x-0 -bottom-1 flex justify-center pointer-events-none"
           style={{
-            clipPath: isHovered ? 'inset(0% 0% 0% 0%)' : 'inset(100% 0% 0% 0%)',
-            transition: 'clip-path 0.28s cubic-bezier(0.16, 1, 0.3, 1)',
+            opacity: isHovered ? 1 : 0,
+            transform: isHovered ? 'translateY(0)' : 'translateY(-4px)',
+            transition: 'opacity 0.3s ease, transform 0.3s ease',
           }}
         >
-          <div className="bg-white/98 px-4 py-3 border-t border-charcoal/6">
-            <p className="text-[11px] tracking-[0.08em] text-charcoal uppercase font-medium truncate">
+          <div className="bg-charcoal/90 backdrop-blur-sm px-3 py-1.5 rounded-full">
+            <p className="text-[9px] tracking-[0.12em] text-cream uppercase font-medium whitespace-nowrap">
               {product.name}
-            </p>
-            <p className="text-[9px] tracking-[0.1em] text-charcoal/40 uppercase mt-0.5">
-              Quick View
             </p>
           </div>
         </div>
@@ -107,22 +126,30 @@ function ClusterBlock({
   onImageError, isHighlighted, maxRows = 2,
 }: ClusterBlockProps) {
   const cols = Math.ceil(cluster.products.length / maxRows)
+  const [isClusterHovered, setIsClusterHovered] = useState(false)
 
   return (
     <div
       className="relative"
       style={{
-        opacity: isHighlighted ? 1 : 0.3,
-        transition: 'opacity 0.35s ease',
+        opacity: isHighlighted ? 1 : 0.25,
+        transition: 'opacity 0.5s ease',
       }}
       data-cluster={cluster.subCategory}
+      onMouseEnter={() => setIsClusterHovered(true)}
+      onMouseLeave={() => setIsClusterHovered(false)}
     >
-      <div className="mb-3 flex items-baseline gap-3">
-        <span className="text-[10px] uppercase tracking-[0.2em] text-charcoal/50 font-medium">
+      {/* Minimal cluster label - only visible on hover for clean look */}
+      <div 
+        className="absolute -top-8 left-0"
+        style={{
+          opacity: isClusterHovered ? 1 : 0,
+          transform: isClusterHovered ? 'translateY(0)' : 'translateY(4px)',
+          transition: 'opacity 0.3s ease, transform 0.3s ease',
+        }}
+      >
+        <span className="text-[9px] uppercase tracking-[0.25em] text-charcoal/40 font-medium">
           {cluster.subCategory === 'Other' ? cluster.products[0]?.category : cluster.subCategory}
-        </span>
-        <span className="text-[9px] text-charcoal/25">
-          {cluster.products.length} {cluster.products.length === 1 ? 'piece' : 'pieces'}
         </span>
       </div>
 
@@ -404,7 +431,7 @@ export const CanvasGrid = forwardRef<CanvasGridHandle, CanvasGridProps>(function
     <div
       ref={containerRef}
       className={cn(
-        'relative w-full h-full overflow-hidden bg-cream/30',
+        'relative w-full h-full overflow-hidden',
         isDragging.current ? 'cursor-grabbing' : 'cursor-grab'
       )}
       onPointerDown={onPointerDown}
@@ -412,7 +439,11 @@ export const CanvasGrid = forwardRef<CanvasGridHandle, CanvasGridProps>(function
       onPointerUp={onPointerUp}
       onPointerCancel={onPointerUp}
       onWheel={onWheel}
-      style={{ touchAction: 'none' }}
+      style={{ 
+        touchAction: 'none',
+        // Seamless background - matches site cream/off-white
+        background: 'linear-gradient(135deg, #faf9f7 0%, #f5f4f2 100%)',
+      }}
     >
       {/* Transformed content */}
       <div
@@ -473,26 +504,20 @@ export const CanvasGrid = forwardRef<CanvasGridHandle, CanvasGridProps>(function
         }}
       />
 
-      {/* Navigation hint */}
-      {mounted && (
+      {/* Subtle navigation hint - fades out after first interaction */}
+      {mounted && !isDragging.current && position.x === 0 && position.y === 0 && (
         <motion.div
-          className="absolute bottom-4 right-4 pointer-events-none"
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.5, duration: 0.3 }}
+          className="absolute bottom-6 left-1/2 -translate-x-1/2 pointer-events-none"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={{ opacity: 0 }}
+          transition={{ delay: 1, duration: 0.5 }}
         >
-          <p className="text-[9px] uppercase tracking-[0.18em] text-charcoal/30">
-            Drag or scroll to explore
+          <p className="text-[9px] uppercase tracking-[0.2em] text-charcoal/25">
+            Drag to explore
           </p>
         </motion.div>
       )}
-
-      {/* Position indicator */}
-      <div className="absolute top-4 left-4 pointer-events-none">
-        <p className="text-[9px] font-mono text-charcoal/20">
-          {Math.round(position.x)}, {Math.round(position.y)}
-        </p>
-      </div>
     </div>
   )
 })
