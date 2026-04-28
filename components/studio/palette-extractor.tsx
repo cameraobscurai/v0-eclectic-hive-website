@@ -48,7 +48,7 @@ export function PaletteExtractor({ imageUrls, palette, onChange }: PaletteExtrac
     setExtracting(true)
 
     try {
-      const { default: ColorThief } = await import('color-thief-browser')
+      const ColorThief = (await import('colorthief')).default
       const colorThief = new ColorThief()
       
       // Load images and extract colors from first 3
