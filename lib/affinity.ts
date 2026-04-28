@@ -10,6 +10,7 @@ export interface AffinityProduct {
   is_featured?: boolean
   dims_display?: string
   display_type?: 'single' | 'variants' | 'custom_inquiry'
+  updated_at?: string  // Needed for cache-busting inventory/ images
 }
 
 // ─── Room Logic ───────────────────────────────────────────────────────────────

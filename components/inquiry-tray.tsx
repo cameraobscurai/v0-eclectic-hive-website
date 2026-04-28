@@ -169,12 +169,20 @@ export function InquiryTray() {
                           src={item.imageUrl}
                           alt={item.name}
                           className="w-full h-full object-contain p-1"
+                          onError={(e) => {
+                            // Fall back to initial letter on broken tray thumbnail
+                            e.currentTarget.style.display = 'none'
+                            const fallback = e.currentTarget.nextElementSibling as HTMLElement
+                            if (fallback) fallback.hidden = false
+                          }}
                         />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center text-[8px] text-cream/40 uppercase">
-                          {item.name.charAt(0)}
-                        </div>
-                      )}
+                      ) : null}
+                      <div
+                        hidden={!!item.imageUrl}
+                        className="absolute inset-0 flex items-center justify-center text-[8px] text-cream/40 uppercase"
+                      >
+                        {item.name.charAt(0)}
+                      </div>
                       {item.quantity > 1 && (
                         <span className="absolute -top-0.5 -right-0.5 w-4 h-4 rounded-full bg-sand text-charcoal text-[8px] flex items-center justify-center font-medium">
                           {item.quantity}

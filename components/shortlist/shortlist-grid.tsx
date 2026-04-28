@@ -6,6 +6,7 @@ import { cn } from '@/lib/utils'
 import { X, Plus, Check } from 'lucide-react'
 import type { AffinityProduct } from '@/lib/affinity'
 import type { ShortlistedItem } from '@/lib/inquiry-store'
+import { ProductImage } from '@/components/ui/product-image'
 
 // ─── Internal normalized shape ────────────────────────────────────────────────
 
@@ -14,11 +15,13 @@ interface GridItem {
   name: string
   category: string
   imageUrl?: string
+  primaryImageUrl?: string  // Raw path for ProductImage to resolve
+  updatedAt?: string
   dims_display?: string
 }
 
 function normalize(item: ShortlistedItem | AffinityProduct): GridItem {
-  // ShortlistedItem has imageUrl; AffinityProduct has primary_image_url
+  // ShortlistedItem has imageUrl (already resolved); AffinityProduct has primary_image_url (raw)
   if ('imageUrl' in item) {
     return {
       id: item.id,
@@ -32,7 +35,8 @@ function normalize(item: ShortlistedItem | AffinityProduct): GridItem {
     id: item.id,
     name: item.name,
     category: item.category,
-    imageUrl: item.primary_image_url,
+    primaryImageUrl: item.primary_image_url,
+    updatedAt: item.updated_at,
     dims_display: item.dims_display,
   }
 }
@@ -134,17 +138,19 @@ export function ShortlistGrid({
               transition={{ duration: 0.15 }}
               onClick={() => onSelect?.(item)}
             >
-              {/* Image */}
-              {item.imageUrl && (
-                <img
-                  src={item.imageUrl}
-                  alt={item.name}
-                  className={cn(
-                    'w-full h-full object-contain p-2 transition-transform duration-500',
-                    isHov && 'scale-[1.04]',
-                  )}
-                />
-              )}
+              {/* Image - uses ProductImage for inventory/ path resolution and fallback */}
+              <ProductImage
+                src={item.imageUrl || item.primaryImageUrl}
+                alt={item.name}
+                updatedAt={item.updatedAt}
+                className={cn(
+                  'w-full h-full p-2 transition-transform duration-500',
+                  isHov && 'scale-[1.04]',
+                )}
+                containerClassName="absolute inset-0"
+                fit="contain"
+                showShimmer={false}
+              />
 
               {/* Hover overlay */}
               <AnimatePresence>

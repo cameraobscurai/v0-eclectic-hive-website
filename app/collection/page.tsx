@@ -8,6 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Navigation } from '@/components/navigation'
 import { Footer } from '@/components/footer'
 import { cn } from '@/lib/utils'
+import { getProductImageUrl } from '@/lib/get-image-url'
 
 
 const QuickViewModal = dynamic(
@@ -300,16 +301,11 @@ export default function CollectionPage() {
     return () => clearTimeout(timer)
   }, [searchQuery])
 
-  const getImageUrl = useCallback((product: { primary_image_url?: string; updated_at?: string; slug: string }): string => {
-    if (product.primary_image_url) {
-      if (product.primary_image_url.startsWith('inventory/')) {
-        const cacheBuster = product.updated_at ? `&v=${new Date(product.updated_at).getTime()}` : ''
-        return `/api/inventory-image?pathname=${encodeURIComponent(product.primary_image_url)}${cacheBuster}`
-      }
-      return product.primary_image_url
-    }
-    return '/placeholder-product.jpg'
-  }, [])
+const getImageUrl = useCallback(
+    (product: { primary_image_url?: string; updated_at?: string }) => 
+      getProductImageUrl(product.primary_image_url, product.updated_at),
+    []
+  )
 
   const filteredProducts = useMemo(() => {
     if (!activeCategory) return []

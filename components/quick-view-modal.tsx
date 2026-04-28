@@ -7,6 +7,7 @@ import { useInquiryStore } from '@/lib/inquiry-store'
 import { lockScroll, unlockScroll } from '@/lib/scroll-lock'
 import { getSuggestions, type AffinityProduct } from '@/lib/affinity'
 import { ShortlistGrid } from '@/components/shortlist/shortlist-grid'
+import { ProductImage } from '@/components/ui/product-image'
 
 // =============================================================================
 // LIQUID GLASS QUICK VIEW MODAL
@@ -97,7 +98,6 @@ export function QuickViewModal({
   allProducts,
   onSelectSuggestion,
 }: QuickViewModalProps) {
-  const [imageLoaded, setImageLoaded] = useState(false)
   const modalRef = useRef<HTMLDivElement>(null)
   const [mousePos, setMousePos] = useState({ x: 50, y: 50 })
   const [qty, setQty] = useState(1)
@@ -108,7 +108,6 @@ export function QuickViewModal({
 
   // Reset state when product changes
   useEffect(() => {
-    setImageLoaded(false)
     setQty(product ? getQuantity(product.id) || 1 : 1)
   }, [product?.id, getQuantity])
 
@@ -294,20 +293,14 @@ export function QuickViewModal({
               <div 
                 className="aspect-square md:aspect-auto md:min-h-[350px] relative bg-white overflow-hidden -mx-[1px] -mb-[1px] md:mb-0 md:-ml-[1px] md:mr-0 rounded-b-2xl md:rounded-br-none md:rounded-bl-2xl"
               >
-                {!imageLoaded && (
-                  <div className="absolute inset-0 bg-white animate-pulse" />
-                )}
-                {imageUrl && (
-                  <img
-                    src={imageUrl}
-                    alt={product.name}
-                    className={cn(
-                      'w-full h-full object-contain p-8 md:p-10 transition-opacity duration-300',
-                      imageLoaded ? 'opacity-100' : 'opacity-0'
-                    )}
-                    onLoad={() => setImageLoaded(true)}
-                  />
-                )}
+                <ProductImage
+                  src={imageUrl}
+                  alt={product.name}
+                  className="w-full h-full p-8 md:p-10"
+                  containerClassName="w-full h-full"
+                  fit="contain"
+                  showShimmer
+                />
               </div>
 
               {/* Details */}
