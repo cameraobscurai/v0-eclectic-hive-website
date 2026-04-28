@@ -303,7 +303,7 @@ export default function CollectionPage() {
     return () => clearTimeout(timer)
   }, [searchQuery])
 
-  const getImageUrl = useCallback((product: Product): string => {
+  const getImageUrl = useCallback((product: { primary_image_url?: string; updated_at?: string; slug: string }): string => {
     if (product.primary_image_url) {
       if (product.primary_image_url.startsWith('inventory/')) {
         const cacheBuster = product.updated_at ? `&v=${new Date(product.updated_at).getTime()}` : ''
