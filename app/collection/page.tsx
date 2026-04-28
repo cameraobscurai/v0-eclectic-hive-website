@@ -8,8 +8,7 @@ import { motion, AnimatePresence } from 'framer-motion'
 import { Navigation } from '@/components/navigation'
 import { Footer } from '@/components/footer'
 import { cn } from '@/lib/utils'
-import { CanvasGrid, type CanvasGridHandle } from '@/components/collection/canvas-grid'
-import type { ClusteredProduct } from '@/lib/cluster-layout'
+
 
 const QuickViewModal = dynamic(
   () => import('@/components/quick-view-modal').then(m => ({ default: m.QuickViewModal })),
@@ -268,8 +267,6 @@ export default function CollectionPage() {
   const [activeSubCategory, setActiveSubCategory] = useQueryState('sub', parseAsString.withDefault('All'))
   const [searchQuery, setSearchQuery] = useQueryState('q', parseAsString.withDefault(''))
   const [sortBy, setSortBy] = useQueryState('sort', parseAsString.withDefault('type'))
-  const [viewMode, setViewMode] = useQueryState('view', parseAsString.withDefault('grid'))
-  const canvasGridRef = useRef<CanvasGridHandle>(null)
   const [debouncedSearch, setDebouncedSearch] = useState('')
   const [hiddenProducts, setHiddenProducts] = useState<Set<string>>(new Set())
   const [quickViewProduct, setQuickViewProduct] = useState<Product | null>(null)
@@ -323,9 +320,7 @@ export default function CollectionPage() {
       !brokenImagesRef.current?.has(getImageUrl(p))
     )
 
-    // In canvas mode: sub-category is spatial, not a filter
-    // Only apply sub-category filtering in grid mode
-    if (viewMode !== 'canvas' && activeSubCategory !== 'All') {
+    if (activeSubCategory !== 'All') {
       results = results.filter(p => p._subCategory === activeSubCategory)
     }
 
@@ -369,7 +364,7 @@ export default function CollectionPage() {
     }
 
     return results
-  }, [productsWithSubCategory, activeCategory, activeSubCategory, debouncedSearch, hiddenProducts, getImageUrl, sortBy, viewMode])
+  }, [productsWithSubCategory, activeCategory, activeSubCategory, debouncedSearch, hiddenProducts, getImageUrl, sortBy])
 
   const availableSubCategories = useMemo(() => {
     const subs = SUB_CATEGORIES[activeCategory] || ['All']
@@ -391,32 +386,7 @@ const goToPreviousProduct = useCallback(() => {
   if (idx > 0) setQuickViewProduct(filteredProducts[idx - 1])
   }, [quickViewProduct, filteredProducts])
 
-  // Track filter header height for canvas sizing
-  useEffect(() => {
-    if (viewMode !== 'canvas') return
 
-    function measureHeader() {
-      const header = document.querySelector('section.sticky.top-0.z-40') as HTMLElement
-      if (!header) return
-      const h = header.getBoundingClientRect().height
-      document.documentElement.style.setProperty(
-        '--filter-header-height',
-        `${h + 72}px`  // 72px = nav height
-      )
-    }
-
-    measureHeader()
-    const ro = new ResizeObserver(measureHeader)
-    const header = document.querySelector('section.sticky.top-0.z-40')
-    if (header) ro.observe(header)
-    return () => ro.disconnect()
-  }, [viewMode])
-
-  // Reset sub-category when switching view modes
-  useEffect(() => {
-    setActiveSubCategory('All')
-    canvasGridRef.current?.resetScroll()
-  }, [viewMode, activeCategory, setActiveSubCategory])
 
   useEffect(() => {
     setActiveSubCategory('All')
@@ -480,23 +450,7 @@ const goToPreviousProduct = useCallback(() => {
                 return (
                   <button
                     key={sub}
-                    onClick={() => {
-                    if (viewMode === 'canvas') {
-                      if (sub === 'All') {
-                        setActiveSubCategory('All')
-                        canvasGridRef.current?.resetScroll()
-                      } else if (activeSubCategory === sub) {
-                        // Toggle off — reset to All
-                        setActiveSubCategory('All')
-                        canvasGridRef.current?.resetScroll()
-                      } else {
-                        setActiveSubCategory(sub)
-                        canvasGridRef.current?.scrollToCluster(sub)
-                      }
-                    } else {
-                      setActiveSubCategory(sub)
-                    }
-                  }}
+                    onClick={() => setActiveSubCategory(sub)}
                     className={cn(
                       'relative flex-shrink-0 px-3 py-2.5 min-h-[44px] text-[10px] tracking-[0.1em] uppercase whitespace-nowrap transition-all duration-200 rounded-full flex items-center gap-1.5 touch-manipulation',
                       activeSubCategory === sub
@@ -518,35 +472,6 @@ const goToPreviousProduct = useCallback(() => {
             </nav>
 
 <div className="flex items-center gap-2 flex-shrink-0 py-1">
-                  {/* View mode toggle */}
-                  <div className="flex items-center border border-charcoal/10 rounded-full overflow-hidden flex-shrink-0">
-                    <button
-                      onClick={() => {
-                        setViewMode('grid')
-                        setActiveSubCategory('All')
-                      }}
-                      className={cn(
-                        'px-3 py-2 text-[9px] uppercase tracking-[0.15em] transition-colors min-h-[36px] touch-manipulation',
-                        viewMode !== 'canvas'
-                          ? 'bg-charcoal text-cream'
-                          : 'text-charcoal/40 hover:text-charcoal/70'
-                      )}
-                    >
-                      Grid
-                    </button>
-                    <button
-                      onClick={() => setViewMode('canvas')}
-                      className={cn(
-                        'px-3 py-2 text-[9px] uppercase tracking-[0.15em] transition-colors min-h-[36px] touch-manipulation',
-                        viewMode === 'canvas'
-                          ? 'bg-charcoal text-cream'
-                          : 'text-charcoal/40 hover:text-charcoal/70'
-                      )}
-                    >
-                      Canvas
-                    </button>
-                  </div>
-
                   <select
                 value={sortBy ?? 'type'}
                 onChange={(e) => setSortBy(e.target.value)}
@@ -637,17 +562,8 @@ const goToPreviousProduct = useCallback(() => {
         </div>
       </section>
 
-      {/* ── Product Grid / Canvas ─────────────────────────────────────────── */}
-      <section
-        className="flex-1 bg-white"
-        style={viewMode === 'canvas' ? {
-          // Canvas mode: fill remaining viewport below sticky header
-          height: 'calc(100dvh - var(--filter-header-height, 200px))',
-          overflow: 'hidden',
-          position: 'sticky',
-          top: 'var(--filter-header-height, 200px)',
-        } : undefined}
-      >
+      {/* ── Product Grid ─────────────────────────────────────────────────── */}
+      <section className="flex-1 bg-white">
         {isLoading ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
             {Array.from({ length: 24 }).map((_, i) => (
@@ -659,40 +575,28 @@ const goToPreviousProduct = useCallback(() => {
             ))}
           </div>
         ) : filteredProducts.length > 0 ? (
-          viewMode === 'canvas' ? (
-            <CanvasGrid
-              ref={canvasGridRef}
-              products={filteredProducts as ClusteredProduct[]}
-              activeSubCategory={activeSubCategory ?? 'All'}
-              sortOrder={SUB_CATEGORY_SORT_ORDER[activeCategory ?? ''] || []}
-              getImageUrl={getImageUrl}
-              onCardClick={openQuickView}
-              onImageError={handleImageError}
-            />
-          ) : (
-            <AnimatePresence mode="wait">
-              <motion.div
-                key={`${activeCategory}-${activeSubCategory}-${sortBy}`}
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                transition={{ duration: 0.2 }}
-                className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
-              >
-                {filteredProducts.map((product, index) => (
-                  <MemoProductCard
-                    key={product.id}
-                    product={product}
-                    imageUrl={getImageUrl(product)}
-                    onImageError={handleImageError}
-                    onClick={() => openQuickView(product)}
-                    index={index}
-                    brokenImagesRef={brokenImagesRef}
-                  />
-                ))}
-              </motion.div>
-            </AnimatePresence>
-          )
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={`${activeCategory}-${activeSubCategory}-${sortBy}`}
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.2 }}
+              className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
+            >
+              {filteredProducts.map((product, index) => (
+                <MemoProductCard
+                  key={product.id}
+                  product={product}
+                  imageUrl={getImageUrl(product)}
+                  onImageError={handleImageError}
+                  onClick={() => openQuickView(product)}
+                  index={index}
+                  brokenImagesRef={brokenImagesRef}
+                />
+              ))}
+            </motion.div>
+          </AnimatePresence>
         ) : (
           <div className="py-20 text-center">
             <p className="text-sm text-charcoal/40 mb-2">No pieces found.</p>
