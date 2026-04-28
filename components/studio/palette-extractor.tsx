@@ -48,7 +48,11 @@ export function PaletteExtractor({ imageUrls, palette, onChange }: PaletteExtrac
     setExtracting(true)
 
     try {
-      const ColorThief = (await import('colorthief')).default
+      // Dynamic import - browser version is constructable but TS sees Node types
+      const ColorThiefModule = await import('colorthief')
+      const ColorThief = ColorThiefModule.default as unknown as new () => {
+        getPalette: (img: HTMLImageElement, count: number) => number[][]
+      }
       const colorThief = new ColorThief()
       
       // Load images and extract colors from first 3
