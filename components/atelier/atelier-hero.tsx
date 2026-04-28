@@ -48,9 +48,7 @@ function ImageFrame({
 
 export function AtelierHero() {
   return (
-    <section className="relative min-h-screen bg-cream">
-      {/* Top navigation spacer */}
-      <div className="h-24" />
+    <section className="relative min-h-screen bg-cream pt-24 lg:pt-28">
       
       {/* Main hero grid */}
       <div className="section-padding">

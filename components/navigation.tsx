@@ -9,31 +9,37 @@ import { cn } from '@/lib/utils'
 // Focus trap hook for mobile menu accessibility
 function useFocusTrap(isActive: boolean) {
   const containerRef = useRef<HTMLDivElement>(null)
+  const previousActiveElement = useRef<HTMLElement | null>(null)
 
   useEffect(() => {
+    if (typeof window === 'undefined') return
     if (!isActive || !containerRef.current) return
+
+    // Store the currently focused element to restore later
+    previousActiveElement.current = document.activeElement as HTMLElement
 
     const container = containerRef.current
     const focusableElements = container.querySelectorAll<HTMLElement>(
       'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])'
     )
+    
+    if (focusableElements.length === 0) return
+    
     const firstElement = focusableElements[0]
     const lastElement = focusableElements[focusableElements.length - 1]
 
-    // Focus first element when menu opens
-    firstElement?.focus()
+    // Focus first element when menu opens (delay to ensure render)
+    const focusTimer = setTimeout(() => firstElement?.focus(), 50)
 
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key !== 'Tab') return
 
       if (e.shiftKey) {
-        // Shift + Tab: if on first element, go to last
         if (document.activeElement === firstElement) {
           e.preventDefault()
           lastElement?.focus()
         }
       } else {
-        // Tab: if on last element, go to first
         if (document.activeElement === lastElement) {
           e.preventDefault()
           firstElement?.focus()
@@ -42,7 +48,10 @@ function useFocusTrap(isActive: boolean) {
     }
 
     document.addEventListener('keydown', handleKeyDown)
-    return () => document.removeEventListener('keydown', handleKeyDown)
+    return () => {
+      clearTimeout(focusTimer)
+      document.removeEventListener('keydown', handleKeyDown)
+    }
   }, [isActive])
 
   return containerRef
@@ -57,7 +66,7 @@ const NAV_LINKS = [
 ]
 
 // Pages with light (cream) backgrounds need dark nav text
-const LIGHT_BG_PAGES = ['/collection', '/contact', '/faq', '/privacy', '/studio', '/process']
+const LIGHT_BG_PAGES = ['/atelier', '/collection', '/contact', '/faq', '/privacy', '/studio', '/process']
 
 export function Navigation() {
   const [isOpen, setIsOpen] = useState(false)
