@@ -175,10 +175,14 @@ export const CanvasGrid = forwardRef<CanvasGridHandle, CanvasGridProps>(function
   const containerRef = useRef<HTMLDivElement>(null)
   const contentRef = useRef<HTMLDivElement>(null)
   const [mounted, setMounted] = useState(false)
-  const [isDragging, setIsDragging] = useState(false)
-  const [isMouseDown, setIsMouseDown] = useState(false)
+
+  // Momentum drag — pointer events with inertia on release
+  const isDragging = useRef(false)
   const dragStart = useRef({ x: 0, y: 0, scrollX: 0, scrollY: 0 })
-  const DRAG_THRESHOLD = 5 // pixels before drag activates
+  const velocity = useRef({ x: 0, y: 0 })
+  const lastPos = useRef({ x: 0, y: 0 })
+  const inertiaRaf = useRef<number>(0)
+  const [cursorClass, setCursorClass] = useState<'cursor-grab' | 'cursor-grabbing'>('cursor-grab')
 
   // Build clusters
   const clusters = useMemo(
@@ -229,44 +233,68 @@ export const CanvasGrid = forwardRef<CanvasGridHandle, CanvasGridProps>(function
     return rows
   }, [clusters])
 
-  // Mouse drag for panning - only activates after threshold movement
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    // Ignore if clicking on a button/link
-    if ((e.target as HTMLElement).closest('button, a')) return
-    if (!containerRef.current) return
-    
-    setIsMouseDown(true)
+  // Inertia animation on release
+  const startInertia = useCallback(() => {
+    cancelAnimationFrame(inertiaRaf.current)
+
+    function tick() {
+      if (!containerRef.current) return
+      velocity.current.x *= 0.92 // friction
+      velocity.current.y *= 0.92
+
+      if (Math.abs(velocity.current.x) < 0.5 && Math.abs(velocity.current.y) < 0.5) {
+        velocity.current = { x: 0, y: 0 }
+        return
+      }
+
+      containerRef.current.scrollLeft += velocity.current.x
+      containerRef.current.scrollTop += velocity.current.y
+      inertiaRaf.current = requestAnimationFrame(tick)
+    }
+
+    inertiaRaf.current = requestAnimationFrame(tick)
+  }, [])
+
+  const onPointerDown = useCallback((e: React.PointerEvent) => {
+    if (e.button !== 0) return // left button only
+    cancelAnimationFrame(inertiaRaf.current)
+    isDragging.current = true
+    velocity.current = { x: 0, y: 0 }
     dragStart.current = {
       x: e.clientX,
       y: e.clientY,
-      scrollX: containerRef.current.scrollLeft,
-      scrollY: containerRef.current.scrollTop,
+      scrollX: containerRef.current?.scrollLeft ?? 0,
+      scrollY: containerRef.current?.scrollTop ?? 0,
     }
+    lastPos.current = { x: e.clientX, y: e.clientY }
+    ;(e.target as HTMLElement).setPointerCapture(e.pointerId)
+    setCursorClass('cursor-grabbing')
+    e.preventDefault()
   }, [])
 
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (!isMouseDown || !containerRef.current) return
-    
+  const onPointerMove = useCallback((e: React.PointerEvent) => {
+    if (!isDragging.current || !containerRef.current) return
+
     const dx = e.clientX - dragStart.current.x
     const dy = e.clientY - dragStart.current.y
-    
-    // Only start dragging after threshold movement
-    if (!isDragging) {
-      if (Math.abs(dx) > DRAG_THRESHOLD || Math.abs(dy) > DRAG_THRESHOLD) {
-        setIsDragging(true)
-      } else {
-        return // Not dragging yet
-      }
-    }
-    
     containerRef.current.scrollLeft = dragStart.current.scrollX - dx
     containerRef.current.scrollTop = dragStart.current.scrollY - dy
-  }, [isMouseDown, isDragging])
 
-  const handleMouseUp = useCallback(() => {
-    setIsMouseDown(false)
-    setIsDragging(false)
+    // Track velocity for inertia
+    velocity.current = {
+      x: -(e.clientX - lastPos.current.x),
+      y: -(e.clientY - lastPos.current.y),
+    }
+    lastPos.current = { x: e.clientX, y: e.clientY }
   }, [])
+
+  const onPointerUp = useCallback((e: React.PointerEvent) => {
+    if (!isDragging.current) return
+    isDragging.current = false
+    setCursorClass('cursor-grab')
+    ;(e.target as HTMLElement).releasePointerCapture(e.pointerId)
+    startInertia()
+  }, [startInertia])
 
   // Pause global Lenis when canvas is mounted
   useEffect(() => {
@@ -274,6 +302,7 @@ export const CanvasGrid = forwardRef<CanvasGridHandle, CanvasGridProps>(function
     globalLenis?.stop()
     setMounted(true)
     return () => {
+      cancelAnimationFrame(inertiaRaf.current)
       globalLenis?.start()
     }
   }, [])
@@ -335,21 +364,19 @@ export const CanvasGrid = forwardRef<CanvasGridHandle, CanvasGridProps>(function
 
   return (
     <div className="relative w-full h-full bg-cream/30" style={{ overflow: 'hidden' }}>
-      {/* Scroll container — omnidirectional native scroll + drag pan */}
+      {/* Scroll container — pointer-based drag with inertia */}
       <div
         ref={containerRef}
-        className={cn(
-          'absolute inset-0 scrollbar-hide',
-          isDragging && 'cursor-grabbing select-none'
-        )}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
-        onMouseLeave={handleMouseUp}
+        className={cn('absolute inset-0 scrollbar-hide', cursorClass)}
+        onPointerDown={onPointerDown}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerCancel={onPointerUp}
         style={{
-          overflowX: 'auto',
-          overflowY: 'auto',
+          overflow: 'scroll',
           WebkitOverflowScrolling: 'touch',
+          userSelect: 'none',
+          touchAction: 'none', // prevents browser native scroll from fighting drag
         }}
       >
         {/* Content canvas — explicit dimensions enable scrolling */}
