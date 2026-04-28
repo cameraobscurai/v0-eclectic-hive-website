@@ -52,7 +52,9 @@ export function DistortedCard({ children, velocityRef, className }: DistortedCar
 
     rafId.current = requestAnimationFrame(animate)
     return () => cancelAnimationFrame(rafId.current)
-  }, [velocityRef])
+  // velocityRef is a stable ref, doesn't need to be a dependency
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   return (
     <div ref={wrapperRef} className={className}>
