@@ -5,6 +5,7 @@ import Lenis from 'lenis'
 
 export function useHorizontalLenis(
   containerRef: React.RefObject<HTMLElement | null>,
+  contentRef: React.RefObject<HTMLElement | null>,
   enabled: boolean,
 ) {
   const lenisRef  = useRef<Lenis | null>(null)
@@ -24,7 +25,7 @@ export function useHorizontalLenis(
 
     const lenis = new Lenis({
       wrapper:           container,
-      content:           container.firstElementChild as HTMLElement,
+      content:           contentRef.current ?? (container.firstElementChild as HTMLElement),
       orientation:       'horizontal',
       gestureOrientation:'both',    // mouse wheel AND touch both drive horizontal
       smoothWheel:       true,
@@ -32,14 +33,19 @@ export function useHorizontalLenis(
       touchMultiplier:   1.5,
       duration:          1.0,
       easing:            (t) => Math.min(1, 1.001 - Math.pow(2, -10 * t)),
+      autoRaf:           false,     // We manually call lenis.raf() in our own RAF loop
     })
 
     lenisRef.current = lenis
 
+    // Lenis 1.3: velocity is emitted via scroll event, not a direct property
+    lenis.on('scroll', ({ velocity }: { velocity: number }) => {
+      velocityRef.current = velocity
+    })
+
     let rafId: number
     function raf(time: number) {
       lenis.raf(time)
-      velocityRef.current = lenis.velocity
       rafId = requestAnimationFrame(raf)
     }
     rafId = requestAnimationFrame(raf)
@@ -52,7 +58,7 @@ export function useHorizontalLenis(
       // Resume global vertical Lenis when canvas mode exits
       globalLenis?.start()
     }
-  }, [enabled, containerRef])
+  }, [enabled, containerRef, contentRef])
 
   return { lenisRef, velocityRef }
 }

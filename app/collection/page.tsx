@@ -645,8 +645,6 @@ const goToPreviousProduct = useCallback(() => {
           // Use CSS custom property set by the sticky header
           height: 'calc(100dvh - var(--filter-header-height, 200px))',
           overflow: 'hidden',
-          position: 'sticky',
-          top: 'var(--filter-header-height, 200px)',
         } : undefined}
       >
         {isLoading ? (

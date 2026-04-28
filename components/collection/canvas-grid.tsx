@@ -274,8 +274,8 @@ export const CanvasGrid = forwardRef<CanvasGridHandle, CanvasGridProps>(function
   const [canvasHeight, setCanvasHeight] = useState(600)
   const [mounted, setMounted] = useState(false)
 
-  // Horizontal Lenis — scoped to outerRef
-  const { lenisRef, velocityRef } = useHorizontalLenis(outerRef, true)
+  // Horizontal Lenis — scoped to outerRef, content is innerRef
+  const { lenisRef, velocityRef } = useHorizontalLenis(outerRef, innerRef, true)
 
   // Measure available height on mount and resize
   useEffect(() => {
