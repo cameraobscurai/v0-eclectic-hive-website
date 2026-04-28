@@ -6,7 +6,6 @@ import { PageTransitionProvider } from '@/components/page-transition'
 import { InquiryTray } from '@/components/inquiry-tray'
 import { ScrollReset } from '@/components/scroll-reset'
 import { SmoothScrollProvider } from '@/components/smooth-scroll'
-import { WebGLLayer } from '@/components/webgl/webgl-layer'
 import './globals.css'
 
 const inter = Inter({ 
@@ -194,7 +193,6 @@ export default function RootLayout({
         />
       </head>
       <body className="font-sans antialiased overflow-y-auto">
-        <WebGLLayer />
         <SmoothScrollProvider>
           <NuqsAdapter>
             <ScrollReset />
