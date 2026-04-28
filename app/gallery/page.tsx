@@ -8,6 +8,9 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { cn } from '@/lib/utils'
 import { X, ChevronLeft, ChevronRight, ArrowRight } from 'lucide-react'
 import { lockScroll, unlockScroll } from '@/lib/scroll-lock'
+import { useScrollVelocity } from '@/hooks/use-scroll-velocity'
+import { DistortionFilter } from '@/components/gallery/distortion-filter'
+import { DistortedCard } from '@/components/gallery/distorted-card'
 
 // ─────────────────────────────────────────────────────────────
 // Project Data - Add approved galleries here
@@ -139,7 +142,7 @@ function ProjectCard({
     <button
       onClick={onClick}
       className={cn(
-        'group relative flex-shrink-0 w-[85vw] md:w-[60vw] lg:w-[45vw] xl:w-[40vw] snap-center',
+        'group relative w-[85vw] md:w-[60vw] lg:w-[45vw] xl:w-[40vw] snap-center',
         'focus:outline-none focus-visible:ring-2 focus-visible:ring-sand focus-visible:ring-offset-4 focus-visible:ring-offset-charcoal',
         'transition-all duration-500',
         isActive 
@@ -466,6 +469,7 @@ export default function GalleryPage() {
   const [selectedProject, setSelectedProject] = useState<typeof projects[0] | null>(null)
   const [activeIndex, setActiveIndex] = useState(0)
   const scrollRef = useRef<HTMLDivElement>(null)
+  const velocityRef = useScrollVelocity(scrollRef)
   
   // Filter projects by region
   const filteredProjects = activeFilter === 'All' 
@@ -540,7 +544,7 @@ export default function GalleryPage() {
         </div>
       </section>
       
-      {/* ─────────���───────────────────────────────────────────────────
+      {/* ─────────���────────────────────────────���──────────────────────
           Filter Pills - By Region/Location
       ───────────────────────���───────────────────────────────────── */}
       {projects.length > 0 && allRegions.length > 2 && (
@@ -578,6 +582,8 @@ export default function GalleryPage() {
         </section>
       )}
       
+      <DistortionFilter />
+      
       {/* ─────────────────────────────────────────────────────────────
           Horizontal Filmstrip
       ───────────────────────────────────────────────────────────── */}
@@ -594,13 +600,18 @@ export default function GalleryPage() {
               }}
             >
               {filteredProjects.map((project, index) => (
-                <ProjectCard
+                <DistortedCard
                   key={project.id}
-                  project={project}
-                  onClick={() => setSelectedProject(project)}
-                  isActive={index === activeIndex}
-                  isPriority={index === 0}
-                />
+                  velocityRef={velocityRef}
+                  className="flex-shrink-0"
+                >
+                  <ProjectCard
+                    project={project}
+                    onClick={() => setSelectedProject(project)}
+                    isActive={index === activeIndex}
+                    isPriority={index === 0}
+                  />
+                </DistortedCard>
               ))}
               
               {/* End spacer for last card */}

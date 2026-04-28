@@ -5,7 +5,6 @@ import Image from 'next/image'
 import { Navigation } from '@/components/navigation'
 import { TransitionLink } from '@/components/page-transition'
 import { LiquidGlass } from '@/components/liquid-glass'
-import { SceneTest } from '@/components/webgl/scene-test'
 import { cn } from '@/lib/utils'
 
 const DESTINATIONS = [
@@ -26,11 +25,6 @@ export default function HomePage() {
   return (
     <main id="main-content" className="bg-charcoal">
       <Navigation />
-      
-      {/* TEMPORARY: R3F scaffold test - remove after verification */}
-      <div className="fixed top-24 right-4 z-50">
-        <SceneTest />
-      </div>
 
       {/* Single viewport hero */}
       <section className="relative h-[100svh] flex flex-col overflow-hidden">
