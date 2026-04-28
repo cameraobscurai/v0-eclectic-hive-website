@@ -1,6 +1,7 @@
 // Products with sub-category already detected
 export interface ClusteredProduct {
   id: string
+  slug: string
   name: string
   category: string
   sub_category?: string
