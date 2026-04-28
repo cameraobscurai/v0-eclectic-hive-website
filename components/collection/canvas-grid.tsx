@@ -176,7 +176,9 @@ export const CanvasGrid = forwardRef<CanvasGridHandle, CanvasGridProps>(function
   const contentRef = useRef<HTMLDivElement>(null)
   const [mounted, setMounted] = useState(false)
   const [isDragging, setIsDragging] = useState(false)
+  const [isMouseDown, setIsMouseDown] = useState(false)
   const dragStart = useRef({ x: 0, y: 0, scrollX: 0, scrollY: 0 })
+  const DRAG_THRESHOLD = 5 // pixels before drag activates
 
   // Build clusters
   const clusters = useMemo(
@@ -227,10 +229,13 @@ export const CanvasGrid = forwardRef<CanvasGridHandle, CanvasGridProps>(function
     return rows
   }, [clusters])
 
-  // Mouse drag for panning
+  // Mouse drag for panning - only activates after threshold movement
   const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    // Ignore if clicking on a button/link
+    if ((e.target as HTMLElement).closest('button, a')) return
     if (!containerRef.current) return
-    setIsDragging(true)
+    
+    setIsMouseDown(true)
     dragStart.current = {
       x: e.clientX,
       y: e.clientY,
@@ -240,14 +245,26 @@ export const CanvasGrid = forwardRef<CanvasGridHandle, CanvasGridProps>(function
   }, [])
 
   const handleMouseMove = useCallback((e: React.MouseEvent) => {
-    if (!isDragging || !containerRef.current) return
+    if (!isMouseDown || !containerRef.current) return
+    
     const dx = e.clientX - dragStart.current.x
     const dy = e.clientY - dragStart.current.y
+    
+    // Only start dragging after threshold movement
+    if (!isDragging) {
+      if (Math.abs(dx) > DRAG_THRESHOLD || Math.abs(dy) > DRAG_THRESHOLD) {
+        setIsDragging(true)
+      } else {
+        return // Not dragging yet
+      }
+    }
+    
     containerRef.current.scrollLeft = dragStart.current.scrollX - dx
     containerRef.current.scrollTop = dragStart.current.scrollY - dy
-  }, [isDragging])
+  }, [isMouseDown, isDragging])
 
   const handleMouseUp = useCallback(() => {
+    setIsMouseDown(false)
     setIsDragging(false)
   }, [])
 
@@ -318,19 +335,20 @@ export const CanvasGrid = forwardRef<CanvasGridHandle, CanvasGridProps>(function
 
   return (
     <div className="relative w-full h-full bg-cream/30" style={{ overflow: 'hidden' }}>
-      {/* Scroll container — omnidirectional */}
+      {/* Scroll container — omnidirectional native scroll + drag pan */}
       <div
         ref={containerRef}
         className={cn(
           'absolute inset-0 scrollbar-hide',
-          isDragging ? 'cursor-grabbing select-none' : 'cursor-grab'
+          isDragging && 'cursor-grabbing select-none'
         )}
         onMouseDown={handleMouseDown}
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onMouseLeave={handleMouseUp}
         style={{
-          overflow: 'scroll', // Force both scrollbars to be available
+          overflowX: 'auto',
+          overflowY: 'auto',
           WebkitOverflowScrolling: 'touch',
         }}
       >
