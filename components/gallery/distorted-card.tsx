@@ -4,7 +4,7 @@ import { useEffect, useRef } from 'react'
 
 interface DistortedCardProps {
   children: React.ReactNode
-  velocityRef: React.RefObject<number>
+  velocityRef: React.MutableRefObject<number>
   className?: string
 }
 
@@ -28,7 +28,7 @@ export function DistortedCard({ children, velocityRef, className }: DistortedCar
 
     function animate() {
       // Target scale: velocity magnitude → distortion amount
-      const targetScale = Math.abs(velocityRef.current ?? 0) * 22
+      const targetScale = Math.abs(velocityRef.current) * 22
 
       // Lerp toward target: fast to distort (0.25), slow to settle (0.06)
       const lerpSpeed = targetScale > currentScale.current ? 0.25 : 0.06
