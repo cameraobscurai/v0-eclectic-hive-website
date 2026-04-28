@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Image from 'next/image'
 import { Navigation } from '@/components/navigation'
 import { TransitionLink } from '@/components/page-transition'
@@ -16,10 +16,37 @@ const DESTINATIONS = [
 export default function HomePage() {
   const [loaded, setLoaded] = useState(false)
   const [hoveredIndex, setHoveredIndex] = useState<number | null>(null)
+  const [parallaxY, setParallaxY] = useState(0)
+  const rafRef = useRef<number | null>(null)
 
   useEffect(() => {
     const timer = setTimeout(() => setLoaded(true), 100)
     return () => clearTimeout(timer)
+  }, [])
+
+  // Parallax scroll effect
+  useEffect(() => {
+    // Respect reduced motion preference
+    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
+    if (prefersReducedMotion) return
+
+    const handleScroll = () => {
+      if (rafRef.current) return
+      rafRef.current = requestAnimationFrame(() => {
+        // Parallax factor: image moves slower than scroll (0.3 = 30% of scroll speed)
+        const scrollY = window.scrollY
+        const maxScroll = window.innerHeight
+        const clampedScroll = Math.min(scrollY, maxScroll)
+        setParallaxY(clampedScroll * 0.3)
+        rafRef.current = null
+      })
+    }
+
+    window.addEventListener('scroll', handleScroll, { passive: true })
+    return () => {
+      window.removeEventListener('scroll', handleScroll)
+      if (rafRef.current) cancelAnimationFrame(rafRef.current)
+    }
   }, [])
 
   return (
@@ -29,8 +56,14 @@ export default function HomePage() {
       {/* Single viewport hero */}
       <section className="relative h-[100svh] flex flex-col overflow-hidden">
 
-        {/* Background image - balanced to show chairs AND terrain */}
-        <div className="absolute inset-0">
+        {/* Background image with parallax - scaled up to allow movement */}
+        <div 
+          className="absolute inset-0 will-change-transform"
+          style={{ 
+            transform: `translateY(${parallaxY}px) scale(1.15)`,
+            transformOrigin: 'center top'
+          }}
+        >
           <Image
             src="https://hebbkx1anhila5yf.public.blob.vercel-storage.com/D9D9D665-C36F-4654-9687-7303B1A05765-9rOvJvBIwpsvY9Af2AsIgMz4b3gf75.jpeg"
             alt="Desert tablescape with woven chairs against sandstone cliffs"
