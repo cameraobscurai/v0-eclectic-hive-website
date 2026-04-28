@@ -1,10 +1,52 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { TransitionLink } from '@/components/page-transition'
 import { cn } from '@/lib/utils'
+
+// Focus trap hook for mobile menu accessibility
+function useFocusTrap(isActive: boolean) {
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  useEffect(() => {
+    if (!isActive || !containerRef.current) return
+
+    const container = containerRef.current
+    const focusableElements = container.querySelectorAll<HTMLElement>(
+      'a[href], button:not([disabled]), textarea, input, select, [tabindex]:not([tabindex="-1"])'
+    )
+    const firstElement = focusableElements[0]
+    const lastElement = focusableElements[focusableElements.length - 1]
+
+    // Focus first element when menu opens
+    firstElement?.focus()
+
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key !== 'Tab') return
+
+      if (e.shiftKey) {
+        // Shift + Tab: if on first element, go to last
+        if (document.activeElement === firstElement) {
+          e.preventDefault()
+          lastElement?.focus()
+        }
+      } else {
+        // Tab: if on last element, go to first
+        if (document.activeElement === lastElement) {
+          e.preventDefault()
+          firstElement?.focus()
+        }
+      }
+    }
+
+    document.addEventListener('keydown', handleKeyDown)
+    return () => document.removeEventListener('keydown', handleKeyDown)
+  }, [isActive])
+
+  return containerRef
+}
 
 const NAV_LINKS = [
   { href: '/atelier', label: 'Atelier by The Hive' },
@@ -23,6 +65,8 @@ export function Navigation() {
   const [hidden, setHidden] = useState(false)
   const [progress, setProgress] = useState(0)
   const pathname = usePathname()
+  const menuRef = useFocusTrap(isOpen)
+  const burgerRef = useRef<HTMLButtonElement>(null)
   
   // Determine if current page has light background (needs dark nav)
   const isLightPage = LIGHT_BG_PAGES.includes(pathname)
@@ -82,6 +126,19 @@ export function Navigation() {
     return () => {
       document.body.style.removeProperty('overflow')
     }
+  }, [isOpen])
+
+  // Close menu on Escape key and restore focus to burger
+  useEffect(() => {
+    if (!isOpen) return
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsOpen(false)
+        burgerRef.current?.focus()
+      }
+    }
+    document.addEventListener('keydown', handleEscape)
+    return () => document.removeEventListener('keydown', handleEscape)
   }, [isOpen])
 
   return (
@@ -149,6 +206,7 @@ export function Navigation() {
 
           {/* Mobile burger - 44px minimum touch target */}
           <button
+            ref={burgerRef}
             onClick={() => setIsOpen((o) => !o)}
             className="lg:hidden flex flex-col justify-center items-center w-11 h-11 min-w-[44px] min-h-[44px] -mr-2 touch-manipulation"
             aria-label={isOpen ? 'Close menu' : 'Open menu'}
@@ -186,7 +244,11 @@ export function Navigation() {
 
       {/* ── Mobile menu overlay ── */}
       <div
+        ref={menuRef}
         id="mobile-menu"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Navigation menu"
         className={cn(
           'fixed inset-0 z-40 bg-charcoal transition-all duration-700 ease-out',
           isOpen
