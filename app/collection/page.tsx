@@ -639,12 +639,13 @@ const goToPreviousProduct = useCallback(() => {
 
       {/* ── Product Grid / Canvas ─────────────────────────────────────────── */}
       <section
-        className="flex-1 bg-white"
+        className={cn(
+          'flex-1 bg-white',
+          viewMode === 'canvas' && 'sticky top-[var(--filter-header-height,200px)]'
+        )}
         style={viewMode === 'canvas' ? {
-          // Canvas mode: fill remaining viewport height
-          // Use CSS custom property set by the sticky header
+          // Canvas mode: fill remaining viewport below sticky header
           height: 'calc(100dvh - var(--filter-header-height, 200px))',
-          overflow: 'hidden',
         } : undefined}
       >
         {isLoading ? (

@@ -2,60 +2,25 @@
 
 import {
   useEffect, useRef, useState,
-  useImperativeHandle, forwardRef, useMemo,
+  useImperativeHandle, forwardRef, useMemo, useCallback,
 } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
-import { useHorizontalLenis } from '@/hooks/use-horizontal-lenis'
-import { buildClusters, getTotalCanvasWidth, getRowCount, CANVAS_CONSTANTS } from '@/lib/cluster-layout'
+import { buildClusters, CANVAS_CONSTANTS } from '@/lib/cluster-layout'
 import type { ClusteredProduct, Cluster } from '@/lib/cluster-layout'
 
 const { CARD_SIZE, CARD_GAP, LABEL_GUTTER } = CANVAS_CONSTANTS
 
-// ─── SVG Distortion Filter ────────────────────────────────────────────────────
-// Separate ID from gallery to avoid conflicts
-
-let canvasFilterInjected = false
-
-function CanvasDistortionFilter() {
-  useEffect(() => {
-    if (canvasFilterInjected || typeof document === 'undefined') return
-    canvasFilterInjected = true
-
-    const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg')
-    svg.style.cssText = 'position:absolute;width:0;height:0;overflow:hidden;pointer-events:none'
-    svg.setAttribute('aria-hidden', 'true')
-    svg.innerHTML = `
-      <defs>
-        <filter id="canvas-distort" x="-5%" y="-5%" width="110%" height="110%"
-                color-interpolation-filters="sRGBLinear">
-          <feTurbulence
-            id="canvas-turbulence"
-            type="fractalNoise"
-            baseFrequency="0.012 0.028"
-            numOctaves="2"
-            seed="3"
-            result="noise"
-          />
-          <feDisplacementMap
-            id="canvas-displacement"
-            in="SourceGraphic"
-            in2="noise"
-            scale="0"
-            xChannelSelector="R"
-            yChannelSelector="G"
-          />
-        </filter>
-      </defs>
-    `
-    document.body.appendChild(svg)
-  }, [])
-  return null
+// 2D Canvas layout constants
+const CANVAS_2D = {
+  CLUSTER_H_GAP: 60,    // Horizontal gap between clusters
+  CLUSTER_V_GAP: 80,    // Vertical gap between cluster rows
+  CANVAS_PAD: 48,       // Padding around the entire canvas
+  COLS_PER_ROW: 3,      // Number of clusters per row in 2D layout
 }
 
 // ─── Canvas Card ──────────────────────────────────────────────────────────────
-// Self-contained card for canvas mode. Same visual as ProductCard but
-// fixed size and aware of the shared distortion filter.
+// Crisp, sharp rendering — no blur effects
 
 interface CanvasCardProps {
   product: ClusteredProduct
@@ -66,28 +31,26 @@ interface CanvasCardProps {
 }
 
 function CanvasCard({ product, imageUrl, onClick, index, onImageError }: CanvasCardProps) {
-  const [loaded, setLoaded]   = useState(false)
-  const [error, setError]     = useState(false)
+  const [loaded, setLoaded] = useState(false)
+  const [error, setError] = useState(false)
   const [isHovered, setIsHovered] = useState(false)
 
   if (error) return null
 
   return (
-    <div
-      style={{ width: CARD_SIZE, height: CARD_SIZE, flexShrink: 0 }}
-    >
+    <div style={{ width: CARD_SIZE, height: CARD_SIZE, flexShrink: 0 }}>
       <button
         onClick={onClick}
         onMouseEnter={() => setIsHovered(true)}
         onMouseLeave={() => setIsHovered(false)}
-        className="group relative w-full h-full cursor-pointer text-left focus:outline-none focus:ring-2 focus:ring-inset focus:ring-charcoal/20 bg-white"
+        className="group relative w-full h-full cursor-pointer text-left focus:outline-none focus:ring-2 focus:ring-inset focus:ring-charcoal/20 bg-white border border-charcoal/[0.04] transition-shadow duration-200 hover:shadow-lg hover:shadow-charcoal/5"
         style={{ display: 'block' }}
       >
-        {/* Image */}
+        {/* Image — crisp rendering */}
         <div className="absolute inset-0 p-4 lg:p-6">
           {!loaded && (
-            <div className="absolute inset-4 lg:inset-6 bg-white">
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-neutral-100/60 to-transparent -translate-x-full animate-[shimmer_1.5s_infinite]" />
+            <div className="absolute inset-4 lg:inset-6 bg-neutral-50/50">
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/60 to-transparent -translate-x-full animate-[shimmer_1.5s_infinite]" />
             </div>
           )}
           <img
@@ -97,27 +60,28 @@ function CanvasCard({ product, imageUrl, onClick, index, onImageError }: CanvasC
               'w-full h-full object-contain transition-opacity duration-300',
               loaded ? 'opacity-100' : 'opacity-0',
             )}
-            loading={index < 6 ? 'eager' : 'lazy'}
-            decoding={index < 3 ? 'sync' : 'async'}
-            fetchPriority={index < 3 ? 'high' : 'auto'}
+            loading={index < 12 ? 'eager' : 'lazy'}
+            decoding={index < 6 ? 'sync' : 'async'}
+            fetchPriority={index < 6 ? 'high' : 'auto'}
             onLoad={() => setLoaded(true)}
             onError={() => { setError(true); onImageError(product.id, imageUrl) }}
+            style={{ imageRendering: 'auto' }} // Crisp rendering
           />
         </div>
 
-        {/* Clip-path hover reveal — identical to grid mode */}
+        {/* Hover reveal */}
         <div
           className="absolute inset-x-0 bottom-0 pointer-events-none overflow-hidden"
           style={{
-            clipPath:  isHovered ? 'inset(0% 0% 0% 0%)' : 'inset(100% 0% 0% 0%)',
+            clipPath: isHovered ? 'inset(0% 0% 0% 0%)' : 'inset(100% 0% 0% 0%)',
             transition: 'clip-path 0.28s cubic-bezier(0.16, 1, 0.3, 1)',
           }}
         >
-          <div className="bg-white/96 backdrop-blur-sm px-4 py-4 border-t border-charcoal/6">
+          <div className="bg-white/98 px-4 py-3 border-t border-charcoal/6">
             <p className="text-[11px] tracking-[0.08em] text-charcoal uppercase font-medium truncate">
               {product.name}
             </p>
-            <p className="text-[9px] tracking-[0.1em] text-charcoal/40 uppercase mt-1">
+            <p className="text-[9px] tracking-[0.1em] text-charcoal/40 uppercase mt-0.5">
               Quick View
             </p>
           </div>
@@ -131,71 +95,46 @@ function CanvasCard({ product, imageUrl, onClick, index, onImageError }: CanvasC
 
 interface ClusterBlockProps {
   cluster: Cluster
-  rows: number
   getImageUrl: (p: ClusteredProduct) => string
   onCardClick: (p: ClusteredProduct) => void
   onImageError: (id: string, url: string) => void
-  isHighlighted: boolean  // true when this sub-category is "active"
+  isHighlighted: boolean
+  maxRows?: number
 }
 
 function ClusterBlock({
-  cluster, rows, getImageUrl, onCardClick,
-  onImageError, isHighlighted,
+  cluster, getImageUrl, onCardClick,
+  onImageError, isHighlighted, maxRows = 2,
 }: ClusterBlockProps) {
-  const cols = Math.ceil(cluster.products.length / rows)
+  const cols = Math.ceil(cluster.products.length / maxRows)
 
   return (
     <div
+      className="relative"
       style={{
-        display:       'flex',
-        flexDirection: 'row',
-        flexShrink:    0,
-        position:      'relative',
-        // Dim non-highlighted clusters when a sub-category is active
-        opacity:       isHighlighted ? 1 : 0.35,
-        transition:    'opacity 0.4s ease',
+        opacity: isHighlighted ? 1 : 0.3,
+        transition: 'opacity 0.35s ease',
       }}
       data-cluster={cluster.subCategory}
     >
-      {/* Vertical label */}
-      <div
-        style={{
-          width:           LABEL_GUTTER,
-          flexShrink:      0,
-          display:         'flex',
-          alignItems:      'flex-end',
-          paddingBottom:   12,
-          paddingRight:    16,
-        }}
-      >
-        <span
-          style={{
-            writingMode:   'vertical-rl',
-            transform:     'rotate(180deg)',
-            fontSize:       10,
-            letterSpacing: '0.2em',
-            textTransform: 'uppercase',
-            color:         isHighlighted ? 'rgba(26,26,26,0.6)' : 'rgba(26,26,26,0.2)',
-            transition:    'color 0.4s ease',
-            whiteSpace:    'nowrap',
-            userSelect:    'none',
-          }}
-        >
+      {/* Sub-category label */}
+      <div className="mb-3 flex items-baseline gap-3">
+        <span className="text-[10px] uppercase tracking-[0.2em] text-charcoal/50 font-medium">
           {cluster.subCategory === 'Other' ? cluster.products[0]?.category : cluster.subCategory}
-          <span style={{ opacity: 0.5, marginLeft: 8 }}>
-            {cluster.products.length}
-          </span>
+        </span>
+        <span className="text-[9px] text-charcoal/25">
+          {cluster.products.length} {cluster.products.length === 1 ? 'piece' : 'pieces'}
         </span>
       </div>
 
-      {/* Card grid — column-major order (fills top→bottom, left→right) */}
+      {/* Card grid — column-major for spatial room feel */}
       <div
         style={{
-          display:             'grid',
-          gridTemplateRows:    `repeat(${rows}, ${CARD_SIZE}px)`,
+          display: 'grid',
+          gridTemplateRows: `repeat(${maxRows}, ${CARD_SIZE}px)`,
           gridTemplateColumns: `repeat(${cols}, ${CARD_SIZE}px)`,
-          gridAutoFlow:        'column',
-          gap:                  CARD_GAP,
+          gridAutoFlow: 'column',
+          gap: CARD_GAP,
         }}
       >
         {cluster.products.map((product, i) => (
@@ -213,7 +152,7 @@ function ClusterBlock({
   )
 }
 
-// ─── Canvas Grid ──────────────────────────────────────────────────────────────
+// ─── Canvas Grid (Omnidirectional) ────────────────────────────────────────────
 
 export interface CanvasGridHandle {
   scrollToCluster: (subCategory: string) => void
@@ -222,8 +161,8 @@ export interface CanvasGridHandle {
 
 interface CanvasGridProps {
   products: ClusteredProduct[]
-  activeSubCategory: string   // 'All' or a sub-category name
-  sortOrder: string[]         // SUB_CATEGORY_SORT_ORDER[activeCategory] or []
+  activeSubCategory: string
+  sortOrder: string[]
   getImageUrl: (p: ClusteredProduct) => string
   onCardClick: (p: ClusteredProduct) => void
   onImageError: (id: string, url: string) => void
@@ -233,151 +172,172 @@ export const CanvasGrid = forwardRef<CanvasGridHandle, CanvasGridProps>(function
   { products, activeSubCategory, sortOrder, getImageUrl, onCardClick, onImageError },
   ref,
 ) {
-  const outerRef   = useRef<HTMLDivElement>(null)  // scroll container
-  const innerRef   = useRef<HTMLDivElement>(null)  // scrollable content
-  const [canvasHeight, setCanvasHeight] = useState(600)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const contentRef = useRef<HTMLDivElement>(null)
   const [mounted, setMounted] = useState(false)
+  const [isDragging, setIsDragging] = useState(false)
+  const dragStart = useRef({ x: 0, y: 0, scrollX: 0, scrollY: 0 })
 
-  // Horizontal Lenis — scoped to outerRef, content is innerRef
-  const { lenisRef, velocityRef } = useHorizontalLenis(outerRef, innerRef, true)
-
-  // Single distortion controller — one RAF loop owns the SVG filter scale
-  useEffect(() => {
-    const prefersReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches
-    if (prefersReducedMotion) return
-
-    let currentScale = 0
-    let rafId: number
-
-    function animate() {
-      const targetScale = Math.abs(velocityRef.current) * 14
-      const lerpSpeed = targetScale > currentScale ? 0.2 : 0.05
-      currentScale += (targetScale - currentScale) * lerpSpeed
-
-      const disp = document.getElementById('canvas-displacement')
-      if (disp) {
-        if (currentScale > 0.15) {
-          disp.setAttribute('scale', currentScale.toFixed(2))
-        } else {
-          disp.setAttribute('scale', '0')
-          currentScale = 0
-        }
-      }
-
-      rafId = requestAnimationFrame(animate)
-    }
-
-    rafId = requestAnimationFrame(animate)
-    return () => {
-      cancelAnimationFrame(rafId)
-      // Reset filter on unmount
-      const disp = document.getElementById('canvas-displacement')
-      if (disp) disp.setAttribute('scale', '0')
-    }
-  }, [velocityRef])
-
-  // Measure available height on mount and resize
-  useEffect(() => {
-    function measure() {
-      if (!outerRef.current) return
-      const rect = outerRef.current.getBoundingClientRect()
-      setCanvasHeight(rect.height)
-    }
-    measure()
-    setMounted(true)
-    const ro = new ResizeObserver(measure)
-    if (outerRef.current) ro.observe(outerRef.current)
-    return () => ro.disconnect()
-  }, [])
-
-  const rows = useMemo(() => getRowCount(canvasHeight), [canvasHeight])
-
+  // Build clusters
   const clusters = useMemo(
-    () => buildClusters(products, sortOrder, canvasHeight),
-    [products, sortOrder, canvasHeight],
+    () => buildClusters(products, sortOrder, 600), // Fixed height for consistent layout
+    [products, sortOrder],
   )
 
-  const totalWidth = useMemo(() => getTotalCanvasWidth(clusters), [clusters])
+  // Calculate canvas dimensions for 2D layout
+  const canvasDimensions = useMemo(() => {
+    if (clusters.length === 0) return { width: 0, height: 0 }
 
-  // Imperative handle — exposes scrollToCluster and resetScroll
+    // Arrange clusters in rows
+    const rows: Cluster[][] = []
+    for (let i = 0; i < clusters.length; i += CANVAS_2D.COLS_PER_ROW) {
+      rows.push(clusters.slice(i, i + CANVAS_2D.COLS_PER_ROW))
+    }
+
+    // Calculate max width needed
+    let maxRowWidth = 0
+    rows.forEach(row => {
+      const rowWidth = row.reduce((sum, cluster) => {
+        const cols = Math.ceil(cluster.products.length / 2)
+        return sum + (cols * CARD_SIZE) + ((cols - 1) * CARD_GAP) + CANVAS_2D.CLUSTER_H_GAP
+      }, 0)
+      maxRowWidth = Math.max(maxRowWidth, rowWidth)
+    })
+
+    // Calculate total height
+    const rowHeight = (2 * CARD_SIZE) + CARD_GAP + 32 // 32 for label
+    const totalHeight = (rows.length * rowHeight) + ((rows.length - 1) * CANVAS_2D.CLUSTER_V_GAP)
+
+    return {
+      width: maxRowWidth + (CANVAS_2D.CANVAS_PAD * 2),
+      height: totalHeight + (CANVAS_2D.CANVAS_PAD * 2),
+    }
+  }, [clusters])
+
+  // Arrange clusters into a 2D grid
+  const clusterRows = useMemo(() => {
+    const rows: Cluster[][] = []
+    for (let i = 0; i < clusters.length; i += CANVAS_2D.COLS_PER_ROW) {
+      rows.push(clusters.slice(i, i + CANVAS_2D.COLS_PER_ROW))
+    }
+    return rows
+  }, [clusters])
+
+  // Mouse drag for panning
+  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+    if (!containerRef.current) return
+    setIsDragging(true)
+    dragStart.current = {
+      x: e.clientX,
+      y: e.clientY,
+      scrollX: containerRef.current.scrollLeft,
+      scrollY: containerRef.current.scrollTop,
+    }
+  }, [])
+
+  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+    if (!isDragging || !containerRef.current) return
+    const dx = e.clientX - dragStart.current.x
+    const dy = e.clientY - dragStart.current.y
+    containerRef.current.scrollLeft = dragStart.current.scrollX - dx
+    containerRef.current.scrollTop = dragStart.current.scrollY - dy
+  }, [isDragging])
+
+  const handleMouseUp = useCallback(() => {
+    setIsDragging(false)
+  }, [])
+
+  // Pause global Lenis when canvas is mounted
+  useEffect(() => {
+    const globalLenis = (window as unknown as { lenis?: { stop: () => void; start: () => void } }).lenis
+    globalLenis?.stop()
+    setMounted(true)
+    return () => {
+      globalLenis?.start()
+    }
+  }, [])
+
+  // Imperative handle
   useImperativeHandle(ref, () => ({
     scrollToCluster(subCategory: string) {
-      const cluster = clusters.find(c => c.subCategory === subCategory)
-      if (!cluster || !outerRef.current) return
-
-      // Use Lenis for smooth animated scroll if available
-      if (lenisRef.current) {
-        lenisRef.current.scrollTo(cluster.xOffset, { duration: 0.9 })
-      } else {
-        outerRef.current.scrollTo({ left: cluster.xOffset, behavior: 'smooth' })
-      }
+      const el = contentRef.current?.querySelector(`[data-cluster="${subCategory}"]`) as HTMLElement
+      if (!el || !containerRef.current) return
+      
+      const containerRect = containerRef.current.getBoundingClientRect()
+      const elRect = el.getBoundingClientRect()
+      const scrollLeft = containerRef.current.scrollLeft + elRect.left - containerRect.left - CANVAS_2D.CANVAS_PAD
+      const scrollTop = containerRef.current.scrollTop + elRect.top - containerRect.top - CANVAS_2D.CANVAS_PAD
+      
+      containerRef.current.scrollTo({
+        left: Math.max(0, scrollLeft),
+        top: Math.max(0, scrollTop),
+        behavior: 'smooth',
+      })
     },
     resetScroll() {
-      if (lenisRef.current) {
-        lenisRef.current.scrollTo(0, { duration: 0.7 })
-      } else {
-        outerRef.current?.scrollTo({ left: 0, behavior: 'smooth' })
-      }
+      containerRef.current?.scrollTo({ left: 0, top: 0, behavior: 'smooth' })
     },
-  }), [clusters, lenisRef])
+  }), [])
 
-  // Keyboard navigation — left/right arrows scroll the canvas
+  // Keyboard navigation
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
-      // Don't intercept if focus is in an input or the quick-view modal is open
       if ((e.target as HTMLElement).tagName === 'INPUT') return
       if (document.querySelector('[role="dialog"]')) return
+      if (!containerRef.current) return
 
-      const amount = 300
-      if (e.key === 'ArrowRight') {
-        lenisRef.current?.scrollTo(
-          (outerRef.current?.scrollLeft ?? 0) + amount,
-          { duration: 0.6 }
-        )
-      }
-      if (e.key === 'ArrowLeft') {
-        lenisRef.current?.scrollTo(
-          (outerRef.current?.scrollLeft ?? 0) - amount,
-          { duration: 0.6 }
-        )
+      const amount = 200
+      const current = containerRef.current
+
+      switch (e.key) {
+        case 'ArrowRight':
+          current.scrollBy({ left: amount, behavior: 'smooth' })
+          e.preventDefault()
+          break
+        case 'ArrowLeft':
+          current.scrollBy({ left: -amount, behavior: 'smooth' })
+          e.preventDefault()
+          break
+        case 'ArrowDown':
+          current.scrollBy({ top: amount, behavior: 'smooth' })
+          e.preventDefault()
+          break
+        case 'ArrowUp':
+          current.scrollBy({ top: -amount, behavior: 'smooth' })
+          e.preventDefault()
+          break
       }
     }
     window.addEventListener('keydown', handleKeyDown)
     return () => window.removeEventListener('keydown', handleKeyDown)
-  }, [lenisRef])
+  }, [])
 
   return (
-    <div
-      style={{ position: 'relative', width: '100%', height: '100%', overflow: 'hidden' }}
-    >
-      <CanvasDistortionFilter />
-
-      {/* Scroll container */}
+    <div className="relative w-full h-full overflow-hidden bg-cream/30">
+      {/* Scroll container — omnidirectional */}
       <div
-        ref={outerRef}
+        ref={containerRef}
+        className={cn(
+          'w-full h-full overflow-auto scrollbar-hide',
+          isDragging ? 'cursor-grabbing select-none' : 'cursor-grab'
+        )}
+        onMouseDown={handleMouseDown}
+        onMouseMove={handleMouseMove}
+        onMouseUp={handleMouseUp}
+        onMouseLeave={handleMouseUp}
         style={{
-          width:    '100%',
-          height:   '100%',
-          overflowX: 'auto',
-          overflowY: 'hidden',
-          // Hide native scrollbar — Lenis provides momentum, no bar needed
-          scrollbarWidth: 'none',
+          scrollBehavior: 'auto',
+          // Smooth scroll for touch devices
+          WebkitOverflowScrolling: 'touch',
         }}
-        className="scrollbar-hide"
       >
-        {/* Inner content — sized to total canvas width */}
+        {/* Content canvas */}
         <div
-          ref={innerRef}
+          ref={contentRef}
           style={{
-            display:        'flex',
-            flexDirection:  'row',
-            alignItems:     'flex-start',
-            width:           totalWidth,
-            height:         '100%',
-            paddingTop:     20,
-            gap:            CANVAS_CONSTANTS.CLUSTER_GAP,
-            paddingLeft:    CANVAS_CONSTANTS.CANVAS_PAD,
-            paddingRight:   CANVAS_CONSTANTS.CANVAS_PAD,
+            width: canvasDimensions.width,
+            minHeight: canvasDimensions.height,
+            padding: CANVAS_2D.CANVAS_PAD,
           }}
         >
           <AnimatePresence mode="wait">
@@ -386,95 +346,143 @@ export const CanvasGrid = forwardRef<CanvasGridHandle, CanvasGridProps>(function
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              transition={{ duration: 0.25 }}
-              style={{
-                display: 'flex',
-                flexDirection: 'row',
-                gap: CANVAS_CONSTANTS.CLUSTER_GAP,
-                filter: 'url(#canvas-distort)',
-              }}
+              transition={{ duration: 0.2 }}
+              className="flex flex-col"
+              style={{ gap: CANVAS_2D.CLUSTER_V_GAP }}
             >
-              {clusters.map(cluster => (
-                <ClusterBlock
-                  key={cluster.subCategory}
-                  cluster={cluster}
-                  rows={rows}
-                  getImageUrl={getImageUrl}
-                  onCardClick={onCardClick}
-                  onImageError={onImageError}
-                  isHighlighted={
-                    activeSubCategory === 'All' ||
-                    activeSubCategory === cluster.subCategory
-                  }
-                />
+              {clusterRows.map((row, rowIndex) => (
+                <div
+                  key={rowIndex}
+                  className="flex flex-row items-start"
+                  style={{ gap: CANVAS_2D.CLUSTER_H_GAP }}
+                >
+                  {row.map(cluster => (
+                    <ClusterBlock
+                      key={cluster.subCategory}
+                      cluster={cluster}
+                      getImageUrl={getImageUrl}
+                      onCardClick={onCardClick}
+                      onImageError={onImageError}
+                      isHighlighted={
+                        activeSubCategory === 'All' ||
+                        activeSubCategory === cluster.subCategory
+                      }
+                      maxRows={2}
+                    />
+                  ))}
+                </div>
               ))}
             </motion.div>
           </AnimatePresence>
         </div>
       </div>
 
-      {/* Scroll position indicator — thin progress bar at bottom */}
-      <ScrollProgress containerRef={outerRef} totalWidth={totalWidth} />
-
-      {/* Edge fade gradients — hint that content continues */}
+      {/* Subtle corner gradients for depth */}
       <div
-        className="absolute left-0 top-0 bottom-0 w-12 pointer-events-none"
+        className="absolute top-0 left-0 w-24 h-24 pointer-events-none"
         style={{
-          background: 'linear-gradient(to right, rgba(255,255,255,0.9), transparent)',
+          background: 'radial-gradient(ellipse at top left, rgba(255,255,255,0.8), transparent 70%)',
         }}
       />
       <div
-        className="absolute right-0 top-0 bottom-0 w-16 pointer-events-none"
+        className="absolute bottom-0 right-0 w-32 h-32 pointer-events-none"
         style={{
-          background: 'linear-gradient(to left, rgba(255,255,255,0.95), transparent)',
+          background: 'radial-gradient(ellipse at bottom right, rgba(255,255,255,0.9), transparent 70%)',
         }}
       />
 
-      {/* Keyboard hint — shown briefly on first canvas visit */}
+      {/* Navigation hint */}
       {mounted && (
-        <div className="absolute bottom-4 right-20 pointer-events-none">
-          <p className="text-[9px] uppercase tracking-[0.18em] text-charcoal/25">
-            ← → to navigate
+        <motion.div
+          className="absolute bottom-4 right-4 pointer-events-none"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.5, duration: 0.3 }}
+        >
+          <p className="text-[9px] uppercase tracking-[0.18em] text-charcoal/30">
+            Drag or use arrow keys to explore
           </p>
-        </div>
+        </motion.div>
       )}
+
+      {/* Mini-map indicator */}
+      <MiniMap
+        containerRef={containerRef}
+        canvasWidth={canvasDimensions.width}
+        canvasHeight={canvasDimensions.height}
+      />
     </div>
   )
 })
 
-// ─── Scroll Progress Indicator ────────────────────────────────────────────────
+// ─── Mini-map for spatial orientation ─────────────────────────────────────────
 
-function ScrollProgress({
+function MiniMap({
   containerRef,
-  totalWidth,
+  canvasWidth,
+  canvasHeight,
 }: {
   containerRef: React.RefObject<HTMLElement | null>
-  totalWidth: number
+  canvasWidth: number
+  canvasHeight: number
 }) {
-  const barRef = useRef<HTMLDivElement>(null)
+  const viewportRef = useRef<HTMLDivElement>(null)
+  const [visible, setVisible] = useState(false)
 
   useEffect(() => {
     const container = containerRef.current
-    if (!container || !barRef.current) return
+    if (!container || !viewportRef.current) return
+
+    let hideTimeout: NodeJS.Timeout
 
     function update() {
-      if (!container || !barRef.current) return
-      const scrollLeft   = container.scrollLeft
-      const maxScroll    = container.scrollWidth - container.clientWidth
-      const progress     = maxScroll > 0 ? scrollLeft / maxScroll : 0
-      barRef.current.style.transform = `scaleX(${progress})`
+      if (!container || !viewportRef.current) return
+
+      // Show mini-map briefly on scroll
+      setVisible(true)
+      clearTimeout(hideTimeout)
+      hideTimeout = setTimeout(() => setVisible(false), 1500)
+
+      const scrollLeft = container.scrollLeft
+      const scrollTop = container.scrollTop
+      const viewWidth = container.clientWidth
+      const viewHeight = container.clientHeight
+
+      // Calculate viewport position as percentage
+      const xPercent = canvasWidth > viewWidth ? (scrollLeft / (canvasWidth - viewWidth)) * 100 : 0
+      const yPercent = canvasHeight > viewHeight ? (scrollTop / (canvasHeight - viewHeight)) * 100 : 0
+
+      // Calculate viewport size as percentage
+      const wPercent = Math.min(100, (viewWidth / canvasWidth) * 100)
+      const hPercent = Math.min(100, (viewHeight / canvasHeight) * 100)
+
+      viewportRef.current.style.left = `${xPercent * (1 - wPercent / 100)}%`
+      viewportRef.current.style.top = `${yPercent * (1 - hPercent / 100)}%`
+      viewportRef.current.style.width = `${wPercent}%`
+      viewportRef.current.style.height = `${hPercent}%`
     }
 
+    update()
     container.addEventListener('scroll', update, { passive: true })
-    return () => container.removeEventListener('scroll', update)
-  }, [containerRef])
+    return () => {
+      container.removeEventListener('scroll', update)
+      clearTimeout(hideTimeout)
+    }
+  }, [containerRef, canvasWidth, canvasHeight])
+
+  if (canvasWidth === 0 || canvasHeight === 0) return null
 
   return (
-    <div className="absolute bottom-0 left-0 right-0 h-px bg-charcoal/5">
+    <div
+      className={cn(
+        'absolute bottom-4 left-4 w-16 h-12 bg-white/80 border border-charcoal/10 rounded transition-opacity duration-300',
+        visible ? 'opacity-100' : 'opacity-0'
+      )}
+    >
       <div
-        ref={barRef}
-        className="h-full bg-charcoal/20 origin-left"
-        style={{ transform: 'scaleX(0)', transition: 'transform 0.1s linear' }}
+        ref={viewportRef}
+        className="absolute bg-charcoal/20 rounded-sm transition-all duration-100"
+        style={{ minWidth: 4, minHeight: 4 }}
       />
     </div>
   )
