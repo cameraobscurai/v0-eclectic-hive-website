@@ -279,13 +279,9 @@ export function QuickViewModal({
 
             {/* Content - image left, details right */}
             <div className="grid grid-cols-1 md:grid-cols-[1.2fr_1fr] relative z-10">
-              {/* Image - subtle inner shadow for depth */}
+              {/* Image - white background for product visibility */}
               <div 
-                className="aspect-square md:aspect-auto md:min-h-[350px] relative mx-4 mb-4 md:mb-0 md:mx-0 md:ml-4 rounded-xl overflow-hidden"
-                style={{
-                  background: 'rgba(255, 255, 255, 0.6)',
-                  boxShadow: 'inset 0 2px 8px rgba(0, 0, 0, 0.04)',
-                }}
+                className="aspect-square md:aspect-auto md:min-h-[350px] relative mx-4 mb-4 md:mb-0 md:mx-0 md:ml-4 rounded-xl overflow-hidden bg-white"
               >
                 {!imageLoaded && (
                   <div className="absolute inset-0 bg-white/50 animate-pulse" />

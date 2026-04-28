@@ -161,8 +161,8 @@ const ProductCard = ({
     >
       <div className="aspect-square bg-white p-4 lg:p-6 relative overflow-hidden">
         {!loaded && (
-          <div className="absolute inset-4 lg:inset-6 bg-gradient-to-br from-neutral-50 to-neutral-100">
-            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/40 to-transparent -translate-x-full animate-[shimmer_1.5s_infinite]" />
+          <div className="absolute inset-4 lg:inset-6 bg-white">
+            <div className="absolute inset-0 bg-gradient-to-r from-transparent via-neutral-100/60 to-transparent -translate-x-full animate-[shimmer_1.5s_infinite]" />
           </div>
         )}
         <img
@@ -566,8 +566,8 @@ export default function CollectionPage() {
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
             {Array.from({ length: 24 }).map((_, i) => (
               <div key={i} className="border-r border-b border-charcoal/5 relative overflow-hidden">
-                <div className="aspect-square bg-neutral-50">
-                  <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-white/40 to-transparent" />
+                <div className="aspect-square bg-white">
+                  <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-neutral-100/60 to-transparent" />
                 </div>
               </div>
             ))}
