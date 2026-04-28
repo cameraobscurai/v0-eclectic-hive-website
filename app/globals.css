@@ -169,9 +169,8 @@
   text-transform: uppercase;
   }
   
-  /* Smooth scrolling + prevent layout shift from scrollbar */
+  /* Prevent layout shift from scrollbar - Lenis handles smooth scrolling */
   html {
-    scroll-behavior: smooth;
     scrollbar-gutter: stable;
   }
   

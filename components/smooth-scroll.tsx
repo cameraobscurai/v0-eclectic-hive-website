@@ -33,12 +33,13 @@ export function SmoothScrollProvider({ children }: { children: React.ReactNode }
 
     lenisRef.current = lenis
 
-    // Animation loop
+    // Animation loop with proper cleanup
+    let rafId: number
     function raf(time: number) {
       lenis.raf(time)
-      requestAnimationFrame(raf)
+      rafId = requestAnimationFrame(raf)
     }
-    requestAnimationFrame(raf)
+    rafId = requestAnimationFrame(raf)
 
     // Handle anchor links
     const handleAnchorClick = (e: MouseEvent) => {
@@ -66,6 +67,7 @@ export function SmoothScrollProvider({ children }: { children: React.ReactNode }
     window.lenis = lenis
 
     return () => {
+      cancelAnimationFrame(rafId)
       document.removeEventListener('click', handleAnchorClick)
       lenis.destroy()
       lenisRef.current = null
