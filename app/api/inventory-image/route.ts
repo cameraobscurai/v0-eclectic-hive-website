@@ -1,26 +1,11 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { get } from '@vercel/blob'
-import { readFileSync } from 'fs'
-import { join } from 'path'
 
 // Note: Using Node.js runtime as @vercel/blob's get() may have edge runtime issues
 // Images are still served fast via CDN caching headers
 
 // Allowed path prefixes - whitelist approach
 const ALLOWED_PREFIXES = ['inventory/', 'fonts/']
-
-// Read placeholder once at module level — not on every request
-let placeholderBuffer: Buffer | null = null
-function getPlaceholder(): Buffer {
-  if (!placeholderBuffer) {
-    try {
-      placeholderBuffer = readFileSync(join(process.cwd(), 'public/placeholder-product.jpg'))
-    } catch {
-      placeholderBuffer = Buffer.alloc(0)
-    }
-  }
-  return placeholderBuffer
-}
 
 export async function GET(request: NextRequest) {
   try {
@@ -51,13 +36,11 @@ export async function GET(request: NextRequest) {
     })
 
     if (!result) {
-      // Return the placeholder image instead of a 404 text response
-      // This means the browser gets a valid image even if the blob is missing
-      const placeholder = getPlaceholder()
-      return new NextResponse(placeholder, {
-        status: 200,
+      // Redirect to public placeholder instead of 404
+      // This avoids fs reads and lets the browser cache the placeholder normally
+      return NextResponse.redirect(new URL('/placeholder-product.jpg', request.url), {
+        status: 302,
         headers: {
-          'Content-Type': 'image/jpeg',
           'Cache-Control': 'public, max-age=60', // Short cache — the real image may appear
         },
       })
