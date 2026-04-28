@@ -148,15 +148,7 @@
     @apply bg-background text-foreground;
   }
   
-  /* Standardized section padding - use site-wide for consistency */
-  .section-padding {
-    @apply px-5 md:px-8 lg:px-12;
-  }
-  .section-padding-y {
-    @apply py-16 md:py-24 lg:py-32;
-  }
-  
-/* Brand typography - Saol Display with context-aware tracking */
+  /* Brand typography - Saol Display with context-aware tracking */
   /* Per brand deck: display text uses TIGHT tracking for architectural feel */
   /* Labels/navigation use WIDE tracking for rhythm and balance */
   /* IMPORTANT: Explicit font-weight:400 prevents bold fallback rendering */
@@ -1103,19 +1095,25 @@ html {
    ============================================================================= */
 
 /* Section spacing - mobile first */
+/* section-padding provides horizontal padding only (most common use case) */
 .section-padding {
+  @apply px-5 md:px-8 lg:px-12;
+}
+
+/* Vertical spacing variants for sections */
+.section-padding-y {
   @apply py-16 md:py-24 lg:py-32;
 }
 
-.section-padding-sm {
+.section-padding-y-sm {
   @apply py-10 md:py-16 lg:py-20;
 }
 
-.section-padding-lg {
+.section-padding-y-lg {
   @apply py-20 md:py-32 lg:py-40;
 }
 
-/* Container with responsive padding */
+/* Alias for backwards compatibility */
 .container-padding {
   @apply px-5 md:px-8 lg:px-12;
 }

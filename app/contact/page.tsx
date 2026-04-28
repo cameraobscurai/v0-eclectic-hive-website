@@ -42,10 +42,10 @@ export default function ContactPage() {
             <p className="text-charcoal/35 text-[12px] tracking-[0.03em]">
               Prefer email?{' '}
               <a
-                href="mailto:info@eclectichive.com"
+                href="mailto:hello@eclectichive.com"
                 className="text-charcoal/55 hover:text-charcoal transition-colors underline underline-offset-4"
               >
-                info@eclectichive.com
+                hello@eclectichive.com
               </a>
             </p>
             <p className="text-charcoal/30 text-[12px] tracking-[0.03em]">
@@ -64,10 +64,10 @@ export default function ContactPage() {
       <div className="lg:hidden section-padding pb-4 pt-2 border-t border-charcoal/5">
         <div className="flex items-center justify-between text-[11px] text-charcoal/40">
           <a
-            href="mailto:info@eclectichive.com"
+            href="mailto:hello@eclectichive.com"
             className="hover:text-charcoal transition-colors"
           >
-            info@eclectichive.com
+            hello@eclectichive.com
           </a>
           <span>Denver · Salt Lake City</span>
         </div>

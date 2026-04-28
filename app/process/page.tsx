@@ -177,7 +177,7 @@ function EngagementCard({ type, index }: { type: typeof engagementTypes[0]; inde
 
 export default function ProcessPage() {
   return (
-    <main>
+    <main id="main-content">
       <Navigation />
       
       {/* Hero */}

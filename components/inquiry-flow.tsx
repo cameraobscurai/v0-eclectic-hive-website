@@ -131,6 +131,7 @@ function LineInput({
   type = 'text',
   autoFocus = false,
   error,
+  ariaLabel,
 }: {
   value: string
   onChange: (v: string) => void
@@ -138,6 +139,7 @@ function LineInput({
   type?: string
   autoFocus?: boolean
   error?: string
+  ariaLabel?: string
 }) {
   return (
     <div className="relative">
@@ -147,6 +149,7 @@ function LineInput({
         onChange={(e) => onChange(e.target.value)}
         placeholder={placeholder}
         autoFocus={autoFocus}
+        aria-label={ariaLabel ?? placeholder}
         autoComplete={type === 'email' ? 'email' : type === 'tel' ? 'tel' : 'off'}
         className={cn(
           'w-full bg-transparent pb-3 pt-1 min-h-[48px]',

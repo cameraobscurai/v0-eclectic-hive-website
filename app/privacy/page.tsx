@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 
 export default function PrivacyPage() {
   return (
-    <main className="min-h-screen bg-cream">
+    <main id="main-content" className="min-h-screen bg-cream">
       <Navigation />
       
       {/* Hero */}
@@ -112,8 +112,8 @@ export default function PrivacyPage() {
           <div className="mt-16 pt-8 border-t border-charcoal/10">
             <p className="text-xs tracking-[0.1em] text-charcoal/50">
               Questions about this policy? Contact us at{' '}
-              <a href="mailto:info@eclectichive.com" className="text-charcoal hover:underline underline-offset-2">
-                info@eclectichive.com
+              <a href="mailto:hello@eclectichive.com" className="text-charcoal hover:underline underline-offset-2">
+                hello@eclectichive.com
               </a>
             </p>
           </div>

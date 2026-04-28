@@ -1,19 +1,13 @@
-# Eclectic Hive - Robots.txt
-
 User-agent: *
 Allow: /
 
-# Block admin and API routes from indexing
+# Private / admin routes
 Disallow: /admin/
+Disallow: /studio/
+Disallow: /auth/
+
+# API routes (except fonts for brand consistency)
 Disallow: /api/
-Disallow: /api/products
-Disallow: /api/categories
-Disallow: /upload-fonts/
-
-# Block collection page from indexing (inventory exposure)
-Disallow: /collection
-
-# Allow important API content for AI chat
 Allow: /api/fonts/
 
 # Sitemap

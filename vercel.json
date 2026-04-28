@@ -7,19 +7,18 @@
         { "key": "X-Frame-Options", "value": "DENY" },
         { "key": "X-XSS-Protection", "value": "1; mode=block" },
         { "key": "Referrer-Policy", "value": "strict-origin-when-cross-origin" },
+        { "key": "Permissions-Policy", "value": "camera=(), microphone=(), geolocation=()" },
+        { "key": "Strict-Transport-Security", "value": "max-age=63072000; includeSubDomains; preload" },
         {
-          "key": "Permissions-Policy",
-          "value": "camera=(), microphone=(), geolocation=()"
+          "key": "Content-Security-Policy",
+          "value": "default-src 'self'; img-src 'self' data: blob: https://hebbkx1anhila5yf.public.blob.vercel-storage.com https://images.squarespace-cdn.com; font-src 'self'; script-src 'self' 'unsafe-inline' https://va.vercel-scripts.com; style-src 'self' 'unsafe-inline'; connect-src 'self' https://*.supabase.co https://api.resend.com; frame-ancestors 'none';"
         }
       ]
     },
     {
       "source": "/api/fonts/(.*)",
       "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "private, max-age=31536000, immutable"
-        },
+        { "key": "Cache-Control", "value": "private, max-age=31536000, immutable" },
         { "key": "X-Content-Type-Options", "value": "nosniff" }
       ]
     }
@@ -27,6 +26,11 @@
   "redirects": [
     {
       "source": "/team",
+      "destination": "/atelier",
+      "permanent": true
+    },
+    {
+      "source": "/services",
       "destination": "/atelier",
       "permanent": true
     },

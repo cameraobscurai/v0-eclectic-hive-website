@@ -185,7 +185,7 @@ export default function Guidelines() {
                   <p className={`font-display ${text} text-base tracking-wide`}>Jill Livingston</p>
                   <p className={`${textMuted} text-sm mt-1`}>Founder & Creative Director</p>
                   <div className={`${textMuted} text-xs mt-4 space-y-1`}>
-                    <p>jill@eclectichive.com</p>
+                    <p>hello@eclectichive.com</p>
                     <p>303.555.0100</p>
                     <p className="mt-2 uppercase tracking-wider text-[10px]">ECLECTIC HIVE</p>
                   </div>
@@ -208,7 +208,7 @@ export default function Guidelines() {
                     <p className="text-charcoal/50 text-xs mt-1">Founder & Creative Director</p>
                   </div>
                   <div className="text-charcoal/60 text-[10px] space-y-0.5">
-                    <p>jill@eclectichive.com</p>
+                    <p>hello@eclectichive.com</p>
                     <p>303.555.0100</p>
                     <p>Denver, Colorado</p>
                   </div>

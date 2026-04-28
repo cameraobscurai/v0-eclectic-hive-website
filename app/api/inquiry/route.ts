@@ -1,8 +1,17 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { waitUntil } from '@vercel/functions'
 import { z } from 'zod'
+import { Ratelimit } from '@upstash/ratelimit'
+import { Redis } from '@upstash/redis'
 import { escapeHtml, sanitizeEmailHeader } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/server'
+
+// Rate limiting: 5 inquiries per hour per IP
+const ratelimit = new Ratelimit({
+  redis: Redis.fromEnv(),
+  limiter: Ratelimit.slidingWindow(5, '1 h'),
+  analytics: true,
+})
 
 // ─── Zod schema with length limits ────────────────────────────────────────────
 
@@ -159,6 +168,22 @@ function buildEmailHtml(d: InquiryPayload): string {
 // ─── Handler ──────────────────────────────────────────────────────────────────
 
 export async function POST(request: NextRequest) {
+  // Rate limit by IP
+  const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() ?? 'anonymous'
+  const { success, limit, remaining } = await ratelimit.limit(`inquiry:${ip}`)
+  if (!success) {
+    return NextResponse.json(
+      { error: 'Too many requests. Please try again later.' },
+      {
+        status: 429,
+        headers: {
+          'X-RateLimit-Limit': limit.toString(),
+          'X-RateLimit-Remaining': remaining.toString(),
+        },
+      }
+    )
+  }
+
   let body: unknown
   try {
     body = await request.json()

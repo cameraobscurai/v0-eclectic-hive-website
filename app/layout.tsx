@@ -37,11 +37,13 @@ export const metadata: Metadata = {
     type: 'website',
     locale: 'en_US',
     siteName: 'ECLECTIC HIVE',
+    images: [{ url: '/opengraph-image.png', width: 1200, height: 630 }],
   },
   twitter: {
     card: 'summary_large_image',
     title: 'ECLECTIC HIVE | Luxury Event Design & Production',
     description: 'Two parts luxe, one part regal, and a dash of edge. Full-service design and production house.',
+    images: ['/opengraph-image.png'],
   },
   robots: {
     index: true,

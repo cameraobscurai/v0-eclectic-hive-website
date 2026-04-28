@@ -7,11 +7,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const staticPages = [
     '',
     '/atelier',
-    '/collection',
+    // '/collection' removed - noindex'd via collection/layout.tsx
     '/gallery',
     '/contact',
     '/faq',
     '/privacy',
+    '/process',
   ]
 
   const staticEntries: MetadataRoute.Sitemap = staticPages.map((path) => ({

@@ -59,9 +59,6 @@ const DEFAULT_PALETTE = [
   { hex: '#1a1a1a', name: 'Charcoal' },
 ]
 
-// Password for studio access
-const STUDIO_PASSWORD = 'eclectic2026'
-
 type Step = 'intro' | 'inspiration' | 'palette' | 'preview'
 
 export default function StudioPage() {
@@ -84,13 +81,22 @@ export default function StudioPage() {
     setIsAuthenticated(authenticated)
   }, [])
 
-  const handlePasswordSubmit = (e: React.FormEvent) => {
+  const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (password === STUDIO_PASSWORD) {
-      setIsAuthenticated(true)
-      sessionStorage.setItem('studio_auth', 'true')
-      setPasswordError(false)
-    } else {
+    try {
+      const res = await fetch('/api/studio-auth', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password }),
+      })
+      if (res.ok) {
+        setIsAuthenticated(true)
+        sessionStorage.setItem('studio_auth', 'true')
+        setPasswordError(false)
+      } else {
+        setPasswordError(true)
+      }
+    } catch {
       setPasswordError(true)
     }
   }
