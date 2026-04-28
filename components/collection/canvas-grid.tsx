@@ -177,12 +177,15 @@ export const CanvasGrid = forwardRef<CanvasGridHandle, CanvasGridProps>(function
   const [mounted, setMounted] = useState(false)
 
   // Momentum drag — pointer events with inertia on release
+  const pointerDown = useRef(false)
   const isDragging = useRef(false)
   const dragStart = useRef({ x: 0, y: 0, scrollX: 0, scrollY: 0 })
   const velocity = useRef({ x: 0, y: 0 })
   const lastPos = useRef({ x: 0, y: 0 })
+  const lastTime = useRef(0)
   const inertiaRaf = useRef<number>(0)
-  const [cursorClass, setCursorClass] = useState<'cursor-grab' | 'cursor-grabbing'>('cursor-grab')
+  const pointerId = useRef<number | null>(null)
+  const DRAG_THRESHOLD = 8 // px movement before drag activates (allows click-through to cards)
 
   // Build clusters
   const clusters = useMemo(
@@ -237,12 +240,17 @@ export const CanvasGrid = forwardRef<CanvasGridHandle, CanvasGridProps>(function
   const startInertia = useCallback(() => {
     cancelAnimationFrame(inertiaRaf.current)
 
+    // Cap velocity to prevent crazy fast scrolling
+    const maxV = 30
+    velocity.current.x = Math.max(-maxV, Math.min(maxV, velocity.current.x))
+    velocity.current.y = Math.max(-maxV, Math.min(maxV, velocity.current.y))
+
     function tick() {
       if (!containerRef.current) return
-      velocity.current.x *= 0.92 // friction
-      velocity.current.y *= 0.92
+      velocity.current.x *= 0.94 // friction (slightly less aggressive)
+      velocity.current.y *= 0.94
 
-      if (Math.abs(velocity.current.x) < 0.5 && Math.abs(velocity.current.y) < 0.5) {
+      if (Math.abs(velocity.current.x) < 0.3 && Math.abs(velocity.current.y) < 0.3) {
         velocity.current = { x: 0, y: 0 }
         return
       }
@@ -257,46 +265,78 @@ export const CanvasGrid = forwardRef<CanvasGridHandle, CanvasGridProps>(function
 
   const onPointerDown = useCallback((e: React.PointerEvent) => {
     if (e.button !== 0) return // left button only
-    // Don't initiate drag on interactive elements
-    if ((e.target as HTMLElement).closest('button, a, [role="button"]')) return
+    if (!containerRef.current) return
     
+    // Stop any ongoing inertia
     cancelAnimationFrame(inertiaRaf.current)
-    isDragging.current = true
     velocity.current = { x: 0, y: 0 }
+    
+    // Track pointer - capture on container for sticky drag
+    pointerDown.current = true
+    isDragging.current = false // Will become true after threshold
+    pointerId.current = e.pointerId
+    containerRef.current.setPointerCapture(e.pointerId)
+    
     dragStart.current = {
       x: e.clientX,
       y: e.clientY,
-      scrollX: containerRef.current?.scrollLeft ?? 0,
-      scrollY: containerRef.current?.scrollTop ?? 0,
+      scrollX: containerRef.current.scrollLeft,
+      scrollY: containerRef.current.scrollTop,
     }
     lastPos.current = { x: e.clientX, y: e.clientY }
-    ;(e.target as HTMLElement).setPointerCapture(e.pointerId)
-    setCursorClass('cursor-grabbing')
-    e.preventDefault()
+    lastTime.current = performance.now()
   }, [])
 
   const onPointerMove = useCallback((e: React.PointerEvent) => {
-    if (!isDragging.current || !containerRef.current) return
+    if (!pointerDown.current || !containerRef.current) return
 
     const dx = e.clientX - dragStart.current.x
     const dy = e.clientY - dragStart.current.y
+    const distance = Math.sqrt(dx * dx + dy * dy)
+    
+    // Activate drag after threshold - this makes card clicks work
+    if (!isDragging.current) {
+      if (distance > DRAG_THRESHOLD) {
+        isDragging.current = true
+      } else {
+        return // Not dragging yet, allow click-through
+      }
+    }
+    
+    // Scroll the container
     containerRef.current.scrollLeft = dragStart.current.scrollX - dx
     containerRef.current.scrollTop = dragStart.current.scrollY - dy
 
-    // Track velocity for inertia
-    velocity.current = {
-      x: -(e.clientX - lastPos.current.x),
-      y: -(e.clientY - lastPos.current.y),
+    // Track velocity with time-based smoothing
+    const now = performance.now()
+    const dt = now - lastTime.current
+    if (dt > 0) {
+      const vx = -(e.clientX - lastPos.current.x) / (dt / 16) // normalize to ~60fps
+      const vy = -(e.clientY - lastPos.current.y) / (dt / 16)
+      // Smooth velocity with momentum
+      velocity.current.x = velocity.current.x * 0.5 + vx * 0.5
+      velocity.current.y = velocity.current.y * 0.5 + vy * 0.5
     }
     lastPos.current = { x: e.clientX, y: e.clientY }
+    lastTime.current = now
   }, [])
 
   const onPointerUp = useCallback((e: React.PointerEvent) => {
-    if (!isDragging.current) return
+    if (!pointerDown.current) return
+    
+    const wasDragging = isDragging.current
+    pointerDown.current = false
     isDragging.current = false
-    setCursorClass('cursor-grab')
-    ;(e.target as HTMLElement).releasePointerCapture(e.pointerId)
-    startInertia()
+    
+    if (pointerId.current !== null && containerRef.current) {
+      containerRef.current.releasePointerCapture(pointerId.current)
+      pointerId.current = null
+    }
+    
+    // Only start inertia if we were actually dragging
+    if (wasDragging) {
+      startInertia()
+    }
   }, [startInertia])
 
   // Pause global Lenis when canvas is mounted
@@ -373,10 +413,10 @@ export const CanvasGrid = forwardRef<CanvasGridHandle, CanvasGridProps>(function
 
   return (
     <div className="relative w-full h-full bg-cream/30" style={{ overflow: 'hidden' }}>
-      {/* Scroll container — pointer-based drag with inertia */}
+      {/* Scroll container — omnidirectional drag with inertia */}
       <div
         ref={containerRef}
-        className={cn('absolute inset-0 scrollbar-hide', cursorClass)}
+        className="absolute inset-0 scrollbar-hide cursor-grab active:cursor-grabbing"
         onPointerDown={onPointerDown}
         onPointerMove={onPointerMove}
         onPointerUp={onPointerUp}
@@ -385,7 +425,7 @@ export const CanvasGrid = forwardRef<CanvasGridHandle, CanvasGridProps>(function
           overflow: 'scroll',
           WebkitOverflowScrolling: 'touch',
           userSelect: 'none',
-          touchAction: 'none', // prevents browser native scroll from fighting drag
+          touchAction: 'none', // we handle all touch/pointer ourselves
         }}
       >
         {/* Content canvas — explicit dimensions enable scrolling */}
