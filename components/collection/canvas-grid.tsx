@@ -150,12 +150,14 @@ export const CanvasGrid = forwardRef<CanvasGridHandle, CanvasGridProps>(function
 
   // Transform-based pan state
   const [position, setPosition] = useState({ x: 0, y: 0 })
+  const pointerDown = useRef(false)
   const isDragging = useRef(false)
   const dragStart = useRef({ x: 0, y: 0, posX: 0, posY: 0 })
   const velocity = useRef({ x: 0, y: 0 })
   const lastPos = useRef({ x: 0, y: 0 })
   const lastTime = useRef(0)
   const inertiaRaf = useRef<number>(0)
+  const DRAG_THRESHOLD = 6 // pixels before drag activates
 
   // Group products by sub-category while maintaining sort order
   const groupedProducts = useMemo(() => {
@@ -266,14 +268,13 @@ export const CanvasGrid = forwardRef<CanvasGridHandle, CanvasGridProps>(function
     inertiaRaf.current = requestAnimationFrame(tick)
   }, [constrainPosition])
 
-  // Pointer handlers for drag
+  // Pointer handlers for drag with click threshold
   const onPointerDown = useCallback((e: React.PointerEvent) => {
     if (e.button !== 0) return
-    // Allow clicks on buttons
-    if ((e.target as HTMLElement).closest('button')) return
 
     cancelAnimationFrame(inertiaRaf.current)
-    isDragging.current = true
+    pointerDown.current = true
+    isDragging.current = false // Don't start dragging until threshold
     velocity.current = { x: 0, y: 0 }
     dragStart.current = {
       x: e.clientX,
@@ -287,10 +288,17 @@ export const CanvasGrid = forwardRef<CanvasGridHandle, CanvasGridProps>(function
   }, [position])
 
   const onPointerMove = useCallback((e: React.PointerEvent) => {
-    if (!isDragging.current) return
+    if (!pointerDown.current) return
 
     const dx = e.clientX - dragStart.current.x
     const dy = e.clientY - dragStart.current.y
+    const distance = Math.sqrt(dx * dx + dy * dy)
+
+    // Only start dragging after threshold - this lets clicks pass through
+    if (!isDragging.current) {
+      if (distance < DRAG_THRESHOLD) return
+      isDragging.current = true
+    }
 
     const newPos = constrainPosition(
       dragStart.current.posX + dx,
@@ -307,13 +315,19 @@ export const CanvasGrid = forwardRef<CanvasGridHandle, CanvasGridProps>(function
     }
     lastPos.current = { x: e.clientX, y: e.clientY }
     lastTime.current = now
-  }, [])
+  }, [constrainPosition])
 
   const onPointerUp = useCallback((e: React.PointerEvent) => {
-    if (!isDragging.current) return
+    if (!pointerDown.current) return
+    const wasDragging = isDragging.current
+    pointerDown.current = false
     isDragging.current = false
     containerRef.current?.releasePointerCapture(e.pointerId)
-    startInertia()
+    
+    // Only apply inertia if we were actually dragging
+    if (wasDragging) {
+      startInertia()
+    }
   }, [startInertia])
 
   // Wheel handler for trackpad/mouse scroll
