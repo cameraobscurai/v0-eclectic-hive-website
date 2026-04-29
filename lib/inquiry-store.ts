@@ -8,6 +8,7 @@ export interface ShortlistedItem {
   category: string
   imageUrl?: string
   primary_image_url?: string  // For compatibility with AffinityProduct union
+  updated_at?: string         // For cache-busting inventory/ images
   dims_display?: string
   quantity: number
 }
