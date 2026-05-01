@@ -32,8 +32,9 @@ export async function GET(request: NextRequest) {
     // Construct Supabase Storage URL
     // Path format: inventory/filename.png -> storage bucket is "inventory", file is "filename.png"
     const [bucket, ...filePathParts] = normalizedPath.split('/')
-    const filePath = filePathParts.join('/')
-    const supabaseStorageUrl = `${SUPABASE_URL}/storage/v1/object/public/${bucket}/${encodeURIComponent(filePath)}`
+    // Encode each path segment separately to preserve folder structure (slashes)
+    const encodedFilePath = filePathParts.map(segment => encodeURIComponent(segment)).join('/')
+    const supabaseStorageUrl = `${SUPABASE_URL}/storage/v1/object/public/${bucket}/${encodedFilePath}`
 
     // Fetch from Supabase Storage
     const response = await fetch(supabaseStorageUrl, {
