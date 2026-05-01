@@ -26,22 +26,36 @@ function parseDimensions(dims: string): { width: number | null; depth: number | 
   return { width: null, depth: null, height: null }
 }
 
-// Map RMS product groups to our categories
+// Map RMS product groups to CANONICAL category keys (lowercase, stable)
+// Frontend maps these to display labels - never store display labels in DB
 function mapCategory(productGroup: string): string {
+  const raw = (productGroup || '').toLowerCase().trim()
   const mapping: Record<string, string> = {
-    'Bars': 'Bars',
-    'Seating': 'Seating',
-    'Tables': 'Tables',
-    'Large Decor & Dividers': 'Large Decor & Dividers',
-    'Lighting': 'Lighting',
-    'Small Decor': 'Small Decor',
-    'Candlelight': 'Candlelight',
-    'Pillows': 'Pillows',
-    'Rugs': 'Rugs',
-    'Linens': 'Linens',
-    'Tableware': 'Tableware',
+    'bars': 'bars',
+    'seating': 'seating',
+    'tables': 'tables',
+    'large decor & dividers': 'large-decor',
+    'large decor': 'large-decor',
+    'large-decor': 'large-decor',
+    'lighting': 'lighting',
+    'small decor': 'styling',
+    'small-decor': 'styling',
+    'candlelight': 'candlelight',
+    'pillows': 'pillows',
+    'rugs': 'rugs',
+    'linens': 'linens',
+    'tableware': 'tableware',
+    'serveware': 'serveware',
+    'storage': 'storage',
+    'styling': 'styling',
+    'throws': 'throws',
+    'furs and pelts': 'furs-pelts',
+    'furs & pelts': 'furs-pelts',
+    'furs-and-pelts': 'furs-pelts',
+    'chandeliers': 'chandeliers',
+    'subrentals': 'subrentals',
   }
-  return mapping[productGroup] || productGroup
+  return mapping[raw] || 'styling'
 }
 
 // Tableware piece patterns
@@ -273,17 +287,29 @@ export async function POST(request: NextRequest) {
         .eq('rms_id', rmsId)
         .single()
       
+      // Derive stock_status correctly:
+      // custom_inquiry → 'inquire'
+      // stock > 0 → 'available'
+      // stock <= 0 → 'out'
+      const stockStatus = displayType === 'custom_inquiry' 
+        ? 'inquire' 
+        : stock > 0 
+          ? 'available' 
+          : 'out'
+
       if (existingVariant) {
         await supabase
           .from('product_variants')
           .update({
             name,
             stock_count: stock,
+            stock_status: stockStatus, // Always update stock_status with stock_count
             width_inches: parsedDims.width,
             depth_inches: parsedDims.depth,
             height_inches: parsedDims.height,
             dims_display: dims,
             original_image_url: imageUrl,
+            source_image_filename: imageUrl ? imageUrl.split('/').pop() : null, // Store for manifest
             updated_at: new Date().toISOString()
           })
           .eq('id', existingVariant.id)
@@ -296,13 +322,14 @@ export async function POST(request: NextRequest) {
             rms_id: rmsId,
             name,
             stock_count: stock,
-            stock_status: displayType === 'custom_inquiry' ? 'inquire' : 'available',
+            stock_status: stockStatus,
             width_inches: parsedDims.width,
             depth_inches: parsedDims.depth,
             height_inches: parsedDims.height,
             dims_display: dims,
             original_name: name,
-            original_image_url: imageUrl
+            original_image_url: imageUrl,
+            source_image_filename: imageUrl ? imageUrl.split('/').pop() : null, // Store for manifest
           })
         stats.variants_created++
       }

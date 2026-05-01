@@ -38,7 +38,8 @@ function slugify(text) {
     .replace(/(^-|-$)/g, '')
 }
 
-// Map Product Group to category slug - updated with all categories
+// Map Product Group to CANONICAL category keys (lowercase, stable)
+// Frontend maps these to display labels - never store display labels in DB
 function mapCategory(productGroup) {
   const raw = (productGroup || '').toLowerCase().trim()
   const map = {
@@ -59,19 +60,21 @@ function mapCategory(productGroup) {
     'serveware': 'serveware',
     'storage': 'storage',
     'styling': 'styling',
-    'throws': 'pillows', // merge throws into pillows
-    'furs-and-pelts': 'furs-and-pelts',
-    'furs and pelts': 'furs-and-pelts',
+    'throws': 'throws', // DO NOT merge - throws is its own category
+    'furs-and-pelts': 'furs-pelts',
+    'furs and pelts': 'furs-pelts',
+    'furs & pelts': 'furs-pelts',
+    'chandeliers': 'chandeliers',
+    'subrentals': 'subrentals',
   }
   return map[raw] || 'styling'
 }
 
-// Build image URL from filename
-function buildImageUrl(filename) {
+// DO NOT build image URLs - manifest handles image resolution
+// This function only extracts the CSV filename for storage
+function extractImageFilename(filename) {
   if (!filename || filename.trim() === '') return null
-  // Encode the filename for URL safety
-  const encoded = encodeURIComponent(filename.trim())
-  return `${STORAGE_BASE_URL}/${encoded}`
+  return filename.trim()
 }
 
 // Track created products to avoid duplicates
@@ -102,7 +105,8 @@ async function importData() {
 
       const category = mapCategory(productGroup)
       const slug = slugify(name)
-      const imageUrl = buildImageUrl(imageFilename)
+      // DO NOT write primary_image_url - manifest handles image resolution
+      const sourceImageFilename = extractImageFilename(imageFilename)
       
       // Check if product already exists in this run
       let productId = createdProducts.get(slug)
@@ -111,7 +115,7 @@ async function importData() {
         // Check if product exists in database
         const { data: existing } = await supabase
           .from('products')
-          .select('id, primary_image_url')
+          .select('id')
           .eq('slug', slug)
           .single()
 
@@ -119,21 +123,15 @@ async function importData() {
           productId = existing.id
           createdProducts.set(slug, productId)
           
-          // Update image if we have one and product doesn't
-          if (imageUrl && !existing.primary_image_url) {
-            const { error: updateError } = await supabase
-              .from('products')
-              .update({ primary_image_url: imageUrl, category })
-              .eq('id', productId)
-            
-            if (!updateError) {
-              imagesLinked++
-              console.log(`🖼️  Linked image for: ${name}`)
-            }
-          }
+          // Update category only - DO NOT write primary_image_url
+          await supabase
+            .from('products')
+            .update({ category })
+            .eq('id', productId)
+          
           productsUpdated++
         } else {
-          // Create new product
+          // Create new product WITHOUT image - manifest handles images
           const { data: product, error: productError } = await supabase
             .from('products')
             .insert({
@@ -142,7 +140,7 @@ async function importData() {
               category,
               display_type: 'single',
               is_active: true,
-              primary_image_url: imageUrl,
+              // primary_image_url intentionally NOT set - manifest handles this
             })
             .select()
             .single()
@@ -156,12 +154,11 @@ async function importData() {
           productId = product.id
           createdProducts.set(slug, productId)
           productsCreated++
-          if (imageUrl) imagesLinked++
-          console.log(`✅ Created product: ${name} (${category})${imageUrl ? ' with image' : ''}`)
+          console.log(`Created product: ${name} (${category})`)
         }
       }
 
-      // Create or update variant
+      // Create or update variant with source_image_filename for manifest
       if (rmsId) {
         const { error: variantError } = await supabase
           .from('product_variants')
@@ -174,6 +171,7 @@ async function importData() {
             dims_display: dims,
             original_name: name,
             is_active: true,
+            source_image_filename: sourceImageFilename, // Store CSV filename for manifest
           }, { onConflict: 'rms_id' })
 
         if (variantError) {
