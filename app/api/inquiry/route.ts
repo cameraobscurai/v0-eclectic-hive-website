@@ -3,45 +3,6 @@ import { waitUntil } from '@vercel/functions'
 import { z } from 'zod'
 import { escapeHtml, sanitizeEmailHeader } from '@/lib/utils'
 import { createClient } from '@/lib/supabase/server'
-import { Redis } from '@upstash/redis'
-
-// ─── Rate limiting with Upstash Redis ─────────────────────────────────────────
-
-const redis = new Redis({
-  url: process.env.KV_REST_API_URL!,
-  token: process.env.KV_REST_API_TOKEN!,
-})
-
-// Rate limit: 5 inquiries per IP per hour, 10 per email per day
-const RATE_LIMIT_IP_MAX = 5
-const RATE_LIMIT_IP_WINDOW = 60 * 60 // 1 hour in seconds
-const RATE_LIMIT_EMAIL_MAX = 10
-const RATE_LIMIT_EMAIL_WINDOW = 60 * 60 * 24 // 24 hours in seconds
-
-async function checkRateLimit(ip: string, email: string): Promise<{ allowed: boolean; reason?: string }> {
-  const ipKey = `inquiry:ip:${ip}`
-  const emailKey = `inquiry:email:${email.toLowerCase()}`
-
-  // Check IP rate limit
-  const ipCount = await redis.incr(ipKey)
-  if (ipCount === 1) {
-    await redis.expire(ipKey, RATE_LIMIT_IP_WINDOW)
-  }
-  if (ipCount > RATE_LIMIT_IP_MAX) {
-    return { allowed: false, reason: 'Too many inquiries. Please try again later.' }
-  }
-
-  // Check email rate limit
-  const emailCount = await redis.incr(emailKey)
-  if (emailCount === 1) {
-    await redis.expire(emailKey, RATE_LIMIT_EMAIL_WINDOW)
-  }
-  if (emailCount > RATE_LIMIT_EMAIL_MAX) {
-    return { allowed: false, reason: 'Too many inquiries from this email. Please try again tomorrow.' }
-  }
-
-  return { allowed: true }
-}
 
 // ─── Zod schema with length limits ────────────────────────────────────────────
 
@@ -213,20 +174,7 @@ export async function POST(request: NextRequest) {
 
   const data = parsed.data
 
-  // ─── Rate limiting ────────────────────────────────────────────────────────
-  const ip = request.headers.get('x-forwarded-for')?.split(',')[0]?.trim() 
-    ?? request.headers.get('x-real-ip') 
-    ?? 'unknown'
-  
-  const rateLimit = await checkRateLimit(ip, data.email)
-  if (!rateLimit.allowed) {
-    return NextResponse.json(
-      { error: rateLimit.reason }, 
-      { status: 429 }
-    )
-  }
-
-  // ─── Save to database first ───────────────────────────────────────────────
+  // ─── Save to database ─────────────────────────────────────────────────────
   const supabase = await createClient()
   
   const { data: inquiry, error: dbError } = await supabase
