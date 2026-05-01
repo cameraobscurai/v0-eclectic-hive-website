@@ -1,7 +1,7 @@
-import { put, list, del } from '@vercel/blob'
 import { type NextRequest, NextResponse } from 'next/server'
 import sharp from 'sharp'
 import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 import { sanitizeFilename, escapeIlike } from '@/lib/utils'
 
 // ============================================================================
@@ -10,6 +10,7 @@ import { sanitizeFilename, escapeIlike } from '@/lib/utils'
 const ALLOWED_CATEGORIES = [
   'seating', 'tables', 'lighting', 'decor', 'bars',
   'serveware', 'styling', 'storage', 'chandeliers', 'uncategorized',
+  'pillows', 'rugs', 'tableware', 'throws', 'candlelight', 'furs',
 ] as const
 
 type AllowedCategory = typeof ALLOWED_CATEGORIES[number]
@@ -93,7 +94,7 @@ async function processImage(buffer: Buffer): Promise<Buffer> {
 }
 
 // ============================================================================
-// POST — Upload images
+// POST — Upload images to Supabase Storage
 // ============================================================================
 export async function POST(request: NextRequest) {
   try {
@@ -110,6 +111,8 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'No files provided' }, { status: 400 })
     }
 
+    const supabaseAdmin = createAdminClient()
+    const supabase = await createClient()
     const results = []
 
     for (const file of files) {
@@ -118,20 +121,29 @@ export async function POST(request: NextRequest) {
         const processed = await processImage(buffer)
 
         const safeFilename = sanitizeFilename(file.name).replace(/\.[^.]+$/, '.png')
-        const pathname     = `inventory/${category}/${safeFilename}`
+        const storagePath  = `${category}/${safeFilename}`
 
-        const blob = await put(pathname, processed, {
-          access:          'private',
-          addRandomSuffix: false,
-          allowOverwrite:  true,
-          contentType:     'image/png',
-        })
+        // Upload to Supabase Storage
+        const { data: uploadData, error: uploadError } = await supabaseAdmin.storage
+          .from('inventory')
+          .upload(storagePath, processed, {
+            contentType: 'image/png',
+            upsert: true,
+          })
+
+        if (uploadError) {
+          throw new Error(uploadError.message)
+        }
+
+        // Get public URL
+        const { data: { publicUrl } } = supabaseAdmin.storage
+          .from('inventory')
+          .getPublicUrl(storagePath)
 
         const searchName = file.name
           .replace(/\.[^.]+$/, '')
           .replace(/[-_]/g, ' ')
 
-        const supabase        = await createClient()
         const safeSearchName  = escapeIlike(searchName)
         const { data: matchedProducts } = await supabase
           .from('products')
@@ -144,7 +156,7 @@ export async function POST(request: NextRequest) {
           const { error: updateError } = await supabase
             .from('products')
             .update({
-              primary_image_url: blob.pathname,
+              primary_image_url: publicUrl,
               updated_at:        new Date().toISOString(),
             })
             .eq('id', matchedProducts[0].id)
@@ -153,8 +165,8 @@ export async function POST(request: NextRequest) {
 
         results.push({
           name:           file.name,
-          url:            blob.url,
-          pathname:       blob.pathname,
+          url:            publicUrl,
+          pathname:       uploadData.path,
           success:        true,
           dbUpdated,
           matchedProduct: matchedProducts?.[0]?.name || null,
@@ -177,20 +189,45 @@ export async function POST(request: NextRequest) {
 }
 
 // ============================================================================
-// GET — List images
+// GET — List images from Supabase Storage
 // ============================================================================
 export async function GET() {
   try {
-    const { blobs } = await list({ prefix: 'inventory/' })
+    const supabaseAdmin = createAdminClient()
+    
+    // List all folders in inventory bucket
+    const { data: folders, error: foldersError } = await supabaseAdmin.storage
+      .from('inventory')
+      .list('', { limit: 100 })
 
-    const byCategory: Record<string, typeof blobs> = {}
-    for (const blob of blobs) {
-      const cat = blob.pathname.split('/')[1] || 'uncategorized'
-      if (!byCategory[cat]) byCategory[cat] = []
-      byCategory[cat].push(blob)
+    if (foldersError) {
+      throw new Error(foldersError.message)
     }
 
-    return NextResponse.json({ total: blobs.length, byCategory })
+    const byCategory: Record<string, { name: string; url: string }[]> = {}
+    let total = 0
+
+    for (const folder of folders || []) {
+      if (folder.id) continue // Skip files at root, only process folders
+      
+      const { data: files } = await supabaseAdmin.storage
+        .from('inventory')
+        .list(folder.name, { limit: 1000 })
+
+      if (files && files.length > 0) {
+        byCategory[folder.name] = files
+          .filter(f => f.name.endsWith('.png'))
+          .map(f => {
+            const { data: { publicUrl } } = supabaseAdmin.storage
+              .from('inventory')
+              .getPublicUrl(`${folder.name}/${f.name}`)
+            return { name: f.name, url: publicUrl }
+          })
+        total += byCategory[folder.name].length
+      }
+    }
+
+    return NextResponse.json({ total, byCategory })
   } catch (error) {
     console.error('[upload-inventory] GET error:', error)
     return NextResponse.json({ error: 'Failed to list files' }, { status: 500 })
@@ -198,99 +235,60 @@ export async function GET() {
 }
 
 // ============================================================================
-// PATCH — Sync Blob images to database
-// ============================================================================
-export async function PATCH() {
-  try {
-    const { blobs } = await list({ prefix: 'inventory/' })
-    const supabase  = await createClient()
-
-    let synced = 0
-    let failed = 0
-    const results: { pathname: string; matched: string | null }[] = []
-
-    for (const blob of blobs) {
-      const filename   = blob.pathname.split('/').pop() || ''
-      const searchName = filename
-        .replace(/\.[^.]+$/, '')
-        .replace(/[-_]/g, ' ')
-
-      const safeSearchName = escapeIlike(searchName)
-      const { data: matchedProducts } = await supabase
-        .from('products')
-        .select('id, name')
-        .ilike('name', `%${safeSearchName}%`)
-        .limit(1)
-
-      if (matchedProducts && matchedProducts.length > 0) {
-        const { error } = await supabase
-          .from('products')
-          .update({
-            primary_image_url: blob.pathname,
-            updated_at:        new Date().toISOString(),
-          })
-          .eq('id', matchedProducts[0].id)
-
-        if (!error) {
-          synced++
-          results.push({ pathname: blob.pathname, matched: matchedProducts[0].name })
-        } else {
-          failed++
-          results.push({ pathname: blob.pathname, matched: null })
-        }
-      } else {
-        results.push({ pathname: blob.pathname, matched: null })
-      }
-    }
-
-    return NextResponse.json({ total: blobs.length, synced, failed, results })
-  } catch (error) {
-    console.error('[upload-inventory] PATCH error:', error)
-    return NextResponse.json({ error: 'Sync failed' }, { status: 500 })
-  }
-}
-
-// ============================================================================
-// DELETE — Delete images
+// DELETE — Delete images from Supabase Storage
 // ============================================================================
 export async function DELETE(request: NextRequest) {
   try {
     const body = await request.json()
     const { category } = body
 
-    // Validate category if provided — prevents path manipulation
     if (category !== undefined && category !== null) {
       if (typeof category !== 'string' || !isValidCategory(category)) {
         return NextResponse.json({ error: 'Invalid category' }, { status: 400 })
       }
     }
 
-    const prefix    = category ? `inventory/${category.toLowerCase()}/` : 'inventory/'
-    const { blobs } = await list({ prefix })
+    const supabaseAdmin = createAdminClient()
+    const supabase = await createClient()
+    const folderPath = category ? category.toLowerCase() : ''
 
-    if (blobs.length === 0) {
+    // List files to delete
+    const { data: files, error: listError } = await supabaseAdmin.storage
+      .from('inventory')
+      .list(folderPath, { limit: 1000 })
+
+    if (listError) {
+      throw new Error(listError.message)
+    }
+
+    if (!files || files.length === 0) {
       return NextResponse.json({ deleted: 0, message: 'No files to delete' })
     }
 
-    await del(blobs.map(b => b.url))
+    // Delete files
+    const filePaths = files
+      .filter(f => f.name.endsWith('.png'))
+      .map(f => folderPath ? `${folderPath}/${f.name}` : f.name)
 
-    // Clear database references for deleted images
-    const supabase = await createClient()
+    const { error: deleteError } = await supabaseAdmin.storage
+      .from('inventory')
+      .remove(filePaths)
+
+    if (deleteError) {
+      throw new Error(deleteError.message)
+    }
+
+    // Clear database references
     if (category) {
       await supabase
         .from('products')
         .update({ primary_image_url: null })
-        .ilike('primary_image_url', `inventory/${category.toLowerCase()}/%`)
-    } else {
-      await supabase
-        .from('products')
-        .update({ primary_image_url: null })
-        .ilike('primary_image_url', 'inventory/%')
+        .ilike('primary_image_url', `%inventory/${category.toLowerCase()}%`)
     }
 
     return NextResponse.json({
-      deleted: blobs.length,
-      message: `Deleted ${blobs.length} files`,
+      deleted: filePaths.length,
+      message: `Deleted ${filePaths.length} files`,
     })
   } catch (error) {
     console.error('[upload-inventory] DELETE error:', error)
