@@ -1,12 +1,13 @@
 'use client'
 
 import { useState, useMemo } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, PanInfo } from 'framer-motion'
 import { useInquiryStore } from '@/lib/inquiry-store'
 import { useRouter } from 'next/navigation'
 import { X, ChevronUp, ChevronDown } from 'lucide-react'
 import { ShortlistGrid } from '@/components/shortlist/shortlist-grid'
 import { getAggregateSuggestions, type AffinityProduct } from '@/lib/affinity'
+import { useIsMobile } from '@/hooks/use-mobile'
 import useSWR from 'swr'
 
 const fetcher = (url: string) => fetch(url).then(r => r.json())
@@ -16,6 +17,14 @@ export function InquiryTray() {
   const [isExpanded, setIsExpanded] = useState(false)
   const count = totalCount()
   const router = useRouter()
+  const isMobile = useIsMobile()
+
+  // Handle swipe down to collapse on mobile
+  const handleDragEnd = (_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+    if (info.offset.y > 80 || info.velocity.y > 400) {
+      setIsExpanded(false)
+    }
+  }
 
   const handleSubmitInquiry = () => {
     const ids = items.map(i => i.id).join(',')
@@ -49,8 +58,14 @@ export function InquiryTray() {
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 100, opacity: 0 }}
           transition={{ type: 'spring', stiffness: 400, damping: 35 }}
-          className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40"
-          style={{ width: isExpanded ? 'min(480px, calc(100vw - 32px))' : 'auto' }}
+          className={
+            isMobile && isExpanded
+              ? "fixed inset-x-0 bottom-0 z-40" // Full width bottom sheet on mobile
+              : "fixed bottom-6 left-1/2 -translate-x-1/2 z-40"
+          }
+          style={{ 
+            width: !isMobile && isExpanded ? 'min(480px, calc(100vw - 32px))' : isMobile && isExpanded ? '100%' : 'auto' 
+          }}
         >
           <AnimatePresence mode="wait">
 
@@ -58,12 +73,27 @@ export function InquiryTray() {
               // ── Expanded panel ────────────────────────────────────────────
               <motion.div
                 key="expanded"
-                initial={{ opacity: 0, scale: 0.96, y: 12 }}
+                initial={{ opacity: 0, scale: isMobile ? 1 : 0.96, y: isMobile ? '100%' : 12 }}
                 animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.96, y: 12 }}
+                exit={{ opacity: 0, scale: isMobile ? 1 : 0.96, y: isMobile ? '100%' : 12 }}
                 transition={{ type: 'spring', stiffness: 420, damping: 32 }}
-                className="bg-charcoal text-cream rounded-2xl shadow-2xl shadow-charcoal/40 overflow-hidden"
+                drag={isMobile ? "y" : false}
+                dragConstraints={{ top: 0, bottom: 0 }}
+                dragElastic={{ top: 0, bottom: 0.5 }}
+                onDragEnd={handleDragEnd}
+                className={
+                  isMobile
+                    ? "bg-charcoal text-cream rounded-t-3xl shadow-2xl shadow-charcoal/40 overflow-hidden pb-safe"
+                    : "bg-charcoal text-cream rounded-2xl shadow-2xl shadow-charcoal/40 overflow-hidden"
+                }
               >
+                {/* Drag handle for mobile */}
+                {isMobile && (
+                  <div className="flex justify-center pt-3 pb-1 touch-none">
+                    <div className="w-10 h-1 rounded-full bg-cream/20" />
+                  </div>
+                )}
+
                 {/* Header */}
                 <div className="flex items-center justify-between px-5 pt-4 pb-3 border-b border-cream/10">
                   <span className="text-xs uppercase tracking-[0.15em] text-cream/60">

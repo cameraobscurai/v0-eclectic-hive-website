@@ -1,13 +1,14 @@
 'use client'
 
 import { useEffect, useCallback, useState, useRef, useMemo } from 'react'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, useDragControls, PanInfo } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { useInquiryStore } from '@/lib/inquiry-store'
 import { lockScroll, unlockScroll } from '@/lib/scroll-lock'
 import { getSuggestions, type AffinityProduct } from '@/lib/affinity'
 import { ShortlistGrid } from '@/components/shortlist/shortlist-grid'
 import { ProductImage } from '@/components/ui/product-image'
+import { useIsMobile } from '@/hooks/use-mobile'
 
 // =============================================================================
 // LIQUID GLASS QUICK VIEW MODAL
@@ -53,7 +54,8 @@ const liquidSpring = {
   mass: 1,
 }
 
-const modalVariants = {
+// Desktop: centered modal with scale
+const desktopModalVariants = {
   hidden: { 
     opacity: 0,
     scale: 0.92,
@@ -71,6 +73,31 @@ const modalVariants = {
     y: 10,
     transition: { 
       duration: 0.2, 
+      ease: [0.32, 0, 0.67, 0] as const,
+    }
+  },
+}
+
+// Mobile: bottom sheet slides up
+const mobileModalVariants = {
+  hidden: { 
+    y: '100%',
+    opacity: 1,
+  },
+  visible: { 
+    y: 0,
+    opacity: 1,
+    transition: {
+      type: 'spring',
+      stiffness: 300,
+      damping: 30,
+    },
+  },
+  exit: { 
+    y: '100%',
+    opacity: 1,
+    transition: { 
+      duration: 0.25, 
       ease: [0.32, 0, 0.67, 0] as const,
     }
   },
@@ -101,10 +128,20 @@ export function QuickViewModal({
   const modalRef = useRef<HTMLDivElement>(null)
   const [mousePos, setMousePos] = useState({ x: 50, y: 50 })
   const [qty, setQty] = useState(1)
+  const isMobile = useIsMobile()
+  const dragControls = useDragControls()
   
   // Inquiry store
   const { add, remove, has, getQuantity } = useInquiryStore()
   const isAdded = product ? has(product.id) : false
+
+  // Handle drag to close on mobile
+  const handleDragEnd = useCallback((_: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
+    // Close if dragged down more than 100px or with velocity
+    if (info.offset.y > 100 || info.velocity.y > 500) {
+      onClose()
+    }
+  }, [onClose])
 
   // Reset state when product changes
   useEffect(() => {
@@ -177,7 +214,12 @@ export function QuickViewModal({
     <AnimatePresence>
       {isOpen && (
         <div 
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 sm:p-6" 
+          className={cn(
+            "fixed inset-0 z-50",
+            isMobile 
+              ? "flex items-end" // Bottom sheet on mobile
+              : "flex items-center justify-center p-4 sm:p-6" // Centered on desktop
+          )}
           role="dialog" 
           aria-modal="true" 
           aria-labelledby="quick-view-title"
@@ -192,27 +234,39 @@ export function QuickViewModal({
             onClick={onClose}
           />
 
-          {/* Modal - LIQUID GLASS */}
+          {/* Modal - LIQUID GLASS / BOTTOM SHEET */}
           <motion.div
             ref={modalRef}
-            variants={modalVariants}
+            variants={isMobile ? mobileModalVariants : desktopModalVariants}
             initial="hidden"
             animate="visible"
             exit="exit"
-            onMouseMove={handleMouseMove}
-            className="relative w-full max-w-[720px] max-h-[90vh] overflow-y-auto overflow-x-hidden overscroll-contain rounded-2xl"
+            onMouseMove={!isMobile ? handleMouseMove : undefined}
+            drag={isMobile ? "y" : false}
+            dragControls={dragControls}
+            dragConstraints={{ top: 0, bottom: 0 }}
+            dragElastic={{ top: 0, bottom: 0.7 }}
+            onDragEnd={handleDragEnd}
+            className={cn(
+              "relative w-full overflow-y-auto overflow-x-hidden overscroll-contain",
+              isMobile 
+                ? "max-h-[92vh] rounded-t-3xl pb-safe" // Bottom sheet with safe area
+                : "max-w-[720px] max-h-[90vh] rounded-2xl" // Centered modal
+            )}
             onClick={(e) => e.stopPropagation()}
             style={{
               // Liquid glass base
-              background: 'rgba(255, 255, 255, 0.85)',
+              background: 'rgba(255, 255, 255, 0.95)',
               backdropFilter: 'blur(40px) saturate(180%)',
               WebkitBackdropFilter: 'blur(40px) saturate(180%)',
-              border: '1px solid rgba(255, 255, 255, 0.3)',
-              boxShadow: `
-                0 8px 32px rgba(0, 0, 0, 0.12),
-                0 2px 8px rgba(0, 0, 0, 0.08),
-                inset 0 1px 0 rgba(255, 255, 255, 0.5)
-              `,
+              border: isMobile ? 'none' : '1px solid rgba(255, 255, 255, 0.3)',
+              boxShadow: isMobile 
+                ? '0 -8px 32px rgba(0, 0, 0, 0.15)'
+                : `
+                  0 8px 32px rgba(0, 0, 0, 0.12),
+                  0 2px 8px rgba(0, 0, 0, 0.08),
+                  inset 0 1px 0 rgba(255, 255, 255, 0.5)
+                `,
             }}
           >
             {/* Dynamic Specular Highlight - follows mouse */}
@@ -236,9 +290,15 @@ export function QuickViewModal({
               }}
             />
 
-            {/* Drag handle */}
-            <div className="flex justify-center pt-3 relative z-10">
-              <div className="w-10 h-1 rounded-full bg-charcoal/10" />
+            {/* Drag handle - interactive on mobile for swipe-to-close */}
+            <div 
+              className="flex justify-center pt-3 pb-1 relative z-10 cursor-grab active:cursor-grabbing touch-none"
+              onPointerDown={(e) => isMobile && dragControls.start(e)}
+            >
+              <div className={cn(
+                "w-10 h-1 rounded-full transition-colors",
+                isMobile ? "bg-charcoal/20" : "bg-charcoal/10"
+              )} />
             </div>
 
             {/* Header - nav + close */}
