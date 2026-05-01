@@ -338,8 +338,9 @@ const getImageUrl = useCallback(
 
     let results = productsWithSubCategory.filter(p =>
       p.primary_image_url &&
-      !hiddenProducts.has(p.id) &&
-      !brokenImagesRef.current?.has(getImageUrl(p))
+      !hiddenProducts.has(p.id)
+      // Temporarily disabled broken image filtering to debug
+      // && !brokenImagesRef.current?.has(getImageUrl(p))
     )
 
     if (activeSubCategory !== 'All') {
@@ -414,7 +415,7 @@ const goToPreviousProduct = useCallback(() => {
     setActiveSubCategory('All')
   }, [activeCategory])
 
-  // ── Render ──────────────────────────────────────���──────────────────────────
+  // ── Render ──────────────────────────────────────���─��────────────────────────
 
   return (
     <main id="main-content" className="min-h-screen bg-white pt-[72px] lg:pt-[88px]">
