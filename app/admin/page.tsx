@@ -4,7 +4,6 @@ import { useState, useCallback, useEffect } from 'react'
 import dynamic from 'next/dynamic'
 import Link from 'next/link'
 import { cn } from '@/lib/utils'
-import { ScraperTab } from '@/components/admin/scraper-tab'
 
 // Lazy load Konva editor (it's heavy)
 const ImageEditor = dynamic(
@@ -40,7 +39,7 @@ interface UploadedFont {
   purpose: string
 }
 
-type Tab = 'images' | 'import' | 'fonts' | 'inquiries' | 'scraper'
+type Tab = 'images' | 'import' | 'fonts' | 'inquiries'
 
 // Inquiry types
 interface Inquiry {
@@ -95,7 +94,6 @@ export default function AdminDashboard() {
             {[
               { id: 'images' as Tab, label: 'Inventory Images' },
               { id: 'import' as Tab, label: 'CSV Import' },
-              { id: 'scraper' as Tab, label: 'Scraper' },
               { id: 'fonts' as Tab, label: 'Fonts' },
               { id: 'inquiries' as Tab, label: 'Inquiries' },
             ].map(tab => (
@@ -120,7 +118,6 @@ export default function AdminDashboard() {
       <main className="max-w-6xl mx-auto px-6 py-8">
         {activeTab === 'images' && <ImagesTab />}
         {activeTab === 'import' && <ImportTab />}
-        {activeTab === 'scraper' && <ScraperTab />}
         {activeTab === 'fonts' && <FontsTab />}
         {activeTab === 'inquiries' && <InquiriesTab />}
       </main>
