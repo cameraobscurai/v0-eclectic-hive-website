@@ -235,12 +235,14 @@ const fetcher = async (url: string) => {
 export default function CollectionPage() {
   const { cache } = useSWRConfig()
   const brokenImagesRef = useRef<Set<string>>(new Set())
-
+  const [cacheKey, setCacheKey] = useState(0) // Force re-render of images
+  
   const [activeCategory, setActiveCategory] = useQueryState('category', parseAsString.withDefault('Seating'))
 
   // Clear broken images cache when category changes (images may have been fixed)
   useEffect(() => {
     brokenImagesRef.current.clear()
+    setCacheKey(k => k + 1) // Force images to re-mount
   }, [activeCategory])
 
   const { data: categoriesData } = useSWR('/api/categories', fetcher, {
@@ -618,9 +620,9 @@ const goToPreviousProduct = useCallback(() => {
               transition={{ duration: 0.2 }}
               className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6"
             >
-              {filteredProducts.map((product, index) => (
-                <MemoProductCard
-                  key={product.id}
+{filteredProducts.map((product, index) => (
+  <MemoProductCard
+  key={`${product.id}-${cacheKey}`}
                   product={product}
                   imageUrl={getImageUrl(product)}
                   onImageError={handleImageError}
