@@ -1,21 +1,6 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase/admin'
 
-// Supabase Storage bucket for inventory images
-const STORAGE_BUCKET = 'inventory'
-
-// Inventory CSV data - embedded from the provided file
-const INVENTORY_DATA = [
-  { id: "3146", name: "Amisa Midnight Bar", stock: 2, category: "bars", dims: '92"W x 24"D x 41"H', image: "AMISA_Blue_Bar.png" },
-  { id: "2816", name: "Arcus Bevin 12' Slatted Bar", stock: 2, category: "bars", dims: '12\'W x 26"D x 43.5"H', image: "ARCUS_-_BEVIN.png" },
-  { id: "2813", name: "Arcus Calvin 12' Smooth Bar", stock: 2, category: "bars", dims: '12\'W x 26"D x 43.5"H', image: "ARCUS_-_CALVIN_1.png" },
-  { id: "2814", name: "Arcus Levar 12' Black Tambour Bar", stock: 2, category: "bars", dims: '12\'W x 26"D x 43.5"H', image: "Levar_Black_Tambour.png" },
-  { id: "3910", name: "Arcus Oben 12' Black Slat Tambour Bar", stock: 2, category: "bars", dims: '12\'W x 26"D x 43.5"H', image: "" },
-  // ... This would contain all 827 products
-] as const
-
-// For the actual implementation, we'll parse the CSV dynamically
-
 function slugify(text: string): string {
   return text
     .toLowerCase()
@@ -43,16 +28,13 @@ function mapCategory(productGroup: string): string {
     'storage': 'storage',
     'styling': 'styling',
     'furs-and-pelts': 'furs-and-pelts',
+    'throws': 'throws',
   }
   return map[raw] || 'styling'
 }
 
 export async function POST(request: NextRequest) {
   const supabase = createAdminClient()
-  
-  // Get the Supabase URL for storage
-  const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://txmgpxvbtljfgswizhoz.supabase.co'
-  const storageBaseUrl = `${supabaseUrl}/storage/v1/object/public/${STORAGE_BUCKET}`
   
   try {
     const body = await request.json().catch(() => ({}))
@@ -117,7 +99,8 @@ export async function POST(request: NextRequest) {
       
       const category = mapCategory(productGroup)
       const slug = slugify(name)
-      const imageUrl = imageFilename ? `${storageBaseUrl}/${encodeURIComponent(imageFilename)}` : null
+      // Store as relative path - the app constructs full Supabase URL when displaying
+      const imageUrl = imageFilename ? `inventory/${imageFilename}` : null
       
       try {
         // Check if product exists
