@@ -130,9 +130,39 @@ export async function POST(request: NextRequest) {
   const body = await request.json().catch(() => ({}))
   const urls: string[] = body.urls || [
     'https://www.eclectichive.com/inventory',
+    'https://www.eclectichive.com/inventory/lounge-seating',
+    'https://www.eclectichive.com/inventory/accent-seating',
+    'https://www.eclectichive.com/inventory/benches-stools',
+    'https://www.eclectichive.com/inventory/barstools',
+    'https://www.eclectichive.com/inventory/coffee-tables',
+    'https://www.eclectichive.com/inventory/side-tables',
+    'https://www.eclectichive.com/inventory/consoles',
+    'https://www.eclectichive.com/inventory/bars',
+    'https://www.eclectichive.com/inventory/display-tables',
+    'https://www.eclectichive.com/inventory/dining-tables',
+    'https://www.eclectichive.com/inventory/linens',
+    'https://www.eclectichive.com/inventory/lighting',
+    'https://www.eclectichive.com/inventory/floor-lamps',
+    'https://www.eclectichive.com/inventory/table-lamps',
+    'https://www.eclectichive.com/inventory/chandeliers',
+    'https://www.eclectichive.com/inventory/pendants',
+    'https://www.eclectichive.com/inventory/mirrors',
+    'https://www.eclectichive.com/inventory/rugs',
+    'https://www.eclectichive.com/inventory/pillows',
+    'https://www.eclectichive.com/inventory/furs-pelts',
+    'https://www.eclectichive.com/inventory/dividers-backdrops',
+    'https://www.eclectichive.com/inventory/arches',
+    'https://www.eclectichive.com/inventory/candlelight',
+    'https://www.eclectichive.com/inventory/floral-vessels',
+    'https://www.eclectichive.com/inventory/serveware',
+    'https://www.eclectichive.com/inventory/tableware',
+    'https://www.eclectichive.com/inventory/flatware',
+    'https://www.eclectichive.com/inventory/glassware',
+    'https://www.eclectichive.com/inventory/styling',
+    'https://www.eclectichive.com/inventory/storage',
   ]
   
-  const limit = body.limit || 20 // Limit per run to avoid timeouts
+  const limit = body.limit || 50 // Limit per run to avoid timeouts
   
   // Get products from database that need images
   const { data: dbProducts, error: dbError } = await supabase
