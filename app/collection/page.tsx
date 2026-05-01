@@ -182,20 +182,23 @@ const ProductCard = ({
             <div className="absolute inset-0 bg-gradient-to-r from-transparent via-neutral-100/60 to-transparent -translate-x-full animate-[shimmer_1.5s_infinite]" />
           </div>
         )}
-        <img
-          src={imageUrl}
-          alt={product.name}
-          className={cn(
-            'w-full h-full object-contain transition-all duration-500',
-            loaded ? 'opacity-100' : 'opacity-0',
-            isHovered ? 'scale-[1.03]' : 'scale-100'
-          )}
-          loading={isAboveFold ? 'eager' : 'lazy'}
-          decoding={isAboveFold ? 'sync' : 'async'}
-          fetchPriority={index < 3 ? 'high' : 'auto'}
-          onLoad={() => setLoaded(true)}
-          onError={handleError}
-        />
+        <div className="w-full h-full bg-white flex items-center justify-center">
+          <img
+            src={imageUrl}
+            alt={product.name}
+            className={cn(
+              'max-w-full max-h-full object-contain transition-all duration-500',
+              loaded ? 'opacity-100' : 'opacity-0',
+              isHovered ? 'scale-[1.03]' : 'scale-100'
+            )}
+            style={{ mixBlendMode: 'multiply' }}
+            loading={isAboveFold ? 'eager' : 'lazy'}
+            decoding={isAboveFold ? 'sync' : 'async'}
+            fetchPriority={index < 3 ? 'high' : 'auto'}
+            onLoad={() => setLoaded(true)}
+            onError={handleError}
+          />
+        </div>
       </div>
 
       {/* Clip-path reveal on hover */}
