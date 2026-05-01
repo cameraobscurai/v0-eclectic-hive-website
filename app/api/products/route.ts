@@ -68,9 +68,9 @@ export async function GET(request: NextRequest) {
     query = query.not('primary_image_url', 'is', null)
   }
   
-  // Filter: category
+  // Filter: category (case-insensitive to handle mixed-case data)
   if (category && category !== 'All') {
-    query = query.eq('category', category)
+    query = query.ilike('category', category)
   }
   
   // Filter: search (with escaped wildcards to prevent injection)

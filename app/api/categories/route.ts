@@ -37,23 +37,47 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: prodError.message }, { status: 500 })
     }
     
-    // Deduplicate and count
-    const allCategories = new Set<string>()
+    // Normalize category names to canonical form (handles mixed-case data)
+    const normalizeCategory = (cat: string): string => {
+      const lower = cat.toLowerCase().trim()
+      const canonicalMap: Record<string, string> = {
+        'seating': 'Seating',
+        'tables': 'Tables',
+        'bars': 'Bars',
+        'lighting': 'Lighting',
+        'chandeliers': 'Chandeliers',
+        'pillows': 'Pillows',
+        'rugs': 'Rugs',
+        'styling': 'Styling',
+        'storage': 'Storage',
+        'candlelight': 'Candlelight',
+        'serveware': 'Serveware',
+        'tableware': 'Tableware',
+        'large decor & dividers': 'Large Decor & Dividers',
+        'large-decor': 'Large Decor & Dividers',
+        'furs & pelts': 'Furs & Pelts',
+        'furs-and-pelts': 'Furs & Pelts',
+        'subrentals': 'Subrentals',
+      }
+      return canonicalMap[lower] || cat
+    }
+
+    // Deduplicate and count (normalize to canonical names)
     const counts: Record<string, number> = {}
     
     if (productCategories) {
       productCategories.forEach(p => {
         if (p.category) {
-          allCategories.add(p.category)
+          const normalized = normalizeCategory(p.category)
           // Only count products with images
-          if (withCounts && p.primary_image_url) {
-            counts[p.category] = (counts[p.category] || 0) + 1
+          if (p.primary_image_url) {
+            counts[normalized] = (counts[normalized] || 0) + 1
           }
         }
       })
     }
     
-    const categoryList = Array.from(allCategories)
+    const categoryList = Object.keys(counts)
     
     // Cache for 5 minutes - categories rarely change
     return NextResponse.json(
