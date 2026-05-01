@@ -19,7 +19,7 @@ const SCRAPER_USER_AGENTS = [
   'go-http-client',
 ]
 
-const PUBLIC_API_ROUTES = ['/api/products', '/api/categories', '/api/import-inventory-csv', '/api/fix-image-urls']
+const PUBLIC_API_ROUTES = ['/api/products', '/api/categories', '/api/import-inventory-csv', '/api/fix-image-urls', '/api/match-images']
 
 function isScraperUserAgent(userAgent: string | null): boolean {
   if (!userAgent) return false
