@@ -115,12 +115,10 @@ function detectSubCategory(name: string): string {
 
 // ─── Animation Philosophy ─────────────────────────────────────────────────────
 //
-// CALM over CLEVER: Instead of animating 50+ cards individually (chaos),
-// we crossfade the entire grid as a single unit.
-//
-// - Grid fades out (150ms) → new content fades in (200ms)
-// - No stagger, no FLIP, no individual card animations
-// - Result: peaceful, editorial feel regardless of item count
+// CALM over CLEVER: Subtle, editorial animations that enhance without overwhelming.
+// - Grid crossfades as a unit on filter changes (no per-card chaos)
+// - Individual cards have gentle hover lift + image scale
+// - Stagger is minimal and only on initial load
 
 // ─── ProductCard ──────────────────────────────────────────────────────────────
 
@@ -155,11 +153,28 @@ const ProductCard = ({
   const isAboveFold = index < 6
 
   return (
-    <button
+    <motion.button
       onClick={onClick}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       className="group relative cursor-pointer border-r border-b border-charcoal/5 text-left w-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-charcoal/20"
+      initial={{ opacity: 0, y: 8 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ 
+        duration: 0.4, 
+        delay: Math.min(index * 0.02, 0.3), // Subtle stagger, max 300ms
+        ease: [0.25, 0.1, 0.25, 1] 
+      }}
+      whileHover={{ 
+        y: -2,
+        transition: { duration: 0.2, ease: 'easeOut' }
+      }}
+      style={{
+        boxShadow: isHovered 
+          ? '0 8px 24px -8px rgba(0,0,0,0.12)' 
+          : '0 0 0 0 transparent',
+        transition: 'box-shadow 0.3s ease',
+      }}
     >
       <div className="aspect-square bg-white p-4 lg:p-6 relative overflow-hidden">
         {!loaded && (
@@ -171,8 +186,9 @@ const ProductCard = ({
           src={imageUrl}
           alt={product.name}
           className={cn(
-            'w-full h-full object-contain transition-opacity duration-300',
-            loaded ? 'opacity-100' : 'opacity-0'
+            'w-full h-full object-contain transition-all duration-500',
+            loaded ? 'opacity-100' : 'opacity-0',
+            isHovered ? 'scale-[1.03]' : 'scale-100'
           )}
           loading={isAboveFold ? 'eager' : 'lazy'}
           decoding={isAboveFold ? 'sync' : 'async'}
@@ -199,7 +215,7 @@ const ProductCard = ({
           </p>
         </div>
       </div>
-    </button>
+    </motion.button>
   )
 }
 
@@ -442,22 +458,31 @@ const goToPreviousProduct = useCallback(() => {
                 const count = sub === 'All'
                   ? productsWithSubCategory.length
                   : productsWithSubCategory.filter(p => p._subCategory === sub).length
+                const isActive = activeSubCategory === sub
 
                 return (
                   <button
                     key={sub}
                     onClick={() => setActiveSubCategory(sub)}
-                    className={cn(
-                      'relative flex-shrink-0 px-3 py-2.5 min-h-[44px] text-[10px] tracking-[0.1em] uppercase whitespace-nowrap transition-all duration-200 rounded-full flex items-center gap-1.5 touch-manipulation',
-                      activeSubCategory === sub
-                        ? 'bg-charcoal text-cream'
-                        : 'text-charcoal/50 hover:text-charcoal/80 hover:bg-charcoal/5'
-                    )}
+                    className="relative flex-shrink-0 px-3 py-2.5 min-h-[44px] text-[10px] tracking-[0.1em] uppercase whitespace-nowrap rounded-full flex items-center gap-1.5 touch-manipulation"
                   >
-                    {sub}
+                    {/* Animated background pill */}
+                    {isActive && (
+                      <motion.div
+                        layoutId="activeSubCategory"
+                        className="absolute inset-0 bg-charcoal rounded-full"
+                        transition={{ type: 'spring', stiffness: 400, damping: 30 }}
+                      />
+                    )}
                     <span className={cn(
-                      'text-[9px] tabular-nums',
-                      activeSubCategory === sub ? 'text-cream/70' : 'text-charcoal/30'
+                      'relative z-10 transition-colors duration-200',
+                      isActive ? 'text-cream' : 'text-charcoal/50 hover:text-charcoal/80'
+                    )}>
+                      {sub}
+                    </span>
+                    <span className={cn(
+                      'relative z-10 text-[9px] tabular-nums transition-colors duration-200',
+                      isActive ? 'text-cream/70' : 'text-charcoal/30'
                     )}>
                       {count}
                     </span>
@@ -563,11 +588,19 @@ const goToPreviousProduct = useCallback(() => {
         {isLoading ? (
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6">
             {Array.from({ length: 24 }).map((_, i) => (
-              <div key={i} className="border-r border-b border-charcoal/5 relative overflow-hidden">
-                <div className="aspect-square bg-white">
-                  <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-neutral-100/60 to-transparent" />
+              <motion.div 
+                key={i} 
+                className="border-r border-b border-charcoal/5 relative overflow-hidden"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ duration: 0.3, delay: i * 0.02 }}
+              >
+                <div className="aspect-square bg-white p-4 lg:p-6">
+                  <div className="relative w-full h-full rounded-sm overflow-hidden bg-neutral-50">
+                    <div className="absolute inset-0 -translate-x-full animate-[shimmer_1.5s_infinite] bg-gradient-to-r from-transparent via-neutral-100/80 to-transparent" />
+                  </div>
                 </div>
-              </div>
+              </motion.div>
             ))}
           </div>
         ) : filteredProducts.length > 0 ? (
@@ -594,15 +627,30 @@ const goToPreviousProduct = useCallback(() => {
             </motion.div>
           </AnimatePresence>
         ) : (
-          <div className="py-20 text-center">
-            <p className="text-sm text-charcoal/40 mb-2">No pieces found.</p>
-            <p className="text-xs text-charcoal/30 mb-4">
+          <motion.div 
+            className="py-20 text-center"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.4, ease: [0.25, 0.1, 0.25, 1] }}
+          >
+            <div className="w-16 h-16 mx-auto mb-6 rounded-full bg-neutral-50 flex items-center justify-center">
+              <svg className="w-6 h-6 text-charcoal/20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+              </svg>
+            </div>
+            <p className="text-sm text-charcoal/50 mb-2">No pieces found</p>
+            <p className="text-xs text-charcoal/30 mb-6">
               {debouncedSearch ? `No results for "${debouncedSearch}"` : 'Try adjusting your filters'}
             </p>
-            <button onClick={resetFilters} className="text-xs uppercase tracking-[0.12em] text-charcoal/60 hover:text-charcoal underline underline-offset-4">
+            <motion.button 
+              onClick={resetFilters} 
+              className="text-xs uppercase tracking-[0.12em] text-charcoal/60 hover:text-charcoal px-4 py-2 rounded-full border border-charcoal/15 hover:border-charcoal/30 transition-colors"
+              whileHover={{ scale: 1.02 }}
+              whileTap={{ scale: 0.98 }}
+            >
               Reset all filters
-            </button>
-          </div>
+            </motion.button>
+          </motion.div>
         )}
       </section>
 
