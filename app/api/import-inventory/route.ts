@@ -103,13 +103,15 @@ function parseCSVRow(row: string): string[] {
 }
 
 export async function POST(request: NextRequest) {
-  const supabase = await createClient()
+  // Secret key protection - check header or query param
+  const authHeader = request.headers.get('x-import-key')
+  const expectedKey = process.env.IMPORT_SECRET_KEY
   
-  // TODO: Re-enable auth after setting up admin account
-  // const { data: { user } } = await supabase.auth.getUser()
-  // if (!user) {
-  //   return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  // }
+  if (!expectedKey || authHeader !== expectedKey) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+  
+  const supabase = await createClient()
   
   try {
     const formData = await request.formData()

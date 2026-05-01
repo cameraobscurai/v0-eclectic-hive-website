@@ -17,9 +17,9 @@ export async function GET() {
 
     // Get all storage files
     const folders = [
-      '68 BARS', '68 CANDELIGHT', '68 FURS  + PELTS', '68 LARGE DECOR',
-      '68 LIGHTING', '68 PILLOWS', '68 RUGS', '68 SEATING', '68 SERVEWARE',
-      '68 STORAGE', '68 STYLING', '68 TABLES', '68 TABLEWARE', '68 THROWS'
+      'BARS', 'CANDLELIGHT', 'FURS + PELTS', 'LARGE DECOR',
+      'LIGHTING', 'PILLOWS', 'RUGS', 'SEATING', 'SERVEWARE',
+      'STORAGE', 'STYLING', 'TABLES', 'TABLEWARE', 'THROWS'
     ]
     
     const storageFiles: { folder: string; name: string }[] = []

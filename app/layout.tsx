@@ -148,9 +148,9 @@ export default function RootLayout({
   return (
     <html lang="en" className={`${inter.variable} bg-charcoal`} suppressHydrationWarning>
       <head>
-        {/* Preconnect to Vercel Blob for faster first image load */}
-        <link rel="preconnect" href="https://hebbkx1anhila5yf.public.blob.vercel-storage.com" />
-        <link rel="dns-prefetch" href="https://hebbkx1anhila5yf.public.blob.vercel-storage.com" />
+        {/* Preconnect to Supabase Storage for faster image load */}
+        <link rel="preconnect" href="https://txmgpxvbtljfgswizhoz.supabase.co" />
+        <link rel="dns-prefetch" href="https://txmgpxvbtljfgswizhoz.supabase.co" />
         
         {/* Preload brand fonts to eliminate FOUT - highest priority */}
         <link
