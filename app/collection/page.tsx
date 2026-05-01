@@ -333,19 +333,6 @@ const getImageUrl = useCallback(
   const filteredProducts = useMemo(() => {
     if (!activeCategory) return []
 
-    // Debug: log filtering stats
-    const withImage = productsWithSubCategory.filter(p => p.primary_image_url)
-    const notHidden = withImage.filter(p => !hiddenProducts.has(p.id))
-    const notBroken = notHidden.filter(p => !brokenImagesRef.current?.has(getImageUrl(p)))
-    console.log('[v0] Filter stats:', {
-      total: productsWithSubCategory.length,
-      withImage: withImage.length,
-      notHidden: notHidden.length,
-      notBroken: notBroken.length,
-      brokenCount: brokenImagesRef.current?.size,
-      hiddenCount: hiddenProducts.size,
-    })
-
     let results = productsWithSubCategory.filter(p =>
       p.primary_image_url &&
       !hiddenProducts.has(p.id) &&
@@ -424,7 +411,7 @@ const goToPreviousProduct = useCallback(() => {
     setActiveSubCategory('All')
   }, [activeCategory])
 
-  // ── Render ─────────────────────────────────────────────────────────────────
+  // ── Render ──────────────────────────────────────���──────────────────────────
 
   return (
     <main id="main-content" className="min-h-screen bg-white pt-[72px] lg:pt-[88px]">
