@@ -191,10 +191,7 @@ const ProductCard = ({
               loaded ? 'opacity-100' : 'opacity-0',
               isHovered ? 'scale-[1.03]' : 'scale-100'
             )}
-            style={{ 
-              filter: 'brightness(1.12) contrast(1.05) saturate(1.08)',
-              backgroundColor: 'white',
-            }}
+            
             loading={isAboveFold ? 'eager' : 'lazy'}
             decoding={isAboveFold ? 'sync' : 'async'}
             fetchPriority={index < 3 ? 'high' : 'auto'}
@@ -423,7 +420,7 @@ const goToPreviousProduct = useCallback(() => {
     <main id="main-content" className="min-h-screen bg-white pt-[72px] lg:pt-[88px]">
       <Navigation />
 
-      {/* ── Filter Header ──────────────────���──────────────────────────────── */}
+      {/* ── Filter Header ────────────��─────���──────────────────────────────── */}
       <section className="sticky top-0 z-40 bg-white">
 
         {/* Row 1 — Main categories */}
