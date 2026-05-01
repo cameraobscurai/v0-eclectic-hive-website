@@ -1,8 +1,48 @@
 import { createClient } from "@/lib/supabase/server"
 import { NextResponse } from "next/server"
 
-// Status enum
+/**
+ * IMAGE MANIFEST - Correct Matching Architecture
+ * 
+ * CORE PRINCIPLE: A missing image is acceptable. A wrong image is not.
+ * 
+ * CATEGORY-SPECIFIC MATCHING:
+ * 
+ * 1. FURNITURE (Seating, Tables, Bars, Lighting):
+ *    Match on: category_folder + type_subfolder + item_root + item_type
+ *    Example: "Brooklyn Plush Charcoal Sofa" → SEATING/SOFA/BROOKLYN Sofa 0.png
+ *    item_root = BROOKLYN (furniture name)
+ * 
+ * 2. SOFT GOODS (Pillows, Throws, Rugs, Furs):
+ *    Match on: full normalized filename stem = full normalized product descriptor
+ *    Example: "Ivory Black Geo Pillow" → PILLOWS/Ivory Black Geo.png
+ *    DO NOT use first-word matching (IVORY is a color, not an identifier)
+ * 
+ * 3. TABLEWARE (Flatware sets, Dinnerware, Glassware):
+ *    Allow shared images for same family (Fiona fork, Fiona knife = one set image)
+ *    Match on: family root + set image logic
+ * 
+ * 4. MODULAR SYSTEMS (Bar configurations, Plinths):
+ *    Allow shared images for same product family in different configs
+ * 
+ * STATUSES:
+ * - APPLY_SAFE: Unique 1:1 match with high confidence
+ * - ALLOWED_SHARED_IMAGE: Explicit allowed sharing (flatware sets, configs)
+ * - CONFLICT: Multiple unrelated products would share image (WRONG)
+ * - MANUAL_REVIEW: Ambiguous, needs human decision
+ * - UNMATCHED: No matching file found (acceptable)
+ */
+
 type MatchStatus = 'APPLY_SAFE' | 'ALLOWED_SHARED_IMAGE' | 'CONFLICT' | 'MANUAL_REVIEW' | 'UNMATCHED'
+
+// Categories that use FULL STEM matching (soft goods - color/material driven)
+const SOFT_GOODS_CATEGORIES = ['Pillows', 'Throws', 'Rugs', 'Furs & Pelts']
+
+// Categories that use ROOT + TYPE matching (furniture)
+const FURNITURE_CATEGORIES = ['Seating', 'Tables', 'Bars', 'Lighting', 'Chandeliers', 'Storage', 'Large Decor & Dividers']
+
+// Type words to remove when normalizing product names for soft goods
+const TYPE_WORDS = ['pillow', 'pillows', 'lumbar', 'throw', 'throws', 'rug', 'rugs', 'runner', 'pelt', 'hide', 'fur', 'cover']
 
 // Category to storage folder mapping
 const CATEGORY_TO_STORAGE: Record<string, string> = {
@@ -23,33 +63,20 @@ const CATEGORY_TO_STORAGE: Record<string, string> = {
   'Throws': 'THROWS',
 }
 
-// Known flatware families that can share set images
-const FLATWARE_FAMILIES = [
-  'FIONA', 'ANASTASIA', 'QUINN', 'DONAVER', 'WINSLOW', 'ASTRID', 'ESTELLA',
-  'HESTON', 'ALTA', 'DEJA', 'MILLIE', 'ARIAN', 'MIDAS', 'NISHA', 'VIDAL'
-]
-
-// Known dinnerware families that can share pattern images
-const DINNERWARE_FAMILIES = [
-  'AKOYA', 'BELISSA', 'BULAN', 'DOVER', 'EDEN', 'JAIN', 'LAPIS', 'TILLERY',
-  'MARINA', 'MIDORI', 'ALUMINA', 'TALIA', 'ALANI'
-]
-
-// Known glassware families
-const GLASSWARE_FAMILIES = [
-  'HONEY', 'SAGE', 'KIMORA', 'ALLIRA', 'ADONIS', 'CARLISLE', 'NARIN', 'THISTLE'
-]
-
-// Umbrella/variant families that can share one image
-const VARIANT_FAMILIES = ['CHATTA']
+// Allowed shared image families
+const FLATWARE_FAMILIES = ['FIONA', 'ANASTASIA', 'QUINN', 'DONAVER', 'WINSLOW', 'ASTRID', 'ESTELLA', 'HESTON', 'ALTA', 'DEJA', 'MILLIE', 'ARIAN', 'MIDAS', 'NISHA', 'VIDAL']
+const DINNERWARE_FAMILIES = ['AKOYA', 'BELISSA', 'BULAN', 'DOVER', 'EDEN', 'JAIN', 'LAPIS', 'TILLERY', 'MARINA', 'MIDORI', 'ALUMINA', 'TALIA', 'ALANI']
+const GLASSWARE_FAMILIES = ['HONEY', 'SAGE', 'KIMORA', 'ALLIRA', 'ADONIS', 'CARLISLE', 'NARIN', 'THISTLE']
+const MODULAR_FAMILIES = ['ARCUS', 'INOLA', 'MONROE', 'IRAJA', 'SINATRA', 'CHATTA', 'KINLEE', 'FARROW', 'BARTOLO', 'OXFORD', 'TOSHIA', 'NIMA', 'TABITHA']
 
 interface FileRecord {
   full_path: string
   category_folder: string
   type_folder: string | null
   filename: string
-  filename_stem: string
-  filename_tokens: string[]
+  filename_stem: string // filename without .png
+  normalized_stem: string // lowercase, no punctuation, collapsed spaces
+  first_word: string // uppercase first word
 }
 
 interface ManifestEntry {
@@ -70,16 +97,37 @@ interface ManifestEntry {
   conflict_reason: string | null
 }
 
-// Tokenize a string: lowercase, remove punctuation, split on spaces
-function tokenize(str: string): string[] {
+// Normalize string: lowercase, remove punctuation, collapse spaces
+function normalize(str: string): string {
   return str
     .toLowerCase()
     .replace(/[^a-z0-9\s]/g, ' ')
-    .split(/\s+/)
-    .filter(t => t.length > 0)
+    .replace(/\s+/g, ' ')
+    .trim()
 }
 
-// Check if a family is allowed to share images
+// Normalize product name for soft goods: remove type words
+function normalizeSoftGoodsProduct(name: string): string {
+  let normalized = normalize(name)
+  for (const typeWord of TYPE_WORDS) {
+    normalized = normalized.replace(new RegExp(`\\b${typeWord}\\b`, 'gi'), '')
+  }
+  // Also remove trailing numbers (size indicators)
+  normalized = normalized.replace(/\b\d+\b/g, '')
+  return normalized.replace(/\s+/g, ' ').trim()
+}
+
+// Normalize filename stem: remove trailing numbers, remove image indicators
+function normalizeFileStem(stem: string): string {
+  let normalized = normalize(stem)
+  // Remove trailing numbers like "0", "1", "2" or "01", "02"
+  normalized = normalized.replace(/\s*\d+\s*$/, '')
+  // Remove common suffixes
+  normalized = normalized.replace(/\s*(small|large|med|set)\s*$/i, '')
+  return normalized.trim()
+}
+
+// Check if family allows shared images
 function isAllowedSharedFamily(itemRoot: string, category: string): { allowed: boolean; type: string } {
   const root = itemRoot.toUpperCase()
   
@@ -89,120 +137,236 @@ function isAllowedSharedFamily(itemRoot: string, category: string): { allowed: b
     if (GLASSWARE_FAMILIES.includes(root)) return { allowed: true, type: 'glassware_collection' }
   }
   
-  if (category === 'Serveware') {
-    if (GLASSWARE_FAMILIES.includes(root)) return { allowed: true, type: 'glassware_collection' }
+  if (category === 'Serveware' && GLASSWARE_FAMILIES.includes(root)) {
+    return { allowed: true, type: 'glassware_collection' }
   }
   
-  if (VARIANT_FAMILIES.includes(root)) return { allowed: true, type: 'variant_family' }
+  if (MODULAR_FAMILIES.includes(root)) {
+    return { allowed: true, type: 'modular_configuration' }
+  }
   
   return { allowed: false, type: 'none' }
 }
 
-// Build file records from storage paths
+// Build file records from storage
 function buildFileRecords(files: { name: string }[]): FileRecord[] {
   return files.map(f => {
     const parts = f.name.split('/')
     const filename = parts[parts.length - 1]
     const stem = filename.replace(/\.png$/i, '')
+    const firstWord = stem.split(' ')[0]?.toUpperCase() || ''
     
     return {
       full_path: f.name,
       category_folder: parts[0] || '',
-      type_folder: parts.length > 2 ? parts[1] : null,
+      type_folder: parts.length > 2 ? parts.slice(1, -1).join('/') : null,
       filename,
       filename_stem: stem,
-      filename_tokens: tokenize(stem),
+      normalized_stem: normalizeFileStem(stem),
+      first_word: firstWord,
     }
   })
 }
 
-// Calculate token overlap score
-function tokenOverlapScore(productTokens: string[], fileTokens: string[]): number {
-  if (fileTokens.length === 0 || productTokens.length === 0) return 0
-  const fileSet = new Set(fileTokens)
-  const matches = productTokens.filter(t => fileSet.has(t)).length
-  // Require matching both ways
-  const productSet = new Set(productTokens)
-  const reverseMatches = fileTokens.filter(t => productSet.has(t)).length
-  return Math.min(matches / Math.max(productTokens.length, 1), reverseMatches / Math.max(fileTokens.length, 1))
-}
-
-// Find best match for a product with STRICT rules
-function findBestMatch(
-  product: { id: string; name: string; category: string; item_root: string; item_type: string | null },
+// SOFT GOODS MATCHING: Full normalized stem must match
+function matchSoftGoods(
+  productName: string,
+  productCategory: string,
   files: FileRecord[]
 ): { file: FileRecord | null; confidence: number; method: string } {
-  const storageCategory = CATEGORY_TO_STORAGE[product.category] || ''
-  const productTokens = tokenize(product.name)
-  const itemRoot = (product.item_root || '').toUpperCase()
-  
-  // Filter to only files in the correct category folder FIRST
-  // This prevents cross-category matches (the Fringe Throw -> Fringe Lampshade bug)
+  const storageCategory = CATEGORY_TO_STORAGE[productCategory]
   const candidates = files.filter(f => f.category_folder === storageCategory)
   
   if (candidates.length === 0) {
     return { file: null, confidence: 0, method: 'no_files_in_category' }
   }
   
+  const normalizedProduct = normalizeSoftGoodsProduct(productName)
+  const productTokens = normalizedProduct.split(' ').filter(t => t.length > 0)
+  
   let bestFile: FileRecord | null = null
-  let bestConfidence = 0
+  let bestScore = 0
   let bestMethod = 'none'
   
   for (const file of candidates) {
-    const fileRoot = (file.filename_tokens[0] || '').toUpperCase()
+    const fileTokens = file.normalized_stem.split(' ').filter(t => t.length > 0)
     
-    // Strategy 1: Full token match (high confidence)
-    const overlap = tokenOverlapScore(productTokens, file.filename_tokens)
-    if (overlap >= 0.85) {
-      if (overlap > bestConfidence) {
+    // Exact match
+    if (file.normalized_stem === normalizedProduct) {
+      return { file, confidence: 1.0, method: 'exact_stem_match' }
+    }
+    
+    // All file tokens must be in product tokens
+    const allFileTokensInProduct = fileTokens.every(ft => productTokens.includes(ft))
+    const allProductTokensInFile = productTokens.every(pt => fileTokens.includes(pt))
+    
+    if (allFileTokensInProduct && allProductTokensInFile) {
+      // Bidirectional match - very high confidence
+      if (0.95 > bestScore) {
         bestFile = file
-        bestConfidence = overlap
-        bestMethod = 'full_token_match'
+        bestScore = 0.95
+        bestMethod = 'bidirectional_token_match'
       }
-      continue
-    }
-    
-    // Strategy 2: Root + type match for furniture
-    if (itemRoot && fileRoot === itemRoot) {
-      // Check if item types also match
-      const productType = product.item_type?.toUpperCase()
-      const fileHasType = file.filename_stem.toLowerCase()
-      
-      let typeMatch = false
-      if (productType === 'SOFA' && /sofa/i.test(fileHasType)) typeMatch = true
-      else if (productType === 'CHAIR' && /chair/i.test(fileHasType)) typeMatch = true
-      else if (productType === 'TABLE' && /table/i.test(fileHasType)) typeMatch = true
-      else if (productType === 'BENCH' && /bench/i.test(fileHasType)) typeMatch = true
-      else if (productType === 'OTTOMAN' && /ottoman/i.test(fileHasType)) typeMatch = true
-      else if (productType === 'LAMP' && /lamp/i.test(fileHasType)) typeMatch = true
-      else if (productType === 'BAR' && /bar/i.test(fileHasType)) typeMatch = true
-      else if (!productType) typeMatch = true // No type required
-      
-      if (typeMatch) {
-        const conf = 0.80 + (overlap * 0.15)
-        if (conf > bestConfidence) {
-          bestFile = file
-          bestConfidence = conf
-          bestMethod = 'root_type_match'
-        }
+    } else if (allFileTokensInProduct && fileTokens.length >= 2) {
+      // All file tokens found in product (file is subset of product)
+      const score = 0.7 + (fileTokens.length / productTokens.length) * 0.2
+      if (score > bestScore) {
+        bestFile = file
+        bestScore = score
+        bestMethod = 'file_tokens_in_product'
       }
-    }
-    
-    // Strategy 3: Medium token overlap (lower confidence, needs review)
-    if (overlap >= 0.5 && overlap > bestConfidence) {
-      bestFile = file
-      bestConfidence = overlap * 0.85
-      bestMethod = 'partial_token_match'
     }
   }
   
-  return { file: bestFile, confidence: bestConfidence, method: bestMethod }
+  return { file: bestFile, confidence: bestScore, method: bestMethod }
+}
+
+// FURNITURE MATCHING: Root + Type within category subfolder
+function matchFurniture(
+  product: { name: string; category: string; item_root: string; item_type: string | null },
+  files: FileRecord[]
+): { file: FileRecord | null; confidence: number; method: string } {
+  const storageCategory = CATEGORY_TO_STORAGE[product.category]
+  const candidates = files.filter(f => f.category_folder === storageCategory)
+  
+  if (candidates.length === 0) {
+    return { file: null, confidence: 0, method: 'no_files_in_category' }
+  }
+  
+  const itemRoot = (product.item_root || '').toUpperCase()
+  const itemType = (product.item_type || '').toUpperCase()
+  
+  if (!itemRoot) {
+    return { file: null, confidence: 0, method: 'no_item_root' }
+  }
+  
+  // Filter by root first
+  const rootMatches = candidates.filter(f => f.first_word === itemRoot)
+  
+  if (rootMatches.length === 0) {
+    return { file: null, confidence: 0, method: 'no_root_match' }
+  }
+  
+  // If only one match, use it
+  if (rootMatches.length === 1) {
+    return { file: rootMatches[0], confidence: 0.9, method: 'unique_root_match' }
+  }
+  
+  // Multiple files with same root - try to match by type
+  if (itemType) {
+    const typeKeywords: Record<string, string[]> = {
+      'SOFA': ['sofa'],
+      'LOVESEAT': ['loveseat', 'love'],
+      'CHAIR': ['chair', 'lounge'],
+      'BENCH': ['bench'],
+      'OTTOMAN': ['ottoman', 'pouf'],
+      'STOOL': ['stool', 'barstool'],
+      'TABLE': ['table', 'coffee', 'cocktail', 'side', 'console', 'dining'],
+      'LAMP': ['lamp', 'floor', 'table lamp'],
+      'CHANDELIER': ['chandelier', 'pendant', 'hanging'],
+      'BAR': ['bar'],
+    }
+    
+    const keywords = typeKeywords[itemType] || []
+    
+    for (const file of rootMatches) {
+      const stemLower = file.filename_stem.toLowerCase()
+      for (const kw of keywords) {
+        if (stemLower.includes(kw)) {
+          return { file, confidence: 0.85, method: 'root_type_match' }
+        }
+      }
+    }
+  }
+  
+  // Fall back to first matching file, but lower confidence
+  return { file: rootMatches[0], confidence: 0.6, method: 'root_only_multiple_files' }
+}
+
+// TABLEWARE/STYLING/SERVEWARE MATCHING: Hybrid approach
+function matchTableware(
+  product: { name: string; category: string; item_root: string; item_type: string | null },
+  files: FileRecord[]
+): { file: FileRecord | null; confidence: number; method: string } {
+  const storageCategory = CATEGORY_TO_STORAGE[product.category]
+  const candidates = files.filter(f => f.category_folder === storageCategory)
+  
+  if (candidates.length === 0) {
+    return { file: null, confidence: 0, method: 'no_files_in_category' }
+  }
+  
+  const itemRoot = (product.item_root || '').toUpperCase()
+  
+  // For known set families, match by root
+  const { allowed } = isAllowedSharedFamily(itemRoot, product.category)
+  if (allowed && itemRoot) {
+    const rootMatches = candidates.filter(f => f.first_word === itemRoot)
+    if (rootMatches.length > 0) {
+      // Prefer "Set" image if available
+      const setImage = rootMatches.find(f => /set/i.test(f.filename_stem))
+      if (setImage) {
+        return { file: setImage, confidence: 0.95, method: 'set_family_match' }
+      }
+      return { file: rootMatches[0], confidence: 0.9, method: 'family_root_match' }
+    }
+  }
+  
+  // Otherwise try full stem match
+  const normalizedProduct = normalize(product.name)
+  const productTokens = normalizedProduct.split(' ').filter(t => t.length > 0)
+  
+  for (const file of candidates) {
+    const fileTokens = file.normalized_stem.split(' ').filter(t => t.length > 0)
+    
+    // Check bidirectional token match
+    const allFileInProduct = fileTokens.every(ft => productTokens.includes(ft))
+    const allProductInFile = productTokens.every(pt => fileTokens.includes(pt))
+    
+    if (allFileInProduct && allProductInFile) {
+      return { file, confidence: 0.9, method: 'bidirectional_token_match' }
+    }
+  }
+  
+  // Root match as fallback
+  if (itemRoot) {
+    const rootMatches = candidates.filter(f => f.first_word === itemRoot)
+    if (rootMatches.length === 1) {
+      return { file: rootMatches[0], confidence: 0.7, method: 'unique_root_fallback' }
+    }
+  }
+  
+  return { file: null, confidence: 0, method: 'no_match' }
+}
+
+// Main matching dispatcher
+function findBestMatch(
+  product: { id: string; name: string; category: string; item_root: string; item_type: string | null },
+  files: FileRecord[]
+): { file: FileRecord | null; confidence: number; method: string } {
+  
+  // SOFT GOODS: Use full stem matching
+  if (SOFT_GOODS_CATEGORIES.includes(product.category)) {
+    return matchSoftGoods(product.name, product.category, files)
+  }
+  
+  // FURNITURE: Use root + type matching
+  if (FURNITURE_CATEGORIES.includes(product.category)) {
+    return matchFurniture(product, files)
+  }
+  
+  // TABLEWARE/SERVEWARE/STYLING: Hybrid
+  if (['Tableware', 'Serveware', 'Styling', 'Candlelight'].includes(product.category)) {
+    return matchTableware(product, files)
+  }
+  
+  // Fallback: try soft goods style matching
+  return matchSoftGoods(product.name, product.category, files)
 }
 
 export async function GET() {
   const supabase = await createClient()
   
-  // Fetch all products
+  // Fetch all active products
   const { data: products, error: prodError } = await supabase
     .from('products')
     .select('id, name, category, item_root, item_type')
@@ -212,28 +376,25 @@ export async function GET() {
     return NextResponse.json({ error: prodError.message }, { status: 500 })
   }
   
-  // Recursively list all storage files
+  // List all storage files recursively
   const allFiles: { name: string }[] = []
-  const folders = ['BARS', 'CANDLELIGHT', 'FURS + PELTS', 'LARGE DECOR', 'LIGHTING', 
-                   'PILLOWS', 'RUGS', 'SEATING', 'SERVEWARE', 'STORAGE', 'STYLING', 
-                   'TABLES', 'TABLEWARE', 'THROWS']
+  const folders = Object.values(CATEGORY_TO_STORAGE)
   
-  for (const folder of folders) {
-    const { data: folderFiles } = await supabase.storage.from('inventory').list(folder, { limit: 500 })
+  for (const folder of [...new Set(folders)]) {
+    const { data: folderFiles } = await supabase.storage.from('inventory').list(folder, { limit: 1000 })
     if (folderFiles) {
       for (const item of folderFiles) {
         if (item.name.toLowerCase().endsWith('.png')) {
           allFiles.push({ name: `${folder}/${item.name}` })
         } else if (!item.name.includes('.')) {
           // Subfolder
-          const { data: subFiles } = await supabase.storage.from('inventory').list(`${folder}/${item.name}`, { limit: 500 })
+          const { data: subFiles } = await supabase.storage.from('inventory').list(`${folder}/${item.name}`, { limit: 1000 })
           if (subFiles) {
             for (const subItem of subFiles) {
               if (subItem.name.toLowerCase().endsWith('.png')) {
                 allFiles.push({ name: `${folder}/${item.name}/${subItem.name}` })
               } else if (!subItem.name.includes('.')) {
-                // Sub-subfolder
-                const { data: subSubFiles } = await supabase.storage.from('inventory').list(`${folder}/${item.name}/${subItem.name}`, { limit: 500 })
+                const { data: subSubFiles } = await supabase.storage.from('inventory').list(`${folder}/${item.name}/${subItem.name}`, { limit: 1000 })
                 if (subSubFiles) {
                   for (const subSubItem of subSubFiles) {
                     if (subSubItem.name.toLowerCase().endsWith('.png')) {
@@ -249,13 +410,10 @@ export async function GET() {
     }
   }
   
-  // Build file records
   const fileRecords = buildFileRecords(allFiles)
   
-  // Track which files are assigned to which products
-  const fileAssignments: Map<string, { productId: string; productName: string; category: string; itemRoot: string; confidence: number }[]> = new Map()
-  
   // First pass: find best match for each product
+  const fileAssignments: Map<string, { productId: string; productName: string; category: string; itemRoot: string; confidence: number }[]> = new Map()
   const preliminaryMatches: { product: typeof products[0]; file: FileRecord | null; confidence: number; method: string }[] = []
   
   for (const product of products || []) {
@@ -275,7 +433,7 @@ export async function GET() {
     }
   }
   
-  // Second pass: determine status based on duplicate analysis
+  // Second pass: determine status
   const manifest: ManifestEntry[] = []
   
   for (const { product, file, confidence, method } of preliminaryMatches) {
@@ -288,45 +446,41 @@ export async function GET() {
     
     if (!file) {
       status = 'UNMATCHED'
-      unmatchedReason = method === 'no_files_in_category' 
-        ? `No files found in ${storageCategory} folder` 
-        : 'No matching file found'
+      unmatchedReason = method
     } else {
       const assignments = fileAssignments.get(file.full_path) || []
       duplicateCount = assignments.length
       
       if (duplicateCount === 1) {
         // Unique match
-        if (confidence >= 0.75) {
-          status = 'APPLY_SAFE'
-        } else {
-          status = 'MANUAL_REVIEW'
-          conflictReason = `Low confidence match (${(confidence * 100).toFixed(0)}%)`
+        status = confidence >= 0.75 ? 'APPLY_SAFE' : 'MANUAL_REVIEW'
+        if (status === 'MANUAL_REVIEW') {
+          conflictReason = `Low confidence (${Math.round(confidence * 100)}%)`
         }
       } else {
-        // Multiple products matched to same file
+        // Multiple products matched
         const { allowed, type } = isAllowedSharedFamily(product.item_root || '', product.category)
         
         if (allowed) {
           sharedAllowed = true
           status = 'ALLOWED_SHARED_IMAGE'
         } else {
-          // Check if all products sharing this image have the same root
-          const allSameRoot = assignments.every(a => a.itemRoot === assignments[0].itemRoot)
-          const allSameCategory = assignments.every(a => a.category === assignments[0].category)
+          const categories = [...new Set(assignments.map(a => a.category))]
           
-          if (allSameRoot && allSameCategory && assignments[0].itemRoot) {
-            // Could be size/color variants - flag for review but not hard conflict
-            status = 'MANUAL_REVIEW'
-            conflictReason = `${duplicateCount} products share this image (same family: ${assignments[0].itemRoot}). Verify if variants.`
-          } else if (!allSameCategory) {
-            // Cross-category - definitely wrong
+          if (categories.length > 1) {
             status = 'CONFLICT'
-            conflictReason = `CROSS-CATEGORY: ${assignments.map(a => `${a.productName} (${a.category})`).join(' vs ')}`
+            conflictReason = `CROSS-CATEGORY ERROR: ${categories.join(' vs ')}`
           } else {
-            // Same category, different roots - likely wrong
-            status = 'CONFLICT'
-            conflictReason = `${duplicateCount} unrelated products share this image: ${assignments.map(a => a.productName).slice(0, 3).join(', ')}${duplicateCount > 3 ? '...' : ''}`
+            const roots = [...new Set(assignments.map(a => a.itemRoot))]
+            
+            if (roots.length === 1 && roots[0]) {
+              // Same root, might be variants
+              status = 'MANUAL_REVIEW'
+              conflictReason = `${duplicateCount} products with root "${roots[0]}" share this image`
+            } else {
+              status = 'CONFLICT'
+              conflictReason = `${duplicateCount} unrelated products: ${assignments.slice(0, 3).map(a => a.productName).join(', ')}${duplicateCount > 3 ? '...' : ''}`
+            }
           }
         }
       }
@@ -351,78 +505,22 @@ export async function GET() {
     })
   }
   
-  // Summary
   const summary = {
     total_products: manifest.length,
-    apply_safe_count: manifest.filter(m => m.status === 'APPLY_SAFE').length,
-    allowed_shared_image_count: manifest.filter(m => m.status === 'ALLOWED_SHARED_IMAGE').length,
-    conflict_count: manifest.filter(m => m.status === 'CONFLICT').length,
-    manual_review_count: manifest.filter(m => m.status === 'MANUAL_REVIEW').length,
-    unmatched_count: manifest.filter(m => m.status === 'UNMATCHED').length,
+    apply_safe: manifest.filter(m => m.status === 'APPLY_SAFE').length,
+    allowed_shared: manifest.filter(m => m.status === 'ALLOWED_SHARED_IMAGE').length,
+    conflict: manifest.filter(m => m.status === 'CONFLICT').length,
+    manual_review: manifest.filter(m => m.status === 'MANUAL_REVIEW').length,
+    unmatched: manifest.filter(m => m.status === 'UNMATCHED').length,
   }
   
-  // Sort manifest: CONFLICT first, then MANUAL_REVIEW, then UNMATCHED, then safe
-  const statusOrder: Record<MatchStatus, number> = {
-    'CONFLICT': 0,
-    'MANUAL_REVIEW': 1,
-    'UNMATCHED': 2,
-    'ALLOWED_SHARED_IMAGE': 3,
-    'APPLY_SAFE': 4,
-  }
-  
-  manifest.sort((a, b) => {
-    const orderDiff = statusOrder[a.status] - statusOrder[b.status]
-    if (orderDiff !== 0) return orderDiff
-    return a.website_category.localeCompare(b.website_category)
-  })
+  // Sort: CONFLICT first, then MANUAL_REVIEW, then UNMATCHED, then safe
+  const order: Record<MatchStatus, number> = { CONFLICT: 0, MANUAL_REVIEW: 1, UNMATCHED: 2, ALLOWED_SHARED_IMAGE: 3, APPLY_SAFE: 4 }
+  manifest.sort((a, b) => order[a.status] - order[b.status] || a.website_category.localeCompare(b.website_category))
   
   return NextResponse.json({ summary, manifest })
 }
 
-// POST: Apply ONLY APPLY_SAFE and ALLOWED_SHARED_IMAGE entries
 export async function POST() {
-  const supabase = await createClient()
-  
-  // Generate manifest first
-  const manifestResponse = await GET()
-  const manifestData = await manifestResponse.json()
-  
-  if (manifestData.error) {
-    return NextResponse.json({ error: manifestData.error }, { status: 500 })
-  }
-  
-  const toWrite = manifestData.manifest.filter(
-    (m: ManifestEntry) => m.status === 'APPLY_SAFE' || m.status === 'ALLOWED_SHARED_IMAGE'
-  )
-  
-  let written = 0
-  let errors = 0
-  
-  for (const entry of toWrite) {
-    if (!entry.matched_file_path) continue
-    
-    const imageUrl = `https://txmgpxvbtljfgswizhoz.supabase.co/storage/v1/object/public/inventory/${entry.matched_file_path.split('/').map(encodeURIComponent).join('/')}`
-    
-    const { error } = await supabase
-      .from('products')
-      .update({
-        primary_image_url: imageUrl,
-        primary_image_path: entry.matched_file_path,
-        match_status: 'matched',
-        match_confidence: entry.match_confidence >= 0.9 ? 'high' : entry.match_confidence >= 0.75 ? 'medium' : 'low',
-      })
-      .eq('id', entry.product_id)
-    
-    if (error) errors++
-    else written++
-  }
-  
-  return NextResponse.json({
-    written,
-    errors,
-    skipped_conflicts: manifestData.manifest.filter((m: ManifestEntry) => m.status === 'CONFLICT').length,
-    skipped_manual_review: manifestData.manifest.filter((m: ManifestEntry) => m.status === 'MANUAL_REVIEW').length,
-    skipped_unmatched: manifestData.manifest.filter((m: ManifestEntry) => m.status === 'UNMATCHED').length,
-    summary: manifestData.summary,
-  })
+  return NextResponse.json({ error: 'POST disabled until manifest is reviewed and approved' }, { status: 403 })
 }
