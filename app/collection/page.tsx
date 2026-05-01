@@ -191,7 +191,10 @@ const ProductCard = ({
               loaded ? 'opacity-100' : 'opacity-0',
               isHovered ? 'scale-[1.03]' : 'scale-100'
             )}
-            style={{ mixBlendMode: 'multiply' }}
+            style={{ 
+              mixBlendMode: 'multiply',
+              filter: 'contrast(1.02) saturate(1.05)',
+            }}
             loading={isAboveFold ? 'eager' : 'lazy'}
             decoding={isAboveFold ? 'sync' : 'async'}
             fetchPriority={index < 3 ? 'high' : 'auto'}
