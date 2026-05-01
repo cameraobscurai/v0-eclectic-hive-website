@@ -10,6 +10,8 @@ function slugify(text: string): string {
     .replace(/(^-|-$)/g, '')
 }
 
+// Map Product Group to CANONICAL category keys (lowercase, stable)
+// Frontend maps these to display labels - never store display labels in DB
 function mapCategory(productGroup: string): string {
   const raw = (productGroup || '').toLowerCase().trim()
   const map: Record<string, string> = {
@@ -18,6 +20,9 @@ function mapCategory(productGroup: string): string {
     'tables': 'tables',
     'large-decor': 'large-decor',
     'large decor': 'large-decor',
+    'large decor & dividers': 'large-decor',
+    'small-decor': 'styling',
+    'small decor': 'styling',
     'lighting': 'lighting',
     'rugs': 'rugs',
     'pillows': 'pillows',
@@ -27,8 +32,12 @@ function mapCategory(productGroup: string): string {
     'serveware': 'serveware',
     'storage': 'storage',
     'styling': 'styling',
-    'furs-and-pelts': 'furs-and-pelts',
     'throws': 'throws',
+    'furs-and-pelts': 'furs-pelts',
+    'furs and pelts': 'furs-pelts',
+    'furs & pelts': 'furs-pelts',
+    'chandeliers': 'chandeliers',
+    'subrentals': 'subrentals',
   }
   return map[raw] || 'styling'
 }
