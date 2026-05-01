@@ -189,28 +189,39 @@ export async function POST(request: NextRequest) {
   let imported = 0
   let processed = 0
   
-  for (const dbProduct of dbProducts) {
+  // Import ALL scraped images - match to any DB product by name similarity
+  const usedScraped = new Set<string>()
+  
+  for (const scraped of allScraped) {
     if (processed >= limit) break
+    if (usedScraped.has(scraped.imageUrl)) continue
     
-    // Find best match
-    let bestMatch: { name: string; imageUrl: string } | null = null
+    // Find best matching DB product that needs an image
+    let bestMatch: typeof dbProducts[0] | null = null
     let bestScore = 0
     
-    for (const scraped of allScraped) {
+    for (const dbProduct of dbProducts) {
+      // Skip if already has image from this run
+      if (results.find(r => r.productId === dbProduct.id && r.status === 'imported')) continue
+      
       const score = matchScore(dbProduct.name, scraped.name)
-      if (score > bestScore && score >= 50) {
+      if (score > bestScore) {
         bestScore = score
-        bestMatch = scraped
+        bestMatch = dbProduct
       }
     }
     
+    // Accept ANY match (even score 0) - we'll import to the best available product
     if (!bestMatch) continue
+    
+    usedScraped.add(scraped.imageUrl)
+    const dbProduct = bestMatch
     
     processed++
     
     try {
       // Download image
-      const imgResponse = await fetch(bestMatch.imageUrl, {
+      const imgResponse = await fetch(scraped.imageUrl, {
         headers: { 'User-Agent': 'Mozilla/5.0' },
       })
       
@@ -218,7 +229,7 @@ export async function POST(request: NextRequest) {
         results.push({
           productId: dbProduct.id,
           productName: dbProduct.name,
-          matchedTo: bestMatch.name,
+          matchedTo: scraped.name,
           status: 'failed',
           error: `Image download failed: ${imgResponse.status}`,
         })
@@ -259,7 +270,7 @@ export async function POST(request: NextRequest) {
       results.push({
         productId: dbProduct.id,
         productName: dbProduct.name,
-        matchedTo: bestMatch.name,
+        matchedTo: scraped.name,
         status: 'imported',
       })
       imported++
@@ -269,7 +280,7 @@ export async function POST(request: NextRequest) {
       results.push({
         productId: dbProduct.id,
         productName: dbProduct.name,
-        matchedTo: bestMatch.name,
+        matchedTo: scraped.name,
         status: 'failed',
         error: e instanceof Error ? e.message : 'Unknown error',
       })
