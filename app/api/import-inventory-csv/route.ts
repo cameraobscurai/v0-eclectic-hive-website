@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from 'next/server'
-import { createClient } from '@/lib/supabase/server'
+import { createAdminClient } from '@/lib/supabase/admin'
 
 // Supabase Storage bucket for inventory images
 const STORAGE_BUCKET = 'inventory'
@@ -48,7 +48,7 @@ function mapCategory(productGroup: string): string {
 }
 
 export async function POST(request: NextRequest) {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   
   // Get the Supabase URL for storage
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://txmgpxvbtljfgswizhoz.supabase.co'
@@ -218,7 +218,7 @@ export async function POST(request: NextRequest) {
 }
 
 export async function GET() {
-  const supabase = await createClient()
+  const supabase = createAdminClient()
   
   // Get current stats
   const { count: totalProducts } = await supabase
