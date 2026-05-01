@@ -238,6 +238,11 @@ export default function CollectionPage() {
 
   const [activeCategory, setActiveCategory] = useQueryState('category', parseAsString.withDefault('Seating'))
 
+  // Clear broken images cache when category changes (images may have been fixed)
+  useEffect(() => {
+    brokenImagesRef.current.clear()
+  }, [activeCategory])
+
   const { data: categoriesData } = useSWR('/api/categories', fetcher, {
     revalidateOnFocus: false,
     revalidateOnReconnect: false,
