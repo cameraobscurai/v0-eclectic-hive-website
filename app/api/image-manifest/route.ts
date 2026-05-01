@@ -338,6 +338,16 @@ function matchTableware(
   return { file: null, confidence: 0, method: 'no_match' }
 }
 
+// Normalize CSV filename: lowercase, remove .png, replace underscores with spaces
+function normalizeCsvFilename(csvFilename: string): string {
+  return csvFilename
+    .toLowerCase()
+    .replace(/\.png$/i, '')
+    .replace(/_/g, ' ')  // CSV uses underscores, storage uses spaces
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
 // PRIORITY 1: CSV filename match (source_image_filename from import)
 function matchCsvFilename(
   csvFilename: string | null | undefined,
@@ -347,22 +357,35 @@ function matchCsvFilename(
     return { file: null, confidence: 0, method: 'no_csv_filename' }
   }
   
-  // Normalize CSV filename
-  const normalized = csvFilename.toLowerCase().replace(/\.png$/i, '').trim()
+  // Normalize CSV filename (underscores -> spaces)
+  const csvNormalized = normalizeCsvFilename(csvFilename)
   
-  // Exact filename match
+  // Exact normalized match
   for (const file of files) {
-    const fileNormalized = file.filename.toLowerCase().replace(/\.png$/i, '').trim()
-    if (fileNormalized === normalized) {
+    const fileNormalized = file.filename_stem.toLowerCase().trim()
+    if (fileNormalized === csvNormalized) {
       return { file, confidence: 1.0, method: 'csv_exact_match' }
     }
   }
   
-  // Filename stem match (ignoring folder structure)
+  // Match ignoring trailing numbers (e.g., "AARON Coffee Table 0" vs "AARON_Coffee_Table_0")
+  const csvWithoutTrailingNum = csvNormalized.replace(/\s*\d+\s*$/, '').trim()
   for (const file of files) {
-    const fileNormalized = file.filename_stem.toLowerCase().trim()
-    if (fileNormalized === normalized) {
-      return { file, confidence: 0.98, method: 'csv_stem_match' }
+    const fileWithoutTrailingNum = file.filename_stem.toLowerCase().replace(/\s*\d+\s*$/, '').trim()
+    if (fileWithoutTrailingNum === csvWithoutTrailingNum) {
+      return { file, confidence: 0.98, method: 'csv_stem_match_no_suffix' }
+    }
+  }
+  
+  // Fuzzy: all tokens from CSV exist in file (handles reordering/extra words)
+  const csvTokens = csvNormalized.split(' ').filter(t => t.length > 1)
+  for (const file of files) {
+    const fileTokens = file.filename_stem.toLowerCase().split(' ').filter(t => t.length > 1)
+    const allCsvInFile = csvTokens.every(ct => fileTokens.some(ft => ft.includes(ct) || ct.includes(ft)))
+    const allFileInCsv = fileTokens.every(ft => csvTokens.some(ct => ct.includes(ft) || ft.includes(ct)))
+    
+    if (allCsvInFile && allFileInCsv && csvTokens.length >= 2) {
+      return { file, confidence: 0.92, method: 'csv_token_match' }
     }
   }
   
