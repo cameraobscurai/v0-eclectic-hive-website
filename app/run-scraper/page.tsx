@@ -1,126 +1,103 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 
-interface ScrapeResult {
+interface ImportResult {
   success: boolean
+  error?: string
   summary?: {
-    scrapedProducts: number
-    dbProductsWithoutImages: number
-    processed: number
     imported: number
+    skipped: number
     failed: number
+    noMatch: number
+    total: number
   }
   results?: Array<{
-    productId: string
-    productName: string
-    matchedTo: string
-    status: 'imported' | 'failed' | 'skipped'
+    inventoryName: string
+    dbName: string
+    status: 'imported' | 'skipped' | 'failed' | 'no_match'
     error?: string
   }>
-  scrapeErrors?: string[]
-  error?: string
 }
 
-const INVENTORY_URLS = [
-  'https://www.eclectichive.com/inventory',
-  'https://www.eclectichive.com/inventory?category=Tables',
-  'https://www.eclectichive.com/inventory?category=Lighting',
-  'https://www.eclectichive.com/inventory?category=Large+Decor',
-  'https://www.eclectichive.com/inventory?category=Bars',
-  'https://www.eclectichive.com/inventory?category=Rugs',
-  'https://www.eclectichive.com/inventory?category=Pillows',
-  'https://www.eclectichive.com/inventory?category=Styling',
-  'https://www.eclectichive.com/inventory?category=Tableware',
-  'https://www.eclectichive.com/inventory?category=Serveware',
-  'https://www.eclectichive.com/inventory?category=Candlelight',
-  'https://www.eclectichive.com/inventory?category=Chandeliers',
-]
+interface PreviewData {
+  count: number
+  products: Array<{
+    name: string
+    category: string
+    hasImage: boolean
+    imageUrl: string
+  }>
+}
 
-export default function RunScraperPage() {
+export default function ImportFromInventoryPage() {
   const [running, setRunning] = useState(false)
-  const [results, setResults] = useState<ScrapeResult[]>([])
-  const [currentBatch, setCurrentBatch] = useState(0)
+  const [preview, setPreview] = useState<PreviewData | null>(null)
+  const [results, setResults] = useState<ImportResult[]>([])
   const [totalImported, setTotalImported] = useState(0)
-  const [autoRun, setAutoRun] = useState(false)
 
-  const runBatch = async (urlIndex: number) => {
-    if (urlIndex >= INVENTORY_URLS.length) {
-      setRunning(false)
-      return
-    }
+  const loadPreview = async () => {
+    const res = await fetch('/api/import-from-inventory')
+    const data = await res.json()
+    setPreview(data)
+  }
 
-    setCurrentBatch(urlIndex + 1)
+  const runImport = async (limit: number) => {
+    setRunning(true)
     
     try {
-      const response = await fetch('/api/auto-scrape', {
+      const response = await fetch('/api/import-from-inventory', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          limit: 30,
-        }),
+        body: JSON.stringify({ limit, skipExisting: true }),
       })
       
-      const text = await response.text()
-      let data: ScrapeResult
-      try {
-        data = JSON.parse(text)
-      } catch {
-        data = { success: false, error: `Invalid response: ${text.slice(0, 200)}` }
-      }
+      const data: ImportResult = await response.json()
       setResults(prev => [...prev, data])
       
       if (data.summary?.imported) {
         setTotalImported(prev => prev + data.summary!.imported)
       }
-      
-      // Continue to next batch after a delay
-      if (autoRun && urlIndex + 1 < INVENTORY_URLS.length) {
-        setTimeout(() => runBatch(urlIndex + 1), 2000)
-      } else {
-        setRunning(false)
-      }
     } catch (error) {
       setResults(prev => [...prev, { success: false, error: String(error) }])
-      setRunning(false)
     }
+    
+    setRunning(false)
   }
 
-  const startScraping = () => {
+  const runAll = async () => {
     setRunning(true)
     setResults([])
     setTotalImported(0)
-    setAutoRun(true)
-    runBatch(0)
-  }
-
-  const runSingleBatch = async () => {
-    setRunning(true)
-    setAutoRun(false)
     
-    try {
-      const response = await fetch('/api/auto-scrape', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          limit: 50, // Uses default URLs from API
-        }),
-      })
-      
-      const text = await response.text()
-      let data: ScrapeResult
+    // Run in batches of 20 until done
+    let hasMore = true
+    while (hasMore) {
       try {
-        data = JSON.parse(text)
-      } catch {
-        data = { success: false, error: `Invalid response: ${text.slice(0, 200)}` }
+        const response = await fetch('/api/import-from-inventory', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ limit: 20, skipExisting: true }),
+        })
+        
+        const data: ImportResult = await response.json()
+        setResults(prev => [...prev, data])
+        
+        if (data.summary?.imported) {
+          setTotalImported(prev => prev + data.summary!.imported)
+        }
+        
+        // Stop if no more imports possible
+        if (!data.summary || data.summary.imported === 0) {
+          hasMore = false
+        }
+        
+        // Small delay between batches
+        await new Promise(r => setTimeout(r, 500))
+      } catch (error) {
+        setResults(prev => [...prev, { success: false, error: String(error) }])
+        hasMore = false
       }
-      setResults([data])
-      
-      if (data.summary?.imported) {
-        setTotalImported(data.summary.imported)
-      }
-    } catch (error) {
-      setResults([{ success: false, error: String(error) }])
     }
     
     setRunning(false)
@@ -129,30 +106,50 @@ export default function RunScraperPage() {
   return (
     <div className="min-h-screen bg-cream p-8">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-display text-charcoal mb-6">Image Scraper</h1>
+        <h1 className="text-3xl font-display text-charcoal mb-2">Import from Inventory Data</h1>
+        <p className="text-charcoal/60 mb-6">
+          Imports images from lib/inventory-data.ts (65 products with Squarespace CDN URLs)
+        </p>
         
         <div className="bg-white p-6 border border-charcoal/10 mb-6">
-          <p className="text-charcoal/70 mb-4">
-            This will scrape images from eclectichive.com and import them into the database.
-          </p>
-          
-          <div className="flex gap-4">
+          <div className="flex gap-4 mb-4">
             <button
-              onClick={runSingleBatch}
-              disabled={running}
-              className="px-6 py-3 bg-charcoal text-cream text-sm uppercase tracking-wider disabled:opacity-50"
+              onClick={loadPreview}
+              className="px-4 py-2 border border-charcoal/20 text-charcoal text-sm uppercase tracking-wider hover:bg-charcoal/5"
             >
-              {running ? 'Running...' : 'Run Single Batch (50 images)'}
+              Preview Data
             </button>
             
             <button
-              onClick={startScraping}
+              onClick={() => runImport(10)}
+              disabled={running}
+              className="px-6 py-3 bg-charcoal text-cream text-sm uppercase tracking-wider disabled:opacity-50"
+            >
+              {running ? 'Running...' : 'Import 10'}
+            </button>
+            
+            <button
+              onClick={runAll}
               disabled={running}
               className="px-6 py-3 bg-green-600 text-white text-sm uppercase tracking-wider disabled:opacity-50"
             >
-              {running ? `Batch ${currentBatch}/${INVENTORY_URLS.length}` : 'Run All Categories'}
+              {running ? 'Running...' : 'Import All'}
             </button>
           </div>
+          
+          {preview && (
+            <div className="text-sm text-charcoal/70">
+              <p className="font-medium mb-2">{preview.count} products in inventory-data.ts:</p>
+              <div className="max-h-40 overflow-y-auto bg-charcoal/5 p-2">
+                {preview.products.slice(0, 20).map((p, i) => (
+                  <div key={i} className="py-0.5">
+                    {p.name} ({p.category})
+                  </div>
+                ))}
+                {preview.count > 20 && <div className="text-charcoal/50">...and {preview.count - 20} more</div>}
+              </div>
+            </div>
+          )}
         </div>
 
         {totalImported > 0 && (
@@ -169,22 +166,18 @@ export default function RunScraperPage() {
               <p className="text-red-600">{result.error}</p>
             ) : (
               <>
-                <div className="grid grid-cols-5 gap-4 text-sm mb-4">
-                  <div>
-                    <p className="text-charcoal/50">Scraped</p>
-                    <p className="text-xl font-medium">{result.summary?.scrapedProducts}</p>
-                  </div>
-                  <div>
-                    <p className="text-charcoal/50">Need Images</p>
-                    <p className="text-xl font-medium">{result.summary?.dbProductsWithoutImages}</p>
-                  </div>
-                  <div>
-                    <p className="text-charcoal/50">Processed</p>
-                    <p className="text-xl font-medium">{result.summary?.processed}</p>
-                  </div>
+                <div className="grid grid-cols-4 gap-4 text-sm mb-4">
                   <div>
                     <p className="text-charcoal/50">Imported</p>
                     <p className="text-xl font-medium text-green-600">{result.summary?.imported}</p>
+                  </div>
+                  <div>
+                    <p className="text-charcoal/50">Skipped (has image)</p>
+                    <p className="text-xl font-medium text-charcoal/40">{result.summary?.skipped}</p>
+                  </div>
+                  <div>
+                    <p className="text-charcoal/50">No DB Match</p>
+                    <p className="text-xl font-medium text-amber-600">{result.summary?.noMatch}</p>
                   </div>
                   <div>
                     <p className="text-charcoal/50">Failed</p>
@@ -199,19 +192,23 @@ export default function RunScraperPage() {
                     </summary>
                     <div className="mt-2 max-h-60 overflow-y-auto">
                       {result.results.map((r, j) => (
-                        <div key={j} className={`py-1 ${r.status === 'imported' ? 'text-green-700' : 'text-red-700'}`}>
-                          {r.status === 'imported' ? '✓' : '✗'} {r.productName} → {r.matchedTo}
+                        <div 
+                          key={j} 
+                          className={`py-1 ${
+                            r.status === 'imported' ? 'text-green-700' : 
+                            r.status === 'skipped' ? 'text-charcoal/40' :
+                            r.status === 'no_match' ? 'text-amber-600' :
+                            'text-red-700'
+                          }`}
+                        >
+                          {r.status === 'imported' ? '✓' : r.status === 'skipped' ? '○' : r.status === 'no_match' ? '?' : '✗'} 
+                          {' '}{r.inventoryName}
+                          {r.dbName && ` → ${r.dbName}`}
                           {r.error && <span className="text-red-500 text-xs ml-2">({r.error})</span>}
                         </div>
                       ))}
                     </div>
                   </details>
-                )}
-                
-                {result.scrapeErrors && result.scrapeErrors.length > 0 && (
-                  <div className="text-red-600 text-sm mt-2">
-                    Scrape errors: {result.scrapeErrors.join(', ')}
-                  </div>
                 )}
               </>
             )}
