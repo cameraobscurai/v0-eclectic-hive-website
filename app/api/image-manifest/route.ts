@@ -595,6 +595,176 @@ export async function GET() {
   return NextResponse.json({ summary, manifest })
 }
 
+/**
+ * POST - Apply ONLY safe CSV 1:1 matches
+ * 
+ * STRICT RULES:
+ * - Only applies rows where match_method = csv_exact_match
+ * - Only applies rows where image_group_claim_count = 1
+ * - Only applies rows where status = APPLY_SAFE
+ * - Does NOT apply heuristic matches
+ * - Does NOT apply Hudson conflicts or any conflicts
+ * - Does NOT update product names, categories, or variants (except image metadata)
+ * - Does NOT rename or delete files
+ */
 export async function POST() {
-  return NextResponse.json({ error: 'POST disabled until manifest is reviewed and approved' }, { status: 403 })
+  const supabase = await createClient()
+  
+  // Run the same matching logic as GET to identify safe applies
+  const { data: products, error: prodError } = await supabase
+    .from('products')
+    .select(`
+      id, name, category, item_root, item_type, primary_image_url,
+      product_variants!product_variants_product_id_fkey (source_image_filename)
+    `)
+    .eq('is_active', true)
+  
+  if (prodError) {
+    return NextResponse.json({ error: prodError.message }, { status: 500 })
+  }
+  
+  // List all storage files
+  const allFiles: { name: string }[] = []
+  const folders = Object.values(CATEGORY_TO_STORAGE)
+  
+  for (const folder of [...new Set(folders)]) {
+    const { data: folderFiles } = await supabase.storage.from('inventory').list(folder, { limit: 1000 })
+    if (folderFiles) {
+      for (const item of folderFiles) {
+        if (item.name.toLowerCase().endsWith('.png')) {
+          allFiles.push({ name: `${folder}/${item.name}` })
+        } else if (!item.name.includes('.')) {
+          const { data: subFiles } = await supabase.storage.from('inventory').list(`${folder}/${item.name}`, { limit: 1000 })
+          if (subFiles) {
+            for (const subItem of subFiles) {
+              if (subItem.name.toLowerCase().endsWith('.png')) {
+                allFiles.push({ name: `${folder}/${item.name}/${subItem.name}` })
+              } else if (!subItem.name.includes('.')) {
+                const { data: subSubFiles } = await supabase.storage.from('inventory').list(`${folder}/${item.name}/${subItem.name}`, { limit: 1000 })
+                if (subSubFiles) {
+                  for (const subSubItem of subSubFiles) {
+                    if (subSubItem.name.toLowerCase().endsWith('.png')) {
+                      allFiles.push({ name: `${folder}/${item.name}/${subItem.name}/${subSubItem.name}` })
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+  
+  const fileRecords = buildFileRecords(allFiles)
+  
+  // Track file claims to detect conflicts
+  const fileClaims: Map<string, { productId: string; productName: string; method: string }[]> = new Map()
+  const csvMatches: { product: typeof products[0]; file: FileRecord; csvFilename: string }[] = []
+  
+  for (const product of products || []) {
+    const variants = (product as unknown as { product_variants?: { source_image_filename: string | null }[] }).product_variants
+    const csvFilename = variants?.[0]?.source_image_filename || null
+    
+    if (!csvFilename) continue
+    
+    // Only CSV exact match
+    const csvMatch = matchCsvFilename(csvFilename, fileRecords)
+    
+    if (csvMatch.file && csvMatch.method === 'csv_exact_match') {
+      csvMatches.push({ product, file: csvMatch.file, csvFilename })
+      
+      const claims = fileClaims.get(csvMatch.file.full_path) || []
+      claims.push({ productId: product.id, productName: product.name, method: csvMatch.method })
+      fileClaims.set(csvMatch.file.full_path, claims)
+    }
+  }
+  
+  // Filter to only 1:1 matches (no conflicts)
+  const safeApplies = csvMatches.filter(m => {
+    const claims = fileClaims.get(m.file.full_path) || []
+    return claims.length === 1
+  })
+  
+  // Apply updates
+  let appliedCount = 0
+  let skippedCount = 0
+  let productImagesInserted = 0
+  let productsUpdated = 0
+  const errors: { productId: string; error: string }[] = []
+  const appliedSample: { productId: string; productName: string; filePath: string }[] = []
+  
+  for (const { product, file } of safeApplies) {
+    // Skip if already has image
+    if (product.primary_image_url) {
+      skippedCount++
+      continue
+    }
+    
+    // Build public URL
+    const { data: { publicUrl } } = supabase.storage.from('inventory').getPublicUrl(file.full_path)
+    
+    // Update products table
+    const { error: updateError } = await supabase
+      .from('products')
+      .update({
+        primary_image_url: publicUrl,
+        primary_image_path: file.full_path,
+        image_match_status: 'matched',
+        image_match_confidence: 1.0,
+        image_group_key: file.full_path.replace(/\/[^/]+$/, ''), // folder path
+      })
+      .eq('id', product.id)
+    
+    if (updateError) {
+      errors.push({ productId: product.id, error: updateError.message })
+      continue
+    }
+    
+    productsUpdated++
+    
+    // Insert into product_images (avoid duplicates)
+    const { error: imageError } = await supabase
+      .from('product_images')
+      .upsert({
+        product_id: product.id,
+        image_url: publicUrl,
+        image_path: file.full_path,
+        display_order: 0,
+        is_primary: true,
+        image_group_key: file.full_path.replace(/\/[^/]+$/, ''),
+        match_method: 'csv_exact_match',
+        match_confidence: 1.0,
+      }, { onConflict: 'product_id,image_url' })
+    
+    if (!imageError) {
+      productImagesInserted++
+    }
+    
+    appliedCount++
+    
+    if (appliedSample.length < 10) {
+      appliedSample.push({
+        productId: product.id,
+        productName: product.name,
+        filePath: file.full_path,
+      })
+    }
+  }
+  
+  // Count conflicts (Hudson case)
+  const conflictCount = csvMatches.length - safeApplies.length
+  
+  return NextResponse.json({
+    applied_count: appliedCount,
+    skipped_count: skippedCount,
+    product_images_inserted_count: productImagesInserted,
+    products_updated_count: productsUpdated,
+    conflicts_excluded: conflictCount,
+    total_csv_matches: csvMatches.length,
+    safe_applies_found: safeApplies.length,
+    any_errors: errors.length > 0,
+    errors: errors.slice(0, 10),
+    sample_applied: appliedSample,
+  })
 }
