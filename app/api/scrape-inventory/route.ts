@@ -2,6 +2,15 @@ import { type NextRequest, NextResponse } from 'next/server'
 import { put } from '@vercel/blob'
 import { createClient } from '@/lib/supabase/server'
 
+// Admin emails allowed to use the scraper
+const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean)
+
+async function isAdmin(supabase: Awaited<ReturnType<typeof createClient>>): Promise<boolean> {
+  const { data: { user } } = await supabase.auth.getUser()
+  if (!user?.email) return false
+  return ADMIN_EMAILS.includes(user.email.toLowerCase())
+}
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 interface ScrapedProduct {
@@ -25,10 +34,26 @@ interface MatchedProduct {
 // ─── GET: Scrape page and extract products ────────────────────────────────────
 
 export async function GET(request: NextRequest) {
+  // Auth check
+  const supabase = await createClient()
+  if (!await isAdmin(supabase)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
   const url = request.nextUrl.searchParams.get('url')
   
   if (!url) {
     return NextResponse.json({ error: 'URL parameter required' }, { status: 400 })
+  }
+
+  // Validate URL is from eclectichive.com
+  try {
+    const parsedUrl = new URL(url)
+    if (!parsedUrl.hostname.includes('eclectichive.com')) {
+      return NextResponse.json({ error: 'Only eclectichive.com URLs are allowed' }, { status: 400 })
+    }
+  } catch {
+    return NextResponse.json({ error: 'Invalid URL' }, { status: 400 })
   }
 
   try {
@@ -76,14 +101,49 @@ export async function GET(request: NextRequest) {
 // ─── POST: Import selected images ─────────────────────────────────────────────
 
 export async function POST(request: NextRequest) {
+  // Auth check
+  const supabase = await createClient()
+  if (!await isAdmin(supabase)) {
+    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+  }
+
   const body = await request.json()
-  const { items } = body as { items: Array<{ productId: string; imageUrl: string; slug: string; category: string }> }
+  const { items, dryRun = false } = body as { 
+    items: Array<{ productId: string; imageUrl: string; slug: string; category: string }>
+    dryRun?: boolean 
+  }
 
   if (!items || !Array.isArray(items) || items.length === 0) {
     return NextResponse.json({ error: 'No items to import' }, { status: 400 })
   }
 
-  const supabase = await createClient()
+  // Limit batch size to prevent timeouts
+  if (items.length > 50) {
+    return NextResponse.json({ error: 'Maximum 50 items per batch' }, { status: 400 })
+  }
+
+  // Validate all image URLs are from allowed domains
+  const allowedDomains = ['images.squarespace-cdn.com', 'static1.squarespace.com', 'eclectichive.com']
+  for (const item of items) {
+    try {
+      const imgUrl = new URL(item.imageUrl)
+      if (!allowedDomains.some(d => imgUrl.hostname.includes(d))) {
+        return NextResponse.json({ error: `Image URL not from allowed domain: ${item.imageUrl}` }, { status: 400 })
+      }
+    } catch {
+      return NextResponse.json({ error: `Invalid image URL: ${item.imageUrl}` }, { status: 400 })
+    }
+  }
+
+  // Dry run - just validate and return what would happen
+  if (dryRun) {
+    return NextResponse.json({
+      success: true,
+      dryRun: true,
+      message: `Would import ${items.length} images`,
+      items: items.map(i => ({ productId: i.productId, slug: i.slug, category: i.category })),
+    })
+  }
   const results: Array<{ productId: string; success: boolean; error?: string }> = []
 
   for (const item of items) {

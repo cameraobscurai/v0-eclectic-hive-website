@@ -40,6 +40,7 @@ export function ScraperTab() {
   const [products, setProducts] = useState<MatchedProduct[]>([])
   const [selected, setSelected] = useState<Set<number>>(new Set())
   const [importResults, setImportResults] = useState<{ imported: number; failed: number } | null>(null)
+  const [showConfirm, setShowConfirm] = useState(false)
 
   // ─── Scrape Page ────────────────────────────────────────────────────────────
 
@@ -181,16 +182,65 @@ export function ScraperTab() {
     missingImages: products.filter(p => p.matched && !p.matched.primary_image_url).length,
   }
 
+  // ─── Trigger Import with Confirmation ─────────────────────────────────────────
+
+  const triggerImport = () => {
+    if (selected.size === 0) {
+      setError('No products selected')
+      return
+    }
+    const matchedCount = Array.from(selected).filter(i => products[i]?.matched).length
+    if (matchedCount === 0) {
+      setError('No matched products selected')
+      return
+    }
+    setShowConfirm(true)
+  }
+
   // ─── Render ─────────────────────────────────────────────────────────────────
 
   return (
     <div className="space-y-6">
+      {/* Confirmation Modal */}
+      {showConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-charcoal/50">
+          <div className="bg-white p-6 max-w-md w-full mx-4 shadow-xl">
+            <h3 className="text-lg font-medium text-charcoal mb-3">Confirm Import</h3>
+            <p className="text-sm text-charcoal/70 mb-2">
+              You are about to import <strong>{Array.from(selected).filter(i => products[i]?.matched).length}</strong> images.
+            </p>
+            <p className="text-sm text-charcoal/70 mb-4">
+              This will download images from eclectichive.com, upload them to Vercel Blob storage, 
+              and update the database. This action cannot be easily undone.
+            </p>
+            <div className="flex gap-3 justify-end">
+              <button
+                onClick={() => setShowConfirm(false)}
+                className="px-4 py-2 text-sm text-charcoal/70 hover:text-charcoal"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={() => {
+                  setShowConfirm(false)
+                  handleImport()
+                }}
+                className="px-4 py-2 bg-green-600 text-white text-xs uppercase tracking-[0.1em] hover:bg-green-700"
+              >
+                Yes, Import Images
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Instructions */}
       <div className="p-4 bg-amber-50 border border-amber-200 text-amber-800 text-sm">
         <p className="font-medium mb-1">Image Scraper</p>
         <p className="text-amber-700">
           Paste a URL from eclectichive.com/inventory to scrape product images. 
           The tool will attempt to match scraped products to your database and let you import images.
+          Only admins can use this tool.
         </p>
       </div>
 
@@ -276,7 +326,7 @@ export function ScraperTab() {
               </div>
             </div>
             <button
-              onClick={handleImport}
+              onClick={triggerImport}
               disabled={importing || selected.size === 0}
               className="px-4 py-2 bg-green-600 text-white text-xs uppercase tracking-[0.1em] hover:bg-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
             >
