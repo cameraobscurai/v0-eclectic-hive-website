@@ -3,22 +3,46 @@ import { createAdminClient } from '@/lib/supabase/admin'
 
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://txmgpxvbtljfgswizhoz.supabase.co'
 
-// Category folder mapping
+// Category folder mapping - EXACT folder names from Supabase storage
+// Note: Some folders have typos (CANDELIGHT) or double spaces (FURS  + PELTS)
 const CATEGORY_FOLDERS: Record<string, string> = {
+  // Bars
   'bars': '68 BARS',
-  'candlelight': '68 CANDELIGHT',
-  'lighting': '68 LIGHTING',
-  'pillows': '68 PILLOWS',
-  'rugs': '68 RUGS',
+  'cocktail & bar': '68 BARS',
+  'cocktail and bar': '68 BARS',
+  // Seating
   'seating': '68 SEATING',
-  'serveware': '68 SERVEWARE',
-  'storage': '68 STORAGE',
-  'styling': '68 STYLING',
+  'lounge seating': '68 SEATING',
+  // Tables
   'tables': '68 TABLES',
+  // Lighting
+  'lighting': '68 LIGHTING',
+  'chandeliers': '68 LIGHTING',
+  // Pillows
+  'pillows': '68 PILLOWS',
+  // Rugs
+  'rugs': '68 RUGS',
+  // Styling
+  'styling': '68 STYLING',
+  // Storage
+  'storage': '68 STORAGE',
+  // Candlelight (folder has typo - missing L)
+  'candlelight': '68 CANDELIGHT',
+  // Serveware
+  'serveware': '68 SERVEWARE',
+  // Tableware
   'tableware': '68 TABLEWARE',
+  // Throws
   'throws': '68 THROWS',
+  // Large Decor
+  'large decor': '68 LARGE DECOR',
   'large-decor': '68 LARGE DECOR',
-  'furs-and-pelts': '68 FURS + PELTS',
+  'large decor & dividers': '68 LARGE DECOR',
+  // Furs & Pelts (folder has double space before +)
+  'furs & pelts': '68 FURS  + PELTS',
+  'furs-and-pelts': '68 FURS  + PELTS',
+  'furs + pelts': '68 FURS  + PELTS',
+  'furs and pelts': '68 FURS  + PELTS',
 }
 
 // Normalize a string for fuzzy comparison
