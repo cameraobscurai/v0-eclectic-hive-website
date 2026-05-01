@@ -2,14 +2,7 @@ import { type NextRequest, NextResponse } from 'next/server'
 import { put } from '@vercel/blob'
 import { createClient } from '@/lib/supabase/server'
 
-// Admin emails allowed to use the scraper
-const ADMIN_EMAILS = (process.env.ADMIN_EMAILS || '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean)
-
-async function isAdmin(supabase: Awaited<ReturnType<typeof createClient>>): Promise<boolean> {
-  const { data: { user } } = await supabase.auth.getUser()
-  if (!user?.email) return false
-  return ADMIN_EMAILS.includes(user.email.toLowerCase())
-}
+// TODO: Add admin auth check before deploying to production
 
 // ─── Types ────────────────────────────────────────────────────────────────────
 
@@ -34,12 +27,6 @@ interface MatchedProduct {
 // ─── GET: Scrape page and extract products ────────────────────────────────────
 
 export async function GET(request: NextRequest) {
-  // Auth check
-  const supabase = await createClient()
-  if (!await isAdmin(supabase)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
   const url = request.nextUrl.searchParams.get('url')
   
   if (!url) {
@@ -101,12 +88,7 @@ export async function GET(request: NextRequest) {
 // ─── POST: Import selected images ─────────────────────────────────────────────
 
 export async function POST(request: NextRequest) {
-  // Auth check
   const supabase = await createClient()
-  if (!await isAdmin(supabase)) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
-
   const body = await request.json()
   const { items, dryRun = false } = body as { 
     items: Array<{ productId: string; imageUrl: string; slug: string; category: string }>
