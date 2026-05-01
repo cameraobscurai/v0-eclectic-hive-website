@@ -15,7 +15,7 @@ function normalizeProductName(name: string): string {
 function extractProducts(html: string): Array<{ name: string; imageUrl: string }> {
   const products: Array<{ name: string; imageUrl: string }> = []
   
-  // Method 1: JSON-LD structured data
+  // Method 1: JSON-LD structured data (most reliable)
   const jsonLdMatches = html.matchAll(/<script type="application\/ld\+json">([\s\S]*?)<\/script>/gi)
   for (const match of jsonLdMatches) {
     try {
@@ -38,31 +38,69 @@ function extractProducts(html: string): Array<{ name: string; imageUrl: string }
     }
   }
   
-  // Method 2: Squarespace product grid items
-  const productGridItems = html.matchAll(/<article[^>]*class="[^"]*ProductItem[^"]*"[^>]*>[\s\S]*?<\/article>/gi)
-  for (const match of productGridItems) {
-    const itemHtml = match[0]
-    const nameMatch = itemHtml.match(/<h1[^>]*>([^<]+)<\/h1>/i) || itemHtml.match(/data-title="([^"]+)"/i)
-    const imgMatch = itemHtml.match(/data-src="([^"]+)"/) || itemHtml.match(/src="(https:\/\/images\.squarespace-cdn\.com[^"]+)"/i)
-    
-    if (nameMatch && imgMatch) {
-      products.push({
-        name: nameMatch[1].trim(),
-        imageUrl: imgMatch[1],
-      })
+  // Method 2: Squarespace Static Context (embedded JSON with all product data)
+  const staticContextMatch = html.match(/Static\.SQUARESPACE_CONTEXT\s*=\s*(\{[\s\S]*?\});/)
+  if (staticContextMatch) {
+    try {
+      const ctx = JSON.parse(staticContextMatch[1])
+      if (ctx.collection?.items) {
+        for (const item of ctx.collection.items) {
+          if (item.title && item.assetUrl) {
+            products.push({
+              name: item.title,
+              imageUrl: item.assetUrl,
+            })
+          }
+        }
+      }
+    } catch {
+      // Skip
     }
   }
   
-  // Method 3: Summary items (another Squarespace pattern)
-  const summaryItems = html.matchAll(/<a[^>]*class="[^"]*summary-title-link[^"]*"[^>]*>([^<]+)<\/a>/gi)
-  const summaryImages = html.matchAll(/data-image-id="[^"]*"[^>]*data-src="([^"]+)"/gi)
+  // Method 3: Look for data-src with Squarespace CDN images and nearby titles
+  const imgMatches = html.matchAll(/data-src="(https:\/\/images\.squarespace-cdn\.com[^"]+)"/gi)
+  const titleMatches = html.matchAll(/<h1[^>]*class="[^"]*ProductItem-details-title[^"]*"[^>]*>([^<]+)<\/h1>/gi)
   
-  const names = Array.from(summaryItems).map(m => m[1].trim())
-  const images = Array.from(summaryImages).map(m => m[1])
+  const images = Array.from(imgMatches).map(m => m[1])
+  const titles = Array.from(titleMatches).map(m => m[1].trim())
   
-  for (let i = 0; i < Math.min(names.length, images.length); i++) {
-    if (!products.find(p => normalizeProductName(p.name) === normalizeProductName(names[i]))) {
-      products.push({ name: names[i], imageUrl: images[i] })
+  // Also try data-image patterns
+  const dataImageMatches = html.matchAll(/data-image="([^"]+)"/gi)
+  for (const match of dataImageMatches) {
+    try {
+      const imgData = JSON.parse(match[1].replace(/&quot;/g, '"'))
+      if (imgData.assetUrl) {
+        images.push(imgData.assetUrl)
+      }
+    } catch {
+      // Skip
+    }
+  }
+  
+  // Method 4: Look for noscript fallback images (always present in Squarespace)
+  const noscriptImgMatches = html.matchAll(/<noscript><img[^>]*src="(https:\/\/images\.squarespace-cdn\.com[^"]+)"[^>]*alt="([^"]*)"[^>]*\/?><\/noscript>/gi)
+  for (const match of noscriptImgMatches) {
+    const imageUrl = match[1]
+    const name = match[2]
+    if (name && imageUrl && !products.find(p => normalizeProductName(p.name) === normalizeProductName(name))) {
+      products.push({ name, imageUrl })
+    }
+  }
+  
+  // Method 5: ProductItem containers with data attributes
+  const productItemMatches = html.matchAll(/<article[^>]*data-item-id="[^"]*"[^>]*>[\s\S]*?<\/article>/gi)
+  for (const match of productItemMatches) {
+    const itemHtml = match[0]
+    const titleMatch = itemHtml.match(/data-title="([^"]+)"/i) || itemHtml.match(/<h1[^>]*>([^<]+)<\/h1>/i)
+    const imgMatch = itemHtml.match(/data-src="(https:\/\/images\.squarespace-cdn\.com[^"]+)"/i) ||
+                     itemHtml.match(/src="(https:\/\/images\.squarespace-cdn\.com[^"]+)"/i)
+    
+    if (titleMatch && imgMatch) {
+      const name = titleMatch[1].trim()
+      if (!products.find(p => normalizeProductName(p.name) === normalizeProductName(name))) {
+        products.push({ name, imageUrl: imgMatch[1] })
+      }
     }
   }
   
