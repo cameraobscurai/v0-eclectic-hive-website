@@ -57,12 +57,17 @@ export default function RunScraperPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          urls: [INVENTORY_URLS[urlIndex]],
           limit: 30,
         }),
       })
       
-      const data: ScrapeResult = await response.json()
+      const text = await response.text()
+      let data: ScrapeResult
+      try {
+        data = JSON.parse(text)
+      } catch {
+        data = { success: false, error: `Invalid response: ${text.slice(0, 200)}` }
+      }
       setResults(prev => [...prev, data])
       
       if (data.summary?.imported) {
@@ -98,12 +103,17 @@ export default function RunScraperPage() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          urls: INVENTORY_URLS,
-          limit: 50,
+          limit: 50, // Uses default URLs from API
         }),
       })
       
-      const data: ScrapeResult = await response.json()
+      const text = await response.text()
+      let data: ScrapeResult
+      try {
+        data = JSON.parse(text)
+      } catch {
+        data = { success: false, error: `Invalid response: ${text.slice(0, 200)}` }
+      }
       setResults([data])
       
       if (data.summary?.imported) {
