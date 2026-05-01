@@ -179,7 +179,9 @@ export function InquiryTray() {
                   onClick={() => setIsExpanded(true)}
                   className="text-xs uppercase tracking-[0.12em] text-cream/70 hover:text-cream transition-colors"
                 >
-                  {count} {count === 1 ? 'piece' : 'pieces'}
+                  <span aria-live="polite" aria-atomic="true">
+                    {count} {count === 1 ? 'piece' : 'pieces'}
+                  </span>
                 </button>
 
                 {/* Thumbnails — tapping expands */}

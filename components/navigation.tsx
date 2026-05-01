@@ -196,7 +196,9 @@ export function Navigation() {
                   key={link.href}
                   href={link.href}
                   className={cn(
-                    'relative group text-xs tracking-[0.2em] uppercase font-light transition-colors duration-300',
+                    'relative group text-xs tracking-[0.2em] uppercase font-light transition-colors duration-300 rounded-sm',
+                    'focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4',
+                    scrolled || !isLightPage ? 'focus-visible:outline-cream/70' : 'focus-visible:outline-charcoal/70',
                     textColor
                   )}
                 >

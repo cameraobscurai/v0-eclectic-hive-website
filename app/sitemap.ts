@@ -19,7 +19,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     url: `${BASE_URL}${path}`,
     lastModified: new Date(),
     changeFrequency: path === '' ? 'weekly' : 'monthly',
-    priority: path === '' ? 1 : path === '/collection' ? 0.9 : 0.7,
+    priority: path === '' ? 1 : 0.7,
   }))
 
   return staticEntries
