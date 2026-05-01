@@ -54,7 +54,7 @@ const protectedRoutes = ['/admin']
 const protectedApiRoutes = [
   '/api/upload-inventory',
   '/api/upload-font',
-  '/api/import-inventory',
+  // NOTE: /api/import-inventory-csv is intentionally NOT protected for dev imports
   '/api/inventory-image/update',
   '/api/admin',
 ]
