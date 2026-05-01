@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, useEffect } from 'react'
+import { motion, AnimatePresence } from 'framer-motion'
 import { cn } from '@/lib/utils'
 import { useInquiryStore } from '@/lib/inquiry-store'
 
@@ -30,6 +31,27 @@ interface InquiryState {
 }
 
 const TOTAL_STEPS = 3
+
+// Step transition animation
+const stepVariants = {
+  enter: (direction: number) => ({
+    x: direction > 0 ? 40 : -40,
+    opacity: 0,
+  }),
+  center: {
+    x: 0,
+    opacity: 1,
+  },
+  exit: (direction: number) => ({
+    x: direction < 0 ? 40 : -40,
+    opacity: 0,
+  }),
+}
+
+const stepTransition = {
+  x: { type: 'spring', stiffness: 300, damping: 30 },
+  opacity: { duration: 0.2 },
+}
 
 // ─── Honeypot ─────────────────────────────────────────────────────────────────
 // Hidden field — bots fill it, humans don't. Silently reject on submit.
@@ -235,17 +257,40 @@ function StepNav({
             : 'opacity-100'
         )}
       >
-        <span
-          className={cn(
-            'text-[10px] uppercase tracking-[0.22em] text-charcoal transition-all duration-300',
-            !disabled && !submitting && 'group-hover:tracking-[0.28em]'
+        <span className="flex items-center gap-2">
+          {submitting && (
+            <svg 
+              className="w-3 h-3 animate-spin" 
+              fill="none" 
+              viewBox="0 0 24 24"
+            >
+              <circle 
+                className="opacity-25" 
+                cx="12" 
+                cy="12" 
+                r="10" 
+                stroke="currentColor" 
+                strokeWidth="3"
+              />
+              <path 
+                className="opacity-75" 
+                fill="currentColor" 
+                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+              />
+            </svg>
           )}
-        >
-          {isLast
-            ? submitting
-              ? 'Sending'
-              : 'Send inquiry'
-            : 'Continue'}
+          <span
+            className={cn(
+              'text-[10px] uppercase tracking-[0.22em] text-charcoal transition-all duration-300',
+              !disabled && !submitting && 'group-hover:tracking-[0.28em]'
+            )}
+          >
+            {isLast
+              ? submitting
+                ? 'Sending'
+                : 'Send inquiry'
+              : 'Continue'}
+          </span>
         </span>
 
         {/* Animated line */}
@@ -298,6 +343,7 @@ export function InquiryFlow({
   preselectedItems = [],
 }: InquiryFlowProps) {
   const [step, setStep] = useState(1)
+  const [direction, setDirection] = useState(0) // -1 = back, 1 = forward
   const [submitting, setSubmitting] = useState(false)
   const [submitted, setSubmitted] = useState(false)
   const [submitError, setSubmitError] = useState<string | null>(null)
@@ -306,6 +352,14 @@ export function InquiryFlow({
   const [errors, setErrors] = useState<Partial<Record<keyof InquiryState, string>>>({})
   const topRef = useRef<HTMLDivElement>(null)
   const lastSubmitRef = useRef<number>(0)
+
+  // Format phone number as user types
+  const formatPhone = (value: string) => {
+    const digits = value.replace(/\D/g, '')
+    if (digits.length <= 3) return digits
+    if (digits.length <= 6) return `(${digits.slice(0, 3)}) ${digits.slice(3)}`
+    return `(${digits.slice(0, 3)}) ${digits.slice(3, 6)}-${digits.slice(6, 10)}`
+  }
 
   useEffect(() => {
     const t = setTimeout(() => setMounted(true), 80)
@@ -359,12 +413,16 @@ export function InquiryFlow({
 
   function advance() {
     if (!validateStep(step)) return
-    if (step < TOTAL_STEPS) setStep((s) => s + 1)
+    if (step < TOTAL_STEPS) {
+      setDirection(1)
+      setStep((s) => s + 1)
+    }
   }
 
   function back() {
     if (step > 1) {
       setErrors({})
+      setDirection(-1)
       setStep((s) => s - 1)
     }
   }
@@ -431,34 +489,84 @@ export function InquiryFlow({
 
   if (submitted) {
     return (
-      <div className="min-h-[55vh] flex flex-col items-start justify-center max-w-2xl mx-auto px-6 py-20">
-        {/* Vertical rule */}
-        <div className="w-px h-20 bg-charcoal/15 mb-14" />
+      <motion.div 
+        className="min-h-[55vh] flex flex-col items-start justify-center max-w-2xl mx-auto px-6 py-20"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.5 }}
+      >
+        {/* Animated checkmark */}
+        <motion.div 
+          className="w-16 h-16 rounded-full border-2 border-charcoal/20 flex items-center justify-center mb-10"
+          initial={{ scale: 0, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          transition={{ delay: 0.2, type: 'spring', stiffness: 200, damping: 15 }}
+        >
+          <motion.svg 
+            className="w-7 h-7 text-charcoal" 
+            fill="none" 
+            viewBox="0 0 24 24" 
+            stroke="currentColor" 
+            strokeWidth={2}
+            initial={{ pathLength: 0 }}
+            animate={{ pathLength: 1 }}
+            transition={{ delay: 0.4, duration: 0.4 }}
+          >
+            <motion.path 
+              strokeLinecap="round" 
+              strokeLinejoin="round" 
+              d="M5 13l4 4L19 7"
+              initial={{ pathLength: 0 }}
+              animate={{ pathLength: 1 }}
+              transition={{ delay: 0.5, duration: 0.3 }}
+            />
+          </motion.svg>
+        </motion.div>
 
-        <p className="text-[10px] uppercase tracking-[0.22em] text-charcoal/40 mb-5">
-          Received
-        </p>
+        <motion.p 
+          className="text-[10px] uppercase tracking-[0.22em] text-charcoal/40 mb-5"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+        >
+          Inquiry received
+        </motion.p>
 
-        <h2 className="font-display text-4xl md:text-5xl font-light text-charcoal mb-6 leading-[1.05]">
+        <motion.h2 
+          className="font-display text-4xl md:text-5xl font-light text-charcoal mb-6 leading-[1.05]"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.4 }}
+        >
           We&apos;ll be<br />in touch.
-        </h2>
+        </motion.h2>
 
-        <p className="text-charcoal/55 leading-relaxed mb-2 max-w-sm">
+        <motion.p 
+          className="text-charcoal/55 leading-relaxed mb-2 max-w-sm"
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.5 }}
+        >
           Thank you, {state.name.split(' ')[0]}. Every inquiry is reviewed personally —
           expect to hear from us within one business day.
-        </p>
+        </motion.p>
 
-        <p className="text-charcoal/35 text-sm mt-6">
+        <motion.p 
+          className="text-charcoal/35 text-sm mt-6"
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.7 }}
+        >
           In the meantime —{' '}
           <a
-            href="/gallery"
+            href="/collection"
             className="underline underline-offset-4 hover:text-charcoal/70 transition-colors"
           >
-            explore the gallery
+            explore the collection
           </a>
           .
-        </p>
-      </div>
+        </motion.p>
+      </motion.div>
     )
   }
 
@@ -475,14 +583,18 @@ export function InquiryFlow({
       <Honeypot value={honeypot} onChange={setHoneypot} />
       <Progress step={step} />
 
-      {/* ── Step 1 — About you ─────────────────────────────────────────────── */}
-      {step === 1 && (
-        <div
-          className={cn(
-            'transition-all duration-500',
-            mounted ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-3'
-          )}
-        >
+      <AnimatePresence mode="wait" custom={direction}>
+        {/* ── Step 1 — About you ─────────────────────────────────────────────── */}
+        {step === 1 && (
+          <motion.div
+            key="step-1"
+            custom={direction}
+            variants={stepVariants}
+            initial="enter"
+            animate="center"
+            exit="exit"
+            transition={stepTransition}
+          >
           <StepLabel step={1} />
           <Question>Who&apos;s reaching out?</Question>
 
@@ -504,10 +616,11 @@ export function InquiryFlow({
             />
             <LineInput
               value={state.phone}
-              onChange={(v) => set('phone', v)}
+              onChange={(v) => set('phone', formatPhone(v))}
               placeholder="Phone"
               type="tel"
               error={errors.phone}
+              ariaLabel="Phone number"
             />
           </div>
 
@@ -538,12 +651,20 @@ export function InquiryFlow({
             disabled={false}
             isFirst
           />
-        </div>
+        </motion.div>
       )}
 
       {/* ── Step 2 — Your event ────────────────────────────────────────────── */}
       {step === 2 && (
-        <div>
+        <motion.div
+          key="step-2"
+          custom={direction}
+          variants={stepVariants}
+          initial="enter"
+          animate="center"
+          exit="exit"
+          transition={stepTransition}
+        >
           <StepLabel step={2} />
           <Question>Tell us about the event.</Question>
 
@@ -637,12 +758,20 @@ export function InquiryFlow({
           </div>
 
           <StepNav onBack={back} onNext={advance} disabled={false} />
-        </div>
+        </motion.div>
       )}
 
       {/* ── Step 3 — Vision ────────────────────────────────────────────────── */}
       {step === 3 && (
-        <div>
+        <motion.div
+          key="step-3"
+          custom={direction}
+          variants={stepVariants}
+          initial="enter"
+          animate="center"
+          exit="exit"
+          transition={stepTransition}
+        >
           <StepLabel step={3} />
           <Question>Describe your vision.</Question>
 
@@ -711,8 +840,9 @@ export function InquiryFlow({
             isLast
             submitting={submitting}
           />
-        </div>
+        </motion.div>
       )}
+      </AnimatePresence>
     </div>
   )
 }
