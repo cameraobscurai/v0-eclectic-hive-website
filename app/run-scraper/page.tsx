@@ -52,7 +52,24 @@ export default function ImportFromInventoryPage() {
         body: JSON.stringify({ limit, skipExisting: true }),
       })
       
-      const data: ImportResult = await response.json()
+      const text = await response.text()
+      console.log('[v0] Response text:', text.slice(0, 500))
+      
+      if (!text || text.trim() === '') {
+        setResults(prev => [...prev, { success: false, error: 'Empty response from server' }])
+        setRunning(false)
+        return
+      }
+      
+      let data: ImportResult
+      try {
+        data = JSON.parse(text)
+      } catch (parseError) {
+        setResults(prev => [...prev, { success: false, error: `JSON parse error: ${text.slice(0, 200)}` }])
+        setRunning(false)
+        return
+      }
+      
       setResults(prev => [...prev, data])
       
       if (data.summary?.imported) {
@@ -80,7 +97,21 @@ export default function ImportFromInventoryPage() {
           body: JSON.stringify({ limit: 20, skipExisting: true }),
         })
         
-        const data: ImportResult = await response.json()
+        const text = await response.text()
+        if (!text || text.trim() === '') {
+          setResults(prev => [...prev, { success: false, error: 'Empty response' }])
+          hasMore = false
+          continue
+        }
+        
+        let data: ImportResult
+        try {
+          data = JSON.parse(text)
+        } catch {
+          setResults(prev => [...prev, { success: false, error: `Parse error: ${text.slice(0,100)}` }])
+          hasMore = false
+          continue
+        }
         setResults(prev => [...prev, data])
         
         if (data.summary?.imported) {
