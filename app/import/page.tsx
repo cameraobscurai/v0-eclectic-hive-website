@@ -35,11 +35,24 @@ export default function ImportPage() {
   const [results, setResults] = useState<ImportResult[]>([])
   const [totals, setTotals] = useState({ created: 0, updated: 0, imagesLinked: 0, errors: 0 })
 
+  const [loadError, setLoadError] = useState<string | null>(null)
+
   useEffect(() => {
     fetch('/api/import-inventory-csv')
-      .then(r => r.json())
-      .then(setStats)
-      .catch(console.error)
+      .then(async r => {
+        const text = await r.text()
+        console.log('[v0] Stats response:', r.status, text.slice(0, 200))
+        if (!r.ok) {
+          setLoadError(`${r.status}: ${text}`)
+          return null
+        }
+        return JSON.parse(text)
+      })
+      .then(data => data && setStats(data))
+      .catch(err => {
+        console.error('[v0] Stats error:', err)
+        setLoadError(String(err))
+      })
   }, [])
 
   const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -111,6 +124,13 @@ export default function ImportPage() {
     <div className="min-h-screen bg-cream p-8">
       <div className="max-w-4xl mx-auto">
         <h1 className="font-serif text-3xl text-charcoal mb-8">Inventory Import</h1>
+
+        {/* Load Error */}
+        {loadError && (
+          <div className="bg-red-50 border border-red-200 p-4 mb-8 text-red-700 text-sm">
+            <strong>Load Error:</strong> {loadError}
+          </div>
+        )}
 
         {/* Current Stats */}
         {stats && (
