@@ -4,12 +4,19 @@ import { useState, useRef, useEffect } from 'react'
 import { cn } from '@/lib/utils'
 
 const team = [
-  { name: 'Jill Livingston', role: 'Founder & Creative Director' },
+  { name: 'Jill Livingston', role: 'Founder | Creative Director' },
   { name: 'Annie Ohman', role: 'Director of Company Operations' },
   { name: 'Amanda Ferguson', role: 'Senior Designer' },
-  { name: 'Sam Young', role: 'Project Manager' },
+  { name: 'Erin Purnell', role: 'Associate Designer' },
   { name: 'Adrienne Moon', role: 'Purchasing & Inventory Specialist' },
-  { name: 'Patrick Batten', role: 'Director of Warehouse Operations' },
+  { name: 'Nathan Alexander', role: 'Lead Fabricator' },
+  { name: 'Cat Moore', role: 'Brand & Marketing' },
+  { name: 'Sam Young', role: 'Project Manager' },
+  { name: 'Ryan Kankowski', role: 'Project Manager' },
+  { name: 'Stephen Proud', role: 'Warehouse & Fleet Specialist' },
+  { name: 'Sarah Lilly-Ray', role: 'Warehouse Operations' },
+  { name: 'Regina Mennig', role: 'Accounting & Business Manager' },
+  { name: 'Judgy Morales', role: 'Human Resources' },
 ]
 
 // Placeholder portrait frame
@@ -100,14 +107,26 @@ export function TheHumansSection() {
           </div>
         </div>
 
-        {/* Team Grid */}
+        {/* Team Grid - Leadership Row */}
         <div 
           className={cn(
-            'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6 lg:gap-8 transition-all duration-700 delay-200',
+            'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 lg:gap-8 mb-8 transition-all duration-700 delay-200',
             isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
           )}
         >
-          {team.map((member) => (
+          {team.slice(0, 4).map((member) => (
+            <PortraitFrame key={member.name} name={member.name} role={member.role} />
+          ))}
+        </div>
+        
+        {/* Team Grid - Rest of Team */}
+        <div 
+          className={cn(
+            'grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-6 lg:gap-8 transition-all duration-700 delay-300',
+            isInView ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8'
+          )}
+        >
+          {team.slice(4).map((member) => (
             <PortraitFrame key={member.name} name={member.name} role={member.role} />
           ))}
         </div>
