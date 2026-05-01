@@ -1,250 +1,184 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+import { INVENTORY } from '@/lib/inventory-data'
 
-interface ImportResult {
-  success: boolean
+interface ImportStatus {
+  name: string
+  status: 'pending' | 'importing' | 'done' | 'failed' | 'skipped'
   error?: string
-  summary?: {
-    imported: number
-    skipped: number
-    failed: number
-    noMatch: number
-    total: number
-  }
-  results?: Array<{
-    inventoryName: string
-    dbName: string
-    status: 'imported' | 'skipped' | 'failed' | 'no_match'
-    error?: string
-  }>
+  dbMatch?: string
 }
 
-interface PreviewData {
-  count: number
-  products: Array<{
-    name: string
-    category: string
-    hasImage: boolean
-    imageUrl: string
-  }>
-}
-
-export default function ImportFromInventoryPage() {
+export default function ImportPage() {
+  const [statuses, setStatuses] = useState<ImportStatus[]>([])
   const [running, setRunning] = useState(false)
-  const [preview, setPreview] = useState<PreviewData | null>(null)
-  const [results, setResults] = useState<ImportResult[]>([])
-  const [totalImported, setTotalImported] = useState(0)
+  const [currentIndex, setCurrentIndex] = useState(0)
+  const [stats, setStats] = useState({ done: 0, failed: 0, skipped: 0 })
 
-  const loadPreview = async () => {
-    const res = await fetch('/api/import-from-inventory')
-    const data = await res.json()
-    setPreview(data)
-  }
+  // Initialize statuses from inventory data
+  useEffect(() => {
+    setStatuses(INVENTORY.map(p => ({ name: p.name, status: 'pending' as const })))
+  }, [])
 
-  const runImport = async (limit: number) => {
-    setRunning(true)
-    
+  const importSingle = useCallback(async (index: number): Promise<'done' | 'failed' | 'skipped'> => {
+    const item = INVENTORY[index]
+    if (!item?.image) return 'skipped'
+
+    setStatuses(prev => {
+      const next = [...prev]
+      next[index] = { ...next[index], status: 'importing' }
+      return next
+    })
+
     try {
-      const response = await fetch('/api/import-from-inventory', {
+      const res = await fetch('/api/import-single', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ limit, skipExisting: true }),
+        body: JSON.stringify({ 
+          name: item.name, 
+          imageUrl: item.image,
+          category: item.category 
+        }),
       })
-      
-      const text = await response.text()
-      console.log('[v0] Response text:', text.slice(0, 500))
-      
-      if (!text || text.trim() === '') {
-        setResults(prev => [...prev, { success: false, error: 'Empty response from server' }])
-        setRunning(false)
-        return
+
+      const data = await res.json()
+
+      if (data.status === 'imported') {
+        setStatuses(prev => {
+          const next = [...prev]
+          next[index] = { name: item.name, status: 'done', dbMatch: data.dbName }
+          return next
+        })
+        return 'done'
+      } else if (data.status === 'skipped') {
+        setStatuses(prev => {
+          const next = [...prev]
+          next[index] = { name: item.name, status: 'skipped', dbMatch: data.dbName }
+          return next
+        })
+        return 'skipped'
+      } else {
+        setStatuses(prev => {
+          const next = [...prev]
+          next[index] = { name: item.name, status: 'failed', error: data.error || 'Unknown error' }
+          return next
+        })
+        return 'failed'
       }
-      
-      let data: ImportResult
-      try {
-        data = JSON.parse(text)
-      } catch (parseError) {
-        setResults(prev => [...prev, { success: false, error: `JSON parse error: ${text.slice(0, 200)}` }])
-        setRunning(false)
-        return
-      }
-      
-      setResults(prev => [...prev, data])
-      
-      if (data.summary?.imported) {
-        setTotalImported(prev => prev + data.summary!.imported)
-      }
-    } catch (error) {
-      setResults(prev => [...prev, { success: false, error: String(error) }])
+    } catch (e) {
+      setStatuses(prev => {
+        const next = [...prev]
+        next[index] = { name: item.name, status: 'failed', error: String(e) }
+        return next
+      })
+      return 'failed'
     }
-    
-    setRunning(false)
-  }
+  }, [])
 
   const runAll = async () => {
     setRunning(true)
-    setResults([])
-    setTotalImported(0)
+    setStats({ done: 0, failed: 0, skipped: 0 })
     
-    // Run in batches of 20 until done
-    let hasMore = true
-    while (hasMore) {
-      try {
-        const response = await fetch('/api/import-from-inventory', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ limit: 20, skipExisting: true }),
-        })
-        
-        const text = await response.text()
-        if (!text || text.trim() === '') {
-          setResults(prev => [...prev, { success: false, error: 'Empty response' }])
-          hasMore = false
-          continue
-        }
-        
-        let data: ImportResult
-        try {
-          data = JSON.parse(text)
-        } catch {
-          setResults(prev => [...prev, { success: false, error: `Parse error: ${text.slice(0,100)}` }])
-          hasMore = false
-          continue
-        }
-        setResults(prev => [...prev, data])
-        
-        if (data.summary?.imported) {
-          setTotalImported(prev => prev + data.summary!.imported)
-        }
-        
-        // Stop if no more imports possible
-        if (!data.summary || data.summary.imported === 0) {
-          hasMore = false
-        }
-        
-        // Small delay between batches
-        await new Promise(r => setTimeout(r, 500))
-      } catch (error) {
-        setResults(prev => [...prev, { success: false, error: String(error) }])
-        hasMore = false
-      }
+    for (let i = 0; i < INVENTORY.length; i++) {
+      setCurrentIndex(i)
+      const result = await importSingle(i)
+      setStats(prev => ({
+        ...prev,
+        [result]: prev[result as keyof typeof prev] + 1
+      }))
+      // Small delay to not hammer the server
+      await new Promise(r => setTimeout(r, 100))
     }
     
     setRunning(false)
   }
+
+  const doneCount = statuses.filter(s => s.status === 'done').length
+  const failedCount = statuses.filter(s => s.status === 'failed').length
+  const skippedCount = statuses.filter(s => s.status === 'skipped').length
+  const pendingCount = statuses.filter(s => s.status === 'pending').length
 
   return (
     <div className="min-h-screen bg-cream p-8">
       <div className="max-w-4xl mx-auto">
-        <h1 className="text-3xl font-display text-charcoal mb-2">Import from Inventory Data</h1>
+        <h1 className="text-3xl font-display text-charcoal mb-2">Import Images</h1>
         <p className="text-charcoal/60 mb-6">
-          Imports images from lib/inventory-data.ts (65 products with Squarespace CDN URLs)
+          {INVENTORY.length} products in inventory-data.ts with Squarespace CDN images
         </p>
-        
-        <div className="bg-white p-6 border border-charcoal/10 mb-6">
-          <div className="flex gap-4 mb-4">
-            <button
-              onClick={loadPreview}
-              className="px-4 py-2 border border-charcoal/20 text-charcoal text-sm uppercase tracking-wider hover:bg-charcoal/5"
-            >
-              Preview Data
-            </button>
-            
-            <button
-              onClick={() => runImport(10)}
-              disabled={running}
-              className="px-6 py-3 bg-charcoal text-cream text-sm uppercase tracking-wider disabled:opacity-50"
-            >
-              {running ? 'Running...' : 'Import 10'}
-            </button>
-            
-            <button
-              onClick={runAll}
-              disabled={running}
-              className="px-6 py-3 bg-green-600 text-white text-sm uppercase tracking-wider disabled:opacity-50"
-            >
-              {running ? 'Running...' : 'Import All'}
-            </button>
-          </div>
-          
-          {preview && (
-            <div className="text-sm text-charcoal/70">
-              <p className="font-medium mb-2">{preview.count} products in inventory-data.ts:</p>
-              <div className="max-h-40 overflow-y-auto bg-charcoal/5 p-2">
-                {preview.products.slice(0, 20).map((p, i) => (
-                  <div key={i} className="py-0.5">
-                    {p.name} ({p.category})
-                  </div>
-                ))}
-                {preview.count > 20 && <div className="text-charcoal/50">...and {preview.count - 20} more</div>}
-              </div>
-            </div>
-          )}
+
+        {/* Controls */}
+        <div className="bg-white border border-charcoal/10 p-6 mb-6">
+          <button
+            onClick={runAll}
+            disabled={running}
+            className="px-8 py-4 bg-charcoal text-cream text-sm uppercase tracking-wider disabled:opacity-50 hover:bg-charcoal/90 transition-colors"
+          >
+            {running ? `Importing ${currentIndex + 1} of ${INVENTORY.length}...` : 'Start Import'}
+          </button>
         </div>
 
-        {totalImported > 0 && (
-          <div className="bg-green-50 border border-green-200 p-4 mb-6">
-            <p className="text-green-800 font-medium">
-              Total Imported: {totalImported} images
-            </p>
+        {/* Stats */}
+        <div className="grid grid-cols-4 gap-4 mb-6">
+          <div className="bg-white border border-charcoal/10 p-4 text-center">
+            <p className="text-3xl font-medium text-green-600">{doneCount}</p>
+            <p className="text-xs uppercase tracking-wider text-charcoal/50">Imported</p>
           </div>
-        )}
+          <div className="bg-white border border-charcoal/10 p-4 text-center">
+            <p className="text-3xl font-medium text-charcoal/40">{skippedCount}</p>
+            <p className="text-xs uppercase tracking-wider text-charcoal/50">Skipped</p>
+          </div>
+          <div className="bg-white border border-charcoal/10 p-4 text-center">
+            <p className="text-3xl font-medium text-red-600">{failedCount}</p>
+            <p className="text-xs uppercase tracking-wider text-charcoal/50">Failed</p>
+          </div>
+          <div className="bg-white border border-charcoal/10 p-4 text-center">
+            <p className="text-3xl font-medium text-charcoal">{pendingCount}</p>
+            <p className="text-xs uppercase tracking-wider text-charcoal/50">Pending</p>
+          </div>
+        </div>
 
-        {results.map((result, i) => (
-          <div key={i} className="bg-white p-4 border border-charcoal/10 mb-4">
-            {result.error ? (
-              <p className="text-red-600">{result.error}</p>
-            ) : (
-              <>
-                <div className="grid grid-cols-4 gap-4 text-sm mb-4">
-                  <div>
-                    <p className="text-charcoal/50">Imported</p>
-                    <p className="text-xl font-medium text-green-600">{result.summary?.imported}</p>
-                  </div>
-                  <div>
-                    <p className="text-charcoal/50">Skipped (has image)</p>
-                    <p className="text-xl font-medium text-charcoal/40">{result.summary?.skipped}</p>
-                  </div>
-                  <div>
-                    <p className="text-charcoal/50">No DB Match</p>
-                    <p className="text-xl font-medium text-amber-600">{result.summary?.noMatch}</p>
-                  </div>
-                  <div>
-                    <p className="text-charcoal/50">Failed</p>
-                    <p className="text-xl font-medium text-red-600">{result.summary?.failed}</p>
-                  </div>
+        {/* Product List */}
+        <div className="bg-white border border-charcoal/10">
+          <div className="max-h-[500px] overflow-y-auto">
+            {statuses.map((s, i) => (
+              <div 
+                key={i}
+                className={`flex items-center justify-between px-4 py-3 border-b border-charcoal/5 ${
+                  s.status === 'importing' ? 'bg-amber-50' : ''
+                }`}
+              >
+                <div className="flex items-center gap-3">
+                  <span className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${
+                    s.status === 'done' ? 'bg-green-100 text-green-700' :
+                    s.status === 'failed' ? 'bg-red-100 text-red-700' :
+                    s.status === 'skipped' ? 'bg-charcoal/10 text-charcoal/40' :
+                    s.status === 'importing' ? 'bg-amber-100 text-amber-700 animate-pulse' :
+                    'bg-charcoal/5 text-charcoal/30'
+                  }`}>
+                    {s.status === 'done' ? '✓' : 
+                     s.status === 'failed' ? '✗' : 
+                     s.status === 'skipped' ? '○' :
+                     s.status === 'importing' ? '...' : 
+                     i + 1}
+                  </span>
+                  <span className={`text-sm ${
+                    s.status === 'done' ? 'text-green-700' :
+                    s.status === 'failed' ? 'text-red-700' :
+                    s.status === 'skipped' ? 'text-charcoal/40' :
+                    'text-charcoal'
+                  }`}>
+                    {s.name}
+                  </span>
                 </div>
-                
-                {result.results && result.results.length > 0 && (
-                  <details className="text-sm">
-                    <summary className="cursor-pointer text-charcoal/60 hover:text-charcoal">
-                      Show {result.results.length} results
-                    </summary>
-                    <div className="mt-2 max-h-60 overflow-y-auto">
-                      {result.results.map((r, j) => (
-                        <div 
-                          key={j} 
-                          className={`py-1 ${
-                            r.status === 'imported' ? 'text-green-700' : 
-                            r.status === 'skipped' ? 'text-charcoal/40' :
-                            r.status === 'no_match' ? 'text-amber-600' :
-                            'text-red-700'
-                          }`}
-                        >
-                          {r.status === 'imported' ? '✓' : r.status === 'skipped' ? '○' : r.status === 'no_match' ? '?' : '✗'} 
-                          {' '}{r.inventoryName}
-                          {r.dbName && ` → ${r.dbName}`}
-                          {r.error && <span className="text-red-500 text-xs ml-2">({r.error})</span>}
-                        </div>
-                      ))}
-                    </div>
-                  </details>
-                )}
-              </>
-            )}
+                <div className="text-xs text-charcoal/50">
+                  {s.dbMatch && <span className="text-green-600">→ {s.dbMatch}</span>}
+                  {s.error && <span className="text-red-500">{s.error}</span>}
+                </div>
+              </div>
+            ))}
           </div>
-        ))}
+        </div>
       </div>
     </div>
   )
