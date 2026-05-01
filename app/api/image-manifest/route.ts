@@ -338,11 +338,52 @@ function matchTableware(
   return { file: null, confidence: 0, method: 'no_match' }
 }
 
-// Main matching dispatcher
-function findBestMatch(
-  product: { id: string; name: string; category: string; item_root: string; item_type: string | null },
+// PRIORITY 1: CSV filename match (source_image_filename from import)
+function matchCsvFilename(
+  csvFilename: string | null | undefined,
   files: FileRecord[]
 ): { file: FileRecord | null; confidence: number; method: string } {
+  if (!csvFilename) {
+    return { file: null, confidence: 0, method: 'no_csv_filename' }
+  }
+  
+  // Normalize CSV filename
+  const normalized = csvFilename.toLowerCase().replace(/\.png$/i, '').trim()
+  
+  // Exact filename match
+  for (const file of files) {
+    const fileNormalized = file.filename.toLowerCase().replace(/\.png$/i, '').trim()
+    if (fileNormalized === normalized) {
+      return { file, confidence: 1.0, method: 'csv_exact_match' }
+    }
+  }
+  
+  // Filename stem match (ignoring folder structure)
+  for (const file of files) {
+    const fileNormalized = file.filename_stem.toLowerCase().trim()
+    if (fileNormalized === normalized) {
+      return { file, confidence: 0.98, method: 'csv_stem_match' }
+    }
+  }
+  
+  return { file: null, confidence: 0, method: 'csv_no_match' }
+}
+
+// Main matching dispatcher
+function findBestMatch(
+  product: { id: string; name: string; category: string; item_root: string; item_type: string | null; csvFilename?: string | null },
+  files: FileRecord[]
+): { file: FileRecord | null; confidence: number; method: string } {
+  
+  // PRIORITY 1: CSV filename from original import
+  if (product.csvFilename) {
+    const csvMatch = matchCsvFilename(product.csvFilename, files)
+    if (csvMatch.file) {
+      return csvMatch
+    }
+  }
+  
+  // PRIORITY 2: Category-specific heuristic matching
   
   // SOFT GOODS: Use full stem matching
   if (SOFT_GOODS_CATEGORIES.includes(product.category)) {
@@ -366,10 +407,13 @@ function findBestMatch(
 export async function GET() {
   const supabase = await createClient()
   
-  // Fetch all active products
+  // Fetch all active products with their variant source_image_filename
   const { data: products, error: prodError } = await supabase
     .from('products')
-    .select('id, name, category, item_root, item_type')
+    .select(`
+      id, name, category, item_root, item_type,
+      product_variants!product_variants_product_id_fkey (source_image_filename)
+    `)
     .eq('is_active', true)
   
   if (prodError) {
@@ -417,7 +461,14 @@ export async function GET() {
   const preliminaryMatches: { product: typeof products[0]; file: FileRecord | null; confidence: number; method: string }[] = []
   
   for (const product of products || []) {
-    const { file, confidence, method } = findBestMatch(product, fileRecords)
+    // Extract CSV filename from variant (if exists)
+    const variants = (product as unknown as { product_variants?: { source_image_filename: string | null }[] }).product_variants
+    const csvFilename = variants?.[0]?.source_image_filename || null
+    
+    const { file, confidence, method } = findBestMatch(
+      { ...product, csvFilename },
+      fileRecords
+    )
     preliminaryMatches.push({ product, file, confidence, method })
     
     if (file) {

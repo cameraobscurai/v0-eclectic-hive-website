@@ -2,7 +2,7 @@ import { type NextRequest, NextResponse } from 'next/server'
 import sharp from 'sharp'
 import { createClient } from '@/lib/supabase/server'
 import { createAdminClient } from '@/lib/supabase/admin'
-import { sanitizeFilename, escapeIlike } from '@/lib/utils'
+import { sanitizeFilename } from '@/lib/utils'
 
 // ============================================================================
 // SECURITY: Category Allowlist
@@ -112,7 +112,6 @@ export async function POST(request: NextRequest) {
     }
 
     const supabaseAdmin = createAdminClient()
-    const supabase = await createClient()
     const results = []
 
     for (const file of files) {
@@ -140,36 +139,17 @@ export async function POST(request: NextRequest) {
           .from('inventory')
           .getPublicUrl(storagePath)
 
-        const searchName = file.name
-          .replace(/\.[^.]+$/, '')
-          .replace(/[-_]/g, ' ')
-
-        const safeSearchName  = escapeIlike(searchName)
-        const { data: matchedProducts } = await supabase
-          .from('products')
-          .select('id, name')
-          .ilike('name', `%${safeSearchName}%`)
-          .limit(1)
-
-        let dbUpdated = false
-        if (matchedProducts && matchedProducts.length > 0) {
-          const { error: updateError } = await supabase
-            .from('products')
-            .update({
-              primary_image_url: publicUrl,
-              updated_at:        new Date().toISOString(),
-            })
-            .eq('id', matchedProducts[0].id)
-          dbUpdated = !updateError
-        }
+        // DO NOT auto-match to products - this is dangerous and causes wrong assignments
+        // Image-to-product matching is handled exclusively by the /api/image-manifest endpoint
+        // which audits for conflicts before applying any changes
 
         results.push({
           name:           file.name,
           url:            publicUrl,
           pathname:       uploadData.path,
           success:        true,
-          dbUpdated,
-          matchedProduct: matchedProducts?.[0]?.name || null,
+          dbUpdated:      false, // Never auto-update DB - manifest handles this
+          matchedProduct: null,  // Never auto-match - manifest handles this
         })
       } catch (err) {
         console.error(`[upload-inventory] Failed: ${file.name}`, err)
