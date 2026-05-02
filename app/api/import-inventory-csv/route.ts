@@ -10,6 +10,8 @@ function slugify(text: string): string {
     .replace(/(^-|-$)/g, '')
 }
 
+// Map Product Group to CANONICAL category keys (lowercase, stable)
+// Frontend maps these to display labels - never store display labels in DB
 function mapCategory(productGroup: string): string {
   const raw = (productGroup || '').toLowerCase().trim()
   const map: Record<string, string> = {
@@ -18,6 +20,9 @@ function mapCategory(productGroup: string): string {
     'tables': 'tables',
     'large-decor': 'large-decor',
     'large decor': 'large-decor',
+    'large decor & dividers': 'large-decor',
+    'small-decor': 'styling',
+    'small decor': 'styling',
     'lighting': 'lighting',
     'rugs': 'rugs',
     'pillows': 'pillows',
@@ -27,8 +32,12 @@ function mapCategory(productGroup: string): string {
     'serveware': 'serveware',
     'storage': 'storage',
     'styling': 'styling',
-    'furs-and-pelts': 'furs-and-pelts',
     'throws': 'throws',
+    'furs-and-pelts': 'furs-pelts',
+    'furs and pelts': 'furs-pelts',
+    'furs & pelts': 'furs-pelts',
+    'chandeliers': 'chandeliers',
+    'subrentals': 'subrentals',
   }
   return map[raw] || 'styling'
 }
@@ -99,38 +108,32 @@ export async function POST(request: NextRequest) {
       
       const category = mapCategory(productGroup)
       const slug = slugify(name)
-      // Store as relative path - the app constructs full Supabase URL when displaying
-      const imageUrl = imageFilename ? `inventory/${imageFilename}` : null
+      // DO NOT write primary_image_url directly - store CSV filename for manifest-based matching
+      // The image-manifest endpoint will resolve and apply images after audit
       
       try {
         // Check if product exists
         const { data: existing } = await supabase
           .from('products')
-          .select('id, primary_image_url')
+          .select('id')
           .eq('slug', slug)
           .single()
         
         let productId: string
-        let didLinkImage = false
         
         if (existing) {
           productId = existing.id
           
-          // Update image if needed
-          if (imageUrl && !existing.primary_image_url) {
-            await supabase
-              .from('products')
-              .update({ primary_image_url: imageUrl, category })
-              .eq('id', productId)
-            
-            imagesLinked++
-            didLinkImage = true
-          }
+          // Update category only, NOT image
+          await supabase
+            .from('products')
+            .update({ category })
+            .eq('id', productId)
           
           updated++
-          results.push({ name, status: 'updated', imageLinked: didLinkImage })
+          results.push({ name, status: 'updated', imageLinked: false })
         } else {
-          // Create new product
+          // Create new product WITHOUT image - manifest will handle images
           const { data: product, error: productError } = await supabase
             .from('products')
             .insert({
@@ -139,7 +142,7 @@ export async function POST(request: NextRequest) {
               category,
               display_type: 'single',
               is_active: true,
-              primary_image_url: imageUrl,
+              // primary_image_url intentionally NOT set - manifest handles this
             })
             .select()
             .single()
@@ -151,14 +154,10 @@ export async function POST(request: NextRequest) {
           
           productId = product.id
           created++
-          if (imageUrl) {
-            imagesLinked++
-            didLinkImage = true
-          }
-          results.push({ name, status: 'created', imageLinked: didLinkImage })
+          results.push({ name, status: 'created', imageLinked: false })
         }
         
-        // Create/update variant
+        // Create/update variant with source_image_filename for manifest matching
         if (rmsId) {
           await supabase
             .from('product_variants')
@@ -171,6 +170,7 @@ export async function POST(request: NextRequest) {
               dims_display: dims,
               original_name: name,
               is_active: true,
+              source_image_filename: imageFilename || null, // Store CSV filename for manifest
             }, { onConflict: 'rms_id' })
         }
       } catch (err) {
